@@ -6,234 +6,550 @@
     <title>СИНДИКАТ</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'VT323', monospace; background: #000; color: #ff1744; height: 100vh; width: 100vw; overflow: hidden; transition: background 0.5s, color 0.5s; }
-        body.theme-dark { background: #000; color: #ff1744; }
-        body.theme-red { background: #1a0000; color: #ff4444; }
-        #theme-toggle { position: fixed; top: 20px; right: 20px; z-index: 1000; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.2rem; padding: 10px 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); }
-        #theme-toggle:hover { background: #ff1744; color: #000; }
-        #loader-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10; width: 90%; max-width: 600px; display: none; }
-        .title { font-size: 3.5rem; text-shadow: 0 0 10px #ff1744, 0 0 20px #8b0000; margin-bottom: 2rem; letter-spacing: 4px; text-transform: uppercase; animation: flicker 1.5s infinite alternate; }
-        .progress-bar-bg { width: 100%; height: 30px; background: #1a0000; border: 2px solid #ff1744; position: relative; overflow: hidden; box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); }
-        .progress-fill { height: 100%; width: 0%; background: #ff1744; box-shadow: 0 0 20px #ff1744; transition: width 0.1s linear; }
-        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #000; font-weight: bold; font-size: 1.2rem; z-index: 5; }
-        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 100; background: rgba(0,0,0,0.9); }
-        #start-btn { background: transparent; color: #ff1744; font-family: 'VT323', monospace; font-size: 2.5rem; border: 3px solid #ff1744; padding: 20px 50px; cursor: pointer; text-transform: uppercase; letter-spacing: 4px; box-shadow: 0 0 20px rgba(255, 23, 68, 0.3); transition: 0.3s; text-shadow: 0 0 10px #ff1744; }
-        #start-btn:hover { background: #ff1744; color: #000; box-shadow: 0 0 40px #ff1744; transform: scale(1.05); }
-        #login-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10; width: 90%; max-width: 500px; display: none; }
-        .login-box { border: 2px solid #ff1744; padding: 30px; box-shadow: 0 0 30px rgba(255, 23, 68, 0.3); background: rgba(0,0,0,0.8); }
-        .login-title { font-size: 2rem; margin-bottom: 25px; text-shadow: 0 0 10px #ff1744; letter-spacing: 3px; }
-        .login-input { width: 100%; padding: 12px; margin: 10px 0; background: #1a0000; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.3rem; outline: none; letter-spacing: 2px; }
-        .login-input:focus { box-shadow: 0 0 20px rgba(255, 23, 68, 0.5); }
-        .login-btn { width: 100%; padding: 12px; margin-top: 15px; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; letter-spacing: 3px; transition: 0.3s; }
-        .login-btn:hover { background: #ff1744; color: #000; box-shadow: 0 0 30px #ff1744; }
-        .login-error { color: #ff0000; margin-top: 15px; font-size: 1.2rem; text-shadow: 0 0 5px #ff0000; min-height: 25px; }
-        .register-link { margin-top: 20px; font-size: 1.1rem; color: #8b0000; cursor: pointer; transition: 0.3s; }
-        .register-link:hover { color: #ff1744; text-shadow: 0 0 10px #ff1744; }
-        #dashboard { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 800px; z-index: 10; display: none; }
-        .bios-header { border: 2px solid #ff1744; padding: 15px; margin-bottom: 20px; background: rgba(0,0,0,0.8); box-shadow: 0 0 20px rgba(255, 23, 68, 0.3); }
-        .bios-title { font-size: 2rem; text-align: center; border-bottom: 1px solid #ff1744; padding-bottom: 10px; margin-bottom: 10px; }
-        .agent-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 1.2rem; }
-        .info-label { color: #8b0000; }
-        .info-value { color: #ff1744; text-shadow: 0 0 5px #ff1744; }
-        .rank-bar { width: 100%; height: 20px; background: #1a0000; border: 1px solid #ff1744; margin-top: 5px; }
-        .rank-fill { height: 100%; background: #ff1744; box-shadow: 0 0 10px #ff1744; transition: width 0.5s; }
-        .bios-menu { border: 2px solid #ff1744; padding: 20px; background: rgba(0,0,0,0.8); box-shadow: 0 0 20px rgba(255, 23, 68, 0.3); }
-        .menu-item { padding: 12px; margin: 8px 0; border: 1px solid #ff1744; cursor: pointer; transition: 0.3s; font-size: 1.3rem; display: flex; justify-content: space-between; align-items: center; }
-        .menu-item:hover { background: #ff1744; color: #000; box-shadow: 0 0 20px #ff1744; }
-        .menu-key { color: #8b0000; font-size: 1rem; }
-        #guides-screen, #achievements-screen, #agents-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 800px; z-index: 10; display: none; max-height: 80vh; overflow-y: auto; }
-        #agents-screen { max-width: 900px; }
-        .guide-card { border: 2px solid #ff1744; padding: 20px; margin: 15px 0; background: rgba(0,0,0,0.8); box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); transition: 0.3s; cursor: pointer; }
-        .guide-card:hover { box-shadow: 0 0 30px rgba(255, 23, 68, 0.6); transform: translateX(5px); }
-        .guide-title { font-size: 1.8rem; border-bottom: 1px solid #ff1744; padding-bottom: 10px; margin-bottom: 10px; }
-        .guide-content { font-size: 1.1rem; color: #cc0000; line-height: 1.6; display: none; }
-        .guide-content.active { display: block; animation: typeIn 0.5s steps(30); }
-        #terminal-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 800px; z-index: 10; display: none; }
-        .terminal { border: 2px solid #ff1744; padding: 20px; background: rgba(0,0,0,0.9); box-shadow: 0 0 30px rgba(255, 23, 68, 0.4); min-height: 400px; max-height: 70vh; overflow-y: auto; }
-        .terminal-output { font-size: 1.2rem; line-height: 1.6; color: #ff1744; margin-bottom: 15px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: none; }
+        
+        body {
+            font-family: 'VT323', monospace;
+            background: #0a0a0a;
+            color: #00ff41;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* Кастомный курсор */
+        .custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff41;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s;
+            box-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+        }
+        .custom-cursor-dot {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #00ff41;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 5px #00ff41;
+        }
+
+        /* Матричный дождь */
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        /* Логотип на старте */
+        .logo-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            background: #000;
+            animation: logoFade 0.5s 2s forwards;
+        }
+        .logo-ascii {
+            color: #00ff41;
+            font-size: 0.6rem;
+            line-height: 1;
+            text-shadow: 0 0 20px #00ff41;
+            animation: logoGlow 2s;
+            white-space: pre;
+            text-align: center;
+        }
+        @keyframes logoFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        @keyframes logoGlow {
+            0% { text-shadow: 0 0 5px #00ff41; }
+            50% { text-shadow: 0 0 40px #00ff41, 0 0 80px #00ff41; }
+            100% { text-shadow: 0 0 20px #00ff41; }
+        }
+
+        /* Экран помех */
+        .glitch-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            background: repeating-linear-gradient(0deg, #000 0px, #0a0a0a 2px, #000 4px);
+            animation: none;
+        }
+        .glitch-transition.active {
+            animation: glitchScreen 0.3s;
+        }
+        @keyframes glitchScreen {
+            0% { opacity: 0; transform: translate(0); }
+            20% { opacity: 1; transform: translate(-10px, 5px); }
+            40% { opacity: 0.8; transform: translate(10px, -5px); }
+            60% { opacity: 1; transform: translate(-5px, 10px); }
+            80% { opacity: 0.5; transform: translate(5px, -10px); }
+            100% { opacity: 0; transform: translate(0); }
+        }
+
+        /* Неоновые стили */
+        .neon-text {
+            text-shadow: 0 0 7px #00ff41, 0 0 10px #00ff41, 0 0 21px #00ff41, 0 0 42px #0fa, 0 0 82px #0fa;
+        }
+        .neon-box {
+            box-shadow: 0 0 10px #00ff41, inset 0 0 10px rgba(0,255,65,0.1);
+            border-color: #00ff41 !important;
+        }
+
+        #theme-toggle {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            background: transparent; border: 2px solid #00ff41; color: #00ff41;
+            font-family: 'VT323', monospace; font-size: 1.2rem; padding: 10px 20px;
+            cursor: none; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.3s; box-shadow: 0 0 15px rgba(0,255,65,0.3);
+        }
+        #theme-toggle:hover { background: #00ff41; color: #000; }
+
+        #loader-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 10; width: 90%; max-width: 600px; display: none;
+        }
+
+        .title {
+            font-size: 3.5rem; margin-bottom: 2rem; letter-spacing: 4px;
+            text-transform: uppercase; animation: neonFlicker 1.5s infinite alternate;
+        }
+        @keyframes neonFlicker {
+            0% { text-shadow: 0 0 7px #00ff41, 0 0 10px #00ff41, 0 0 21px #00ff41; }
+            50% { text-shadow: 0 0 4px #00ff41, 0 0 7px #00ff41, 0 0 13px #00ff41; }
+            100% { text-shadow: 0 0 10px #00ff41, 0 0 21px #00ff41, 0 0 42px #0fa; }
+        }
+
+        .progress-bar-bg {
+            width: 100%; height: 30px; background: #0a1a0a;
+            border: 2px solid #00ff41; position: relative; overflow: hidden;
+            box-shadow: 0 0 15px rgba(0,255,65,0.3);
+        }
+        .progress-fill {
+            height: 100%; width: 0%; background: #00ff41;
+            box-shadow: 0 0 20px #00ff41; transition: width 0.1s linear;
+        }
+        .progress-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #000; font-weight: bold; font-size: 1.2rem; z-index: 5;
+        }
+
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100; background: rgba(0,0,0,0.95);
+        }
+        #start-btn {
+            background: transparent; color: #00ff41; font-family: 'VT323', monospace;
+            font-size: 2.5rem; border: 3px solid #00ff41; padding: 20px 50px;
+            cursor: none; text-transform: uppercase; letter-spacing: 4px;
+            box-shadow: 0 0 20px rgba(0,255,65,0.3); transition: 0.3s;
+        }
+        #start-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 40px #00ff41; transform: scale(1.05); }
+
+        #login-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; z-index: 10; width: 90%; max-width: 500px; display: none;
+        }
+        .login-box {
+            border: 2px solid #00ff41; padding: 30px;
+            box-shadow: 0 0 30px rgba(0,255,65,0.3); background: rgba(0,0,0,0.9);
+        }
+        .login-title { font-size: 2rem; margin-bottom: 25px; letter-spacing: 3px; }
+        .login-input {
+            width: 100%; padding: 12px; margin: 10px 0; background: #0a1a0a;
+            border: 2px solid #00ff41; color: #00ff41; font-family: 'VT323', monospace;
+            font-size: 1.3rem; outline: none; letter-spacing: 2px;
+        }
+        .login-input:focus { box-shadow: 0 0 20px rgba(0,255,65,0.5); }
+        .login-btn {
+            width: 100%; padding: 12px; margin-top: 15px; background: transparent;
+            border: 2px solid #00ff41; color: #00ff41; font-family: 'VT323', monospace;
+            font-size: 1.5rem; cursor: none; text-transform: uppercase;
+            letter-spacing: 3px; transition: 0.3s;
+        }
+        .login-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 30px #00ff41; }
+
+        #dashboard {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 900px; z-index: 10; display: none;
+        }
+
+        .agent-card {
+            border: 2px solid #00ff41; padding: 20px; margin-bottom: 20px;
+            background: rgba(0,0,0,0.9); box-shadow: 0 0 20px rgba(0,255,65,0.3);
+            display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+        }
+        .agent-avatar {
+            width: 80px; height: 80px; border: 2px solid #00ff41;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; box-shadow: 0 0 15px rgba(0,255,65,0.3);
+        }
+        .agent-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .stat-item { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #0a1a0a; }
+        .stat-label { color: #008f2a; }
+        .stat-value { color: #00ff41; }
+
+        .rep-bar {
+            width: 100%; height: 15px; background: #0a1a0a;
+            border: 1px solid #00ff41; margin-top: 5px; grid-column: 1 / -1;
+        }
+        .rep-fill {
+            height: 100%; background: #00ff41;
+            box-shadow: 0 0 10px #00ff41; transition: width 0.5s;
+        }
+
+        .menu-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            border: 2px solid #00ff41; padding: 15px;
+            background: rgba(0,0,0,0.9); box-shadow: 0 0 20px rgba(0,255,65,0.3);
+        }
+        .menu-item {
+            padding: 12px; border: 1px solid #00ff41; cursor: none;
+            transition: 0.3s; font-size: 1.2rem; text-align: center;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .menu-item:hover { background: #00ff41; color: #000; box-shadow: 0 0 20px #00ff41; }
+
+        /* Экраны */
+        #guides-screen, #achievements-screen, #agents-screen, #shop-screen, #chat-screen, #clans-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; max-width: 800px; z-index: 10; display: none;
+            max-height: 80vh; overflow-y: auto;
+        }
+
+        .screen-box {
+            border: 2px solid #00ff41; padding: 20px;
+            background: rgba(0,0,0,0.95); box-shadow: 0 0 30px rgba(0,255,65,0.4);
+        }
+
+        .back-btn {
+            background: transparent; border: 2px solid #00ff41; color: #00ff41;
+            font-family: 'VT323', monospace; font-size: 1.2rem; padding: 10px 25px;
+            cursor: none; margin-bottom: 20px; transition: 0.3s; text-transform: uppercase;
+        }
+        .back-btn:hover { background: #00ff41; color: #000; box-shadow: 0 0 20px #00ff41; }
+
+        /* Чат */
+        .chat-messages {
+            min-height: 300px; max-height: 400px; overflow-y: auto;
+            border: 1px solid #0a1a0a; padding: 10px; margin: 10px 0;
+        }
+        .chat-msg {
+            padding: 8px; margin: 5px 0; border-bottom: 1px solid #0a1a0a;
+        }
+        .chat-msg .author { color: #0fa; font-weight: bold; }
+        .chat-msg .time { color: #008f2a; font-size: 0.8rem; }
+        .chat-input-row { display: flex; gap: 10px; }
+        .chat-input {
+            flex: 1; padding: 10px; background: #0a1a0a;
+            border: 2px solid #00ff41; color: #00ff41;
+            font-family: 'VT323', monospace; font-size: 1.1rem; outline: none;
+        }
+
+        /* Терминал */
+        #terminal-screen { max-width: 900px; }
+        .terminal {
+            border: 2px solid #00ff41; padding: 20px; background: rgba(0,0,0,0.95);
+            box-shadow: 0 0 30px rgba(0,255,65,0.4); min-height: 400px;
+            max-height: 70vh; overflow-y: auto;
+        }
+        .terminal-output { font-size: 1.2rem; line-height: 1.6; color: #00ff41; margin-bottom: 15px; }
         .terminal-input-line { display: flex; align-items: center; gap: 10px; }
-        .terminal-prompt { color: #ff1744; font-size: 1.3rem; }
-        #terminal-input { flex: 1; background: transparent; border: none; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.3rem; outline: none; caret-color: #ff1744; }
+        .terminal-prompt { color: #00ff41; font-size: 1.3rem; }
+        #terminal-input {
+            flex: 1; background: transparent; border: none; color: #00ff41;
+            font-family: 'VT323', monospace; font-size: 1.3rem; outline: none;
+        }
         .terminal-line { margin: 5px 0; }
-        .terminal-error { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
-        .achievement-card { border: 2px solid #ff1744; padding: 15px; margin: 10px 0; background: rgba(0,0,0,0.8); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .achievement-card.locked { opacity: 0.5; border-color: #4a0000; }
-        .achievement-card.unlocked { box-shadow: 0 0 20px rgba(255, 23, 68, 0.5); }
-        .achievement-name { font-size: 1.3rem; }
-        .achievement-status { font-size: 1.5rem; }
-        .agents-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-        .agents-actions { display: flex; gap: 10px; }
-        .action-btn { background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1rem; padding: 8px 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; }
-        .action-btn:hover { background: #ff1744; color: #000; box-shadow: 0 0 15px #ff1744; }
-        .agent-table-header { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr; padding: 10px; background: rgba(255, 23, 68, 0.1); border: 1px solid #ff1744; font-size: 1rem; color: #ff1744; text-transform: uppercase; letter-spacing: 1px; }
-        .agent-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr; padding: 10px; border: 1px solid #ff1744; font-size: 1.1rem; transition: 0.3s; cursor: pointer; align-items: center; }
-        .agent-row:hover { background: rgba(255, 23, 68, 0.1); box-shadow: 0 0 15px rgba(255, 23, 68, 0.3); }
-        .agent-row.admin-row { border-color: #ffd700; background: rgba(255, 215, 0, 0.05); }
-        .agent-row.admin-row:hover { background: rgba(255, 215, 0, 0.15); box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
-        .agent-cell { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .agent-cell.name { color: #ff1744; font-weight: bold; }
-        .agent-cell.rank { color: #cc0000; }
-        .agent-cell.ops { color: #00ff00; text-align: center; }
-        .agent-cell.ach { color: #ffd700; text-align: center; }
-        .agent-cell.status { text-align: center; font-size: 0.9rem; }
-        .status-online { color: #00ff00; text-shadow: 0 0 5px #00ff00; }
-        .status-offline { color: #4a0000; }
-        .agents-total { text-align: center; margin-top: 20px; padding: 15px; border: 2px solid #ff1744; background: rgba(0,0,0,0.8); font-size: 1.3rem; color: #ff1744; text-shadow: 0 0 10px #ff1744; }
-        .agent-detail-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000; border: 3px solid #ff1744; padding: 25px; z-index: 1000; box-shadow: 0 0 40px rgba(255, 23, 68, 0.6); font-family: 'VT323', monospace; color: #ff1744; min-width: 350px; animation: typeIn 0.3s; }
-        .agent-detail-popup .close-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.2rem; cursor: pointer; padding: 5px 10px; transition: 0.3s; }
-        .agent-detail-popup .close-btn:hover { background: #ff1744; color: #000; }
-        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #2a0000; font-size: 1.1rem; }
-        .detail-label { color: #8b0000; }
-        .detail-value { color: #ff1744; text-shadow: 0 0 5px #ff1744; }
-        .detail-achievements { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; }
-        .detail-ach { font-size: 1.5rem; opacity: 0.3; }
-        .detail-ach.unlocked { opacity: 1; text-shadow: 0 0 10px currentColor; }
-        .social-section { margin-top: 20px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; }
-        .social-btn { display: flex; align-items: center; gap: 8px; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1rem; padding: 10px 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; text-decoration: none; }
-        .social-btn:hover { background: #ff1744; color: #000; box-shadow: 0 0 25px #ff1744; }
-        .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
-        .glitch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px); opacity: 0.5; animation: scanline-move 4s linear infinite; }
-        #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        .scratch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; opacity: 0; transition: opacity 0.1s; background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255, 23, 68, 0.05) 2px, rgba(255, 23, 68, 0.05) 4px), repeating-linear-gradient(-45deg, transparent, transparent 1px, rgba(0, 0, 0, 0.1) 1px, rgba(0, 0, 0, 0.1) 3px); }
-        .scratch-line { position: fixed; pointer-events: none; z-index: 24; background: rgba(255, 23, 68, 0.08); animation: scratchFade 0.3s forwards; }
-        @keyframes scratchFade { 0% { opacity: 0.3; } 100% { opacity: 0; } }
-        .back-btn { background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.2rem; padding: 10px 25px; cursor: pointer; margin-bottom: 20px; transition: 0.3s; text-transform: uppercase; }
-        .back-btn:hover { background: #ff1744; color: #000; box-shadow: 0 0 20px #ff1744; }
-        .welcome-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 30; background: rgba(0,0,0,0.95); animation: welcomeFade 2s forwards; }
-        .welcome-text { font-size: 3rem; text-align: center; text-shadow: 0 0 20px #ff1744, 0 0 40px #8b0000; animation: welcomeGlitch 2s; }
+        .terminal-error { color: #ff0040; }
+
+        /* Медали */
+        .medals-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .medal {
+            font-size: 2rem; opacity: 0.3; transition: 0.3s;
+        }
+        .medal.unlocked { opacity: 1; text-shadow: 0 0 10px currentColor; }
+
+        /* Магазин */
+        .shop-item {
+            border: 1px solid #00ff41; padding: 15px; margin: 10px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .shop-item .price { color: #ffd700; }
+        .shop-closed {
+            text-align: center; font-size: 2rem; padding: 50px;
+            color: #008f2a; text-shadow: 0 0 20px #008f2a;
+        }
+
+        /* Достижения */
+        .achievement-card {
+            border: 1px solid #00ff41; padding: 12px; margin: 8px 0;
+            background: rgba(0,0,0,0.8); display: flex; justify-content: space-between;
+            align-items: center; transition: 0.3s;
+        }
+        .achievement-card.locked { opacity: 0.4; border-color: #0a1a0a; }
+        .achievement-card.unlocked { box-shadow: 0 0 15px rgba(0,255,65,0.4); }
+
+        /* Список агентов */
+        .agent-table-header {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 10px; background: rgba(0,255,65,0.1);
+            border: 1px solid #00ff41; font-size: 1rem; text-transform: uppercase;
+        }
+        .agent-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            padding: 10px; border: 1px solid #00ff41; font-size: 1rem;
+            cursor: none; transition: 0.3s;
+        }
+        .agent-row:hover { background: rgba(0,255,65,0.1); }
+
+        .welcome-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; z-index: 30;
+            background: rgba(0,0,0,0.95); animation: welcomeFade 2s forwards;
+        }
+        .welcome-text {
+            font-size: 3rem; text-align: center; text-shadow: 0 0 20px #00ff41;
+            animation: neonFlicker 2s;
+        }
         @keyframes welcomeFade { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
-        @keyframes welcomeGlitch { 0% { transform: translate(0); } 20% { transform: translate(-5px, 3px); } 40% { transform: translate(5px, -3px); } 60% { transform: translate(-3px, 5px); } 80% { transform: translate(3px, -5px); } 100% { transform: translate(0); } }
-        @keyframes flicker { 0% { opacity: 1; text-shadow: 0 0 10px #ff1744, 0 0 20px #8b0000; } 50% { opacity: 0.8; text-shadow: 0 0 5px #ff1744, 0 0 10px #8b0000; } 100% { opacity: 1; text-shadow: 0 0 20px #ff1744, 0 0 40px #8b0000; } }
-        @keyframes scanline-move { 0% { background-position: 0 0; } 100% { background-position: 0 10px; } }
-        @keyframes text-glitch { 0%, 90%, 100% { transform: translate(0, 0); } 92% { transform: translate(-3px, 2px); } 94% { transform: translate(3px, -1px); } 96% { transform: translate(-2px, 1px); } 98% { transform: translate(2px, -2px); } }
-        @keyframes typeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .glitch-text { animation: text-glitch 4s infinite; }
-        ::-webkit-scrollbar { display: none; }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        * { scrollbar-width: none; }
+
         @media (max-width: 600px) {
             .title { font-size: 2.5rem; }
-            #start-btn { font-size: 1.8rem; padding: 15px 30px; }
-            .login-title { font-size: 1.5rem; }
-            .agent-info { grid-template-columns: 1fr; }
-            .menu-item { font-size: 1.1rem; }
-            .welcome-text { font-size: 2rem; }
-            .agent-table-header, .agent-row { grid-template-columns: 1.5fr 1fr 1fr; font-size: 0.9rem; }
-            .agent-cell.ach, .agent-cell.status { display: none; }
+            .agent-card { grid-template-columns: 1fr; text-align: center; }
+            .menu-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <canvas id="particles-canvas"></canvas>
-    <div class="glitch-overlay"></div>
-    <div class="scratch-overlay" id="scratch-overlay"></div>
-    <button id="theme-toggle">🔴 ТЕМА</button>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="glitch-transition" id="glitch-transition"></div>
+    <div class="custom-cursor" id="cursor"></div>
+    <div class="custom-cursor-dot" id="cursor-dot"></div>
+    
+    <!-- ЛОГОТИП -->
+    <div class="logo-overlay" id="logo-overlay">
+        <pre class="logo-ascii">
+   ▄████████    ▄█    █▄   ▄█  ███▄▄▄▄   ▄█  ███▄▄▄▄      ▄████████ 
+  ███    ███   ███    ███ ███  ███▀▀▀██▄ ███  ███▀▀▀██▄   ███    ███ 
+  ███    █▀    ███    ███ ███▌ ███   ███ ███▌ ███   ███   ███    █▀  
+  ███         ▄███▄▄▄▄███▄▌ ███▌ ███   ███ ███▌ ███   ███  ▄███▄▄▄     
+▀███████████ ▀▀███▀▀▀▀███▀  ███▌ ███   ███ ███▌ ███   ███ ▀▀███▀▀▀     
+         ███   ███    ███   ███  ███   ███ ███  ███   ███   ███        
+   ▄█    ███   ███    ███   ███  ███   ███ ███  ███   ███   ███        
+ ▄████████▀    ███    █▀    █▀    ▀█   █▀  █▀    ▀█   █▀    ███        
+        </pre>
+    </div>
+
+    <button id="theme-toggle">💚 ТЕМА</button>
 
     <div id="start-screen"><button id="start-btn">ЗАПУСТИТЬ СИСТЕМУ</button></div>
 
     <div id="loader-container">
-        <div class="title glitch-text">СИНДИКАТ</div>
+        <div class="title neon-text">СИНДИКАТ</div>
         <div class="progress-bar-bg">
             <div class="progress-fill" id="progress-fill"></div>
             <div class="progress-text" id="progress-text">0%</div>
         </div>
-        <div style="margin-top: 15px; color: #8b0000; font-size: 1.2rem;">ЗАГРУЗКА СИСТЕМЫ...</div>
+        <div style="margin-top:15px;color:#008f2a;font-size:1.2rem;">ЗАГРУЗКА СИСТЕМЫ...</div>
     </div>
 
     <div id="login-screen">
-        <div class="login-box">
-            <div class="login-title">ИДЕНТИФИКАЦИЯ АГЕНТА</div>
+        <div class="login-box neon-box">
+            <div class="login-title neon-text">ИДЕНТИФИКАЦИЯ АГЕНТА</div>
             <input type="text" id="agent-name" class="login-input" placeholder="КОДОВОЕ ИМЯ">
             <input type="password" id="agent-pass" class="login-input" placeholder="КЛЮЧ ДОСТУПА">
             <button class="login-btn" id="login-btn">ВОЙТИ</button>
-            <div class="login-error" id="login-error"></div>
-            <div class="register-link" id="register-link">НОВЫЙ АГЕНТ? ЗАРЕГИСТРИРОВАТЬСЯ</div>
+            <div style="color:#ff0040;margin-top:15px;min-height:25px;" id="login-error"></div>
+            <div style="margin-top:20px;color:#008f2a;cursor:none;" id="register-link">НОВЫЙ АГЕНТ? ЗАРЕГИСТРИРОВАТЬСЯ</div>
         </div>
     </div>
 
     <div id="dashboard">
-        <div class="bios-header">
-            <div class="bios-title">╔══ ПАНЕЛЬ АГЕНТА ══╗</div>
-            <div class="agent-info">
-                <div><span class="info-label">АГЕНТ: </span><span class="info-value" id="d-agent-name">---</span></div>
-                <div><span class="info-label">РАНГ: </span><span class="info-value" id="d-rank">---</span></div>
-                <div><span class="info-label">ОПЕРАЦИЙ: </span><span class="info-value" id="d-ops">0</span></div>
-                <div><span class="info-label">ДОСТИЖЕНИЙ: </span><span class="info-value" id="d-achieve">0/8</span></div>
+        <div class="agent-card neon-box">
+            <div class="agent-avatar" id="agent-avatar">🕶️</div>
+            <div>
+                <div class="agent-stats">
+                    <div class="stat-item"><span class="stat-label">АГЕНТ:</span><span class="stat-value" id="d-name">---</span></div>
+                    <div class="stat-item"><span class="stat-label">РЕПУТАЦИЯ:</span><span class="stat-value" id="d-rep">0</span></div>
+                    <div class="stat-item"><span class="stat-label">СИНДИКОЙНЫ:</span><span class="stat-value">₴<span id="d-coins">0</span></span></div>
+                    <div class="stat-item"><span class="stat-label">ЗВАНИЕ:</span><span class="stat-value" id="d-title">НОВИЧОК</span></div>
+                    <div class="stat-item"><span class="stat-label">ДОСТИЖЕНИЙ:</span><span class="stat-value" id="d-achieve">0/6</span></div>
+                    <div class="stat-item"><span class="stat-label">ВХОДОВ:</span><span class="stat-value" id="d-logins">1</span></div>
+                </div>
+                <div class="rep-bar"><div class="rep-fill" id="rep-fill"></div></div>
+                <div class="medals-row" id="medals-row"></div>
             </div>
-            <div class="rank-bar"><div class="rank-fill" id="rank-fill"></div></div>
         </div>
-        <div class="bios-menu">
-            <div class="menu-item" onclick="openGuides()"><span>[1] ГАЙДЫ</span><span class="menu-key">F1</span></div>
-            <div class="menu-item" onclick="openTerminal()"><span>[2] ТЕРМИНАЛ</span><span class="menu-key">F2</span></div>
-            <div class="menu-item" onclick="openAchievements()"><span>[3] ДОСТИЖЕНИЯ</span><span class="menu-key">F3</span></div>
-            <div class="menu-item" onclick="openAgentList()"><span>[6] СПИСОК АГЕНТОВ</span><span class="menu-key">F6</span></div>
-            <div class="menu-item" onclick="addOperation()"><span>[5] ВЫПОЛНИТЬ ОПЕРАЦИЮ</span><span class="menu-key">F5</span></div>
-            <div class="menu-item" onclick="logout()"><span>[4] ВЫХОД</span><span class="menu-key">ESC</span></div>
-        </div>
-        <div class="social-section">
-            <a href="https://discord.gg/85RbcJ3V" target="_blank" class="social-btn" onclick="visitSocial('discord')">
-                <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.419 0 1.334-.956 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.419 0 1.334-.946 2.419-2.157 2.419z"/></svg>DISCORD
-            </a>
-            <a href="https://www.tiktok.com/@dvihenie_fonarikov" target="_blank" class="social-btn" onclick="visitSocial('tiktok')">
-                <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.65-1.58-1.09a8.36 8.36 0 0 1-.82-1.02v8.16c0 2.96-1.7 5.69-4.34 7.09-2.64 1.4-5.88 1.33-8.47-.17-2.59-1.5-4.19-4.35-4.19-7.42 0-3.25 1.9-6.28 4.88-7.79 1.46-.74 3.12-1.02 4.74-.82.02 1.36-.01 2.72-.01 4.09-1.26-.32-2.62-.08-3.69.63-.85.57-1.44 1.48-1.66 2.5-.22 1.02.09 2.07.75 2.85 1.45 1.71 4.18 1.7 5.61 0 .51-.6.78-1.37.77-2.15L12.54 10c.02-3.32.01-6.6.01-9.9L12.525.02z"/></svg>TIKTOK
-            </a>
+        <div class="menu-grid neon-box">
+            <div class="menu-item" onclick="navigateTo('guides')">📚 ГАЙДЫ</div>
+            <div class="menu-item" onclick="navigateTo('terminal')">💻 ТЕРМИНАЛ</div>
+            <div class="menu-item" onclick="navigateTo('achievements')">🏆 ДОСТИЖЕНИЯ</div>
+            <div class="menu-item" onclick="navigateTo('agents')">👥 АГЕНТЫ</div>
+            <div class="menu-item" onclick="navigateTo('chat')">💬 ЧАТ</div>
+            <div class="menu-item" onclick="navigateTo('clans')">⚔️ ОТРЯДЫ</div>
+            <div class="menu-item" onclick="navigateTo('shop')">🛒 МАГАЗИН</div>
+            <div class="menu-item" onclick="logout()">🚪 ВЫХОД</div>
         </div>
     </div>
 
-    <div id="guides-screen">
+    <!-- ЭКРАНЫ -->
+    <div id="guides-screen"><div class="screen-box neon-box">
         <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
-        <div class="title" style="font-size: 2rem;">ГАЙДЫ</div>
-        <div class="guide-card" onclick="toggleGuide(this)" data-guide="1">
-            <div class="guide-title">╔══ БЕЗОПАСНОСТЬ ══╗</div>
-            <div class="guide-content"><p>🔒 ВСЕГДА ИСПОЛЬЗУЙ VPN</p><p>🔑 ПАРОЛИ НЕ МЕНЕЕ 12 СИМВОЛОВ</p><p>🛡 2FA НА ВСЕХ АККАУНТАХ</p><p>📡 НЕ ПОДКЛЮЧАЙСЯ К ОТКРЫТОМУ WI-FI</p></div>
+        <div class="title neon-text" style="font-size:2rem;">ГАЙДЫ</div>
+        <div style="border:1px solid #00ff41;padding:15px;margin:10px 0;cursor:none;" onclick="toggleGuide(this)" data-guide="1">
+            <div style="font-size:1.5rem;border-bottom:1px solid #0a1a0a;padding-bottom:10px;">╔══ БЕЗОПАСНОСТЬ ══╗</div>
+            <div class="guide-content" style="display:none;color:#008f2a;padding-top:10px;"><p>🔒 VPN</p><p>🔑 ПАРОЛИ 12+</p><p>🛡 2FA</p></div>
         </div>
-        <div class="guide-card" onclick="toggleGuide(this)" data-guide="2">
-            <div class="guide-title">╔══ ПРОДВИЖЕНИЕ ══╗</div>
-            <div class="guide-content"><p>📢 АКТИВНОСТЬ В ЧАТЕ</p><p>🎯 ВЫПОЛНЕНИЕ ЗАДАНИЙ</p><p>👥 ПРИГЛАШЕНИЕ НОВЫХ АГЕНТОВ</p><p>🏆 УЧАСТИЕ В ОПЕРАЦИЯХ</p></div>
+        <div style="border:1px solid #00ff41;padding:15px;margin:10px 0;cursor:none;" onclick="toggleGuide(this)" data-guide="2">
+            <div style="font-size:1.5rem;border-bottom:1px solid #0a1a0a;padding-bottom:10px;">╔══ ТЕРМИНАЛ ══╗</div>
+            <div class="guide-content" style="display:none;color:#008f2a;padding-top:10px;"><p>> HELP</p><p>> STATUS</p><p>> AGENTS</p><p>> CONNECT</p><p>> SCAN</p><p>> ENCRYPT</p></div>
         </div>
-        <div class="guide-card" onclick="toggleGuide(this)" data-guide="3">
-            <div class="guide-title">╔══ КОМАНДЫ ТЕРМИНАЛА ══╗</div>
-            <div class="guide-content"><p>> HELP - КОМАНДЫ</p><p>> STATUS - СТАТУС</p><p>> GUIDES - ГАЙДЫ</p><p>> MISSION - ОПЕРАЦИЯ</p><p>> AGENTS - АГЕНТЫ</p><p>> CONNECT - СВЯЗЬ</p><p>> SCAN - СКАН</p><p>> ENCRYPT - ШИФР</p><p>> CLEAR - ОЧИСТИТЬ</p></div>
+        <div style="border:1px solid #00ff41;padding:15px;margin:10px 0;cursor:none;" onclick="toggleGuide(this)" data-guide="3">
+            <div style="font-size:1.5rem;border-bottom:1px solid #0a1a0a;padding-bottom:10px;">╔══ РЕПУТАЦИЯ ══╗</div>
+            <div class="guide-content" style="display:none;color:#008f2a;padding-top:10px;"><p>📈 ЗА ВХОДЫ</p><p>💬 ЗА ЧАТ</p><p>🎯 ЗА ГАЙДЫ</p></div>
         </div>
-    </div>
+    </div></div>
 
-    <div id="terminal-screen">
+    <div id="terminal-screen"><div class="screen-box neon-box" style="padding:0;">
         <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
         <div class="terminal" id="terminal">
             <div class="terminal-output" id="terminal-output">
-                <div class="terminal-line">╔══ ТЕРМИНАЛ СИНДИКАТА v2.0 ══╗</div>
-                <div class="terminal-line">ВВЕДИТЕ 'HELP'</div>
-                <div class="terminal-line">───────────────────────────────</div>
+                <div class="terminal-line">╔══ ТЕРМИНАЛ v3.0 ══╗</div>
+                <div class="terminal-line">HELP - СПИСОК КОМАНД</div>
+                <div class="terminal-line">───────────────────────</div>
             </div>
             <div class="terminal-input-line"><span class="terminal-prompt">> </span><input type="text" id="terminal-input" autofocus></div>
         </div>
-    </div>
+    </div></div>
 
-    <div id="achievements-screen">
+    <div id="achievements-screen"><div class="screen-box neon-box">
         <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
-        <div class="title" style="font-size: 2rem;">ДОСТИЖЕНИЯ</div>
+        <div class="title neon-text" style="font-size:2rem;">ДОСТИЖЕНИЯ</div>
         <div id="achievements-list"></div>
-    </div>
+    </div></div>
 
-    <div id="agents-screen">
+    <div id="agents-screen"><div class="screen-box neon-box">
         <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
-        <div class="agents-header">
-            <div class="title" style="font-size: 2rem; margin-bottom: 0;">АГЕНТЫ</div>
-            <div class="agents-actions">
-                <button class="action-btn" onclick="syncAgents()">🔄 СИНХР</button>
-                <button class="action-btn" onclick="exportAgents()">📥 ЭКСПОРТ</button>
-            </div>
-        </div>
-        <div class="agent-table-header"><div>АГЕНТ</div><div>РАНГ</div><div>ОПС</div><div>ДОСТ</div><div>СТАТУС</div></div>
+        <div class="title neon-text" style="font-size:2rem;">АГЕНТЫ</div>
+        <div class="agent-table-header"><div>АГЕНТ</div><div>РЕП</div><div>₴</div><div>СТАТУС</div></div>
         <div id="agents-list"></div>
-        <div class="agents-total" id="agents-total"></div>
-    </div>
+        <div style="text-align:center;margin-top:15px;color:#00ff41;" id="agents-total"></div>
+    </div></div>
+
+    <div id="shop-screen"><div class="screen-box neon-box">
+        <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
+        <div class="title neon-text" style="font-size:2rem;">МАГАЗИН</div>
+        <div class="shop-closed">🚧 НА ПОДЪЕЗДЕ 🚧</div>
+    </div></div>
+
+    <div id="chat-screen"><div class="screen-box neon-box">
+        <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
+        <div class="title neon-text" style="font-size:2rem;">ЧАТ АГЕНТОВ</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+            <input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ...">
+            <button class="back-btn" style="margin:0;" onclick="sendMessage()">ОТПРАВИТЬ</button>
+        </div>
+    </div></div>
+
+    <div id="clans-screen"><div class="screen-box neon-box">
+        <button class="back-btn" onclick="backToDashboard()">← НАЗАД</button>
+        <div class="title neon-text" style="font-size:2rem;">ОТРЯДЫ</div>
+        <div style="text-align:center;padding:50px;color:#008f2a;">
+            <div style="font-size:3rem;">⚔️</div>
+            <div style="font-size:1.5rem;margin-top:20px;">СИСТЕМА ОТРЯДОВ</div>
+            <div style="color:#0a1a0a;">В РАЗРАБОТКЕ</div>
+        </div>
+    </div></div>
 
     <script>
-        // ===== НАСТРОЙКИ JSONBIN =====
+        // ===== НАСТРОЙКИ =====
         const JSONBIN_API_KEY = '$2a$10$L5H9tTPDKRTBFlBp3hz4bOrYeVEYWzOuhLzONu8rGnmjtLHd2yCgy';
         const JSONBIN_BIN_ID = '6a2547d2da38895dfe944d4c';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
+        // ===== КУРСОР =====
+        const cursor = document.getElementById('cursor');
+        const cursorDot = document.getElementById('cursor-dot');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX - 10 + 'px';
+            cursor.style.top = e.clientY - 10 + 'px';
+            cursorDot.style.left = e.clientX - 2 + 'px';
+            cursorDot.style.top = e.clientY - 2 + 'px';
+        });
+
+        // ===== МАТРИЧНЫЙ ДОЖДЬ =====
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const mctx = matrixCanvas.getContext('2d');
+        matrixCanvas.width = innerWidth;
+        matrixCanvas.height = innerHeight;
+        const chars = '01アイウエオカキクケコサシスセソタチツテト';
+        const drops = Array(Math.floor(matrixCanvas.width / 20)).fill(1);
+        function drawMatrix() {
+            mctx.fillStyle = 'rgba(0,0,0,0.05)';
+            mctx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+            mctx.fillStyle = '#00ff41';
+            mctx.font = '15px monospace';
+            drops.forEach((y, i) => {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                mctx.fillText(char, i * 20, y * 20);
+                if (y * 20 > matrixCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawMatrix, 50);
+
+        // ===== ЛОГОТИП =====
+        setTimeout(() => {
+            document.getElementById('logo-overlay').style.display = 'none';
+        }, 2500);
+
+        // ===== ЭКРАН ПОМЕХ =====
+        function glitchTransition(callback) {
+            const el = document.getElementById('glitch-transition');
+            el.classList.add('active');
+            setTimeout(() => {
+                el.classList.remove('active');
+                if (callback) callback();
+            }, 300);
+        }
+
+        // ===== ХЕШИРОВАНИЕ ПАРОЛЕЙ =====
+        async function hashPassword(pass) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(pass + 'syndicate_salt_2024');
+            const hash = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // ===== ЗВУКИ =====
         const AudioSystem = {
             ctx: null,
             init() { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} },
@@ -246,65 +562,24 @@
                 o.start(); o.stop(this.ctx.currentTime + d);
             },
             click() { this.playBeep(600, 0.05); },
-            type() { this.playBeep(400, 0.03, 'sine'); },
-            error() { this.playBeep(200, 0.3, 'sawtooth'); },
             success() { this.playBeep(1000, 0.1); this.playBeep(1200, 0.1); },
-            login() { this.playBeep(400, 0.1); setTimeout(() => this.playBeep(600, 0.1), 100); setTimeout(() => this.playBeep(800, 0.2), 200); },
-            operation() { this.playBeep(300, 0.1); setTimeout(() => this.playBeep(500, 0.1), 150); setTimeout(() => this.playBeep(700, 0.1), 300); setTimeout(() => this.playBeep(900, 0.15), 450); }
+            login() { this.playBeep(400, 0.1); setTimeout(() => this.playBeep(600, 0.1), 100); setTimeout(() => this.playBeep(800, 0.2), 200); }
         };
         AudioSystem.init();
 
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let W, H, particles = [];
-        function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
-        addEventListener('resize', resize); resize();
-        class Particle {
-            constructor() { this.reset(); }
-            reset() { this.x = Math.random()*W; this.y = Math.random()*H; this.s = Math.random()*3+1; this.sx = (Math.random()-0.5)*0.5; this.sy = (Math.random()-0.5)*0.5; this.o = Math.random()*0.5+0.2; }
-            update() { this.x += this.sx; this.y += this.sy; if(this.x<0||this.x>W||this.y<0||this.y>H) this.reset(); }
-            draw() { ctx.fillStyle = `rgba(255,23,68,${this.o})`; ctx.beginPath(); ctx.arc(this.x,this.y,this.s,0,Math.PI*2); ctx.fill(); }
-        }
-        for(let i=0;i<150;i++) particles.push(new Particle());
-        (function animate() { ctx.clearRect(0,0,W,H); particles.forEach(p=>{p.update();p.draw();}); requestAnimationFrame(animate); })();
-
-        function scratch() {
-            const s = document.createElement('div'); s.className = 'scratch-line';
-            const h = Math.random() > 0.5, p = Math.random()*100;
-            if(h) { s.style.left='0'; s.style.top=p+'%'; s.style.width='100%'; s.style.height=Math.random()*3+1+'px'; }
-            else { s.style.left=p+'%'; s.style.top='0'; s.style.width=Math.random()*3+1+'px'; s.style.height='100%'; }
-            document.body.appendChild(s); setTimeout(()=>s.remove(), 300);
-        }
-        function scratches() {
-            for(let i=0;i<Math.floor(Math.random()*5)+2;i++) setTimeout(scratch, i*50);
-            if(Math.random()<0.3) { const o=document.getElementById('scratch-overlay'); o.style.opacity='0.4'; setTimeout(()=>o.style.opacity='0',150); }
-            setTimeout(scratches, Math.random()*6000+2000);
-        }
-
-        let theme = 'dark';
-        document.getElementById('theme-toggle').onclick = () => {
-            AudioSystem.click();
-            theme = theme === 'dark' ? (document.body.className='theme-red','red') : (document.body.className='theme-dark','dark');
-            document.getElementById('theme-toggle').textContent = theme === 'dark' ? '🔴 ТЕМА' : '⚫ ТЕМА';
-        };
-
+        // ===== JSONBIN =====
         const defaultAgents = {
-            'admin': { pass: 'admin123', ops: 999, achievements: ['first_login','veteran','elite','hacker','social','guide_master','terminal_pro','legend'], terminalUses: 10, commandsUsed: ['HELP','STATUS','GUIDES','CONNECT','SCAN','ENCRYPT','CLEAR','MISSION','AGENTS'], openedGuides: ['1','2','3'], visitedSocials: ['discord','tiktok'], lastRank: 'ЛЕГЕНДА' }
+            'admin': { pass: '', passHash: '', rep: 9999, coins: 99999, title: 'ГЛАВА', achievements: ['first_login','hacker','guide_master','terminal_pro'], terminalUses: 10, commandsUsed: ['HELP','STATUS','GUIDES','AGENTS','CONNECT','SCAN','ENCRYPT'], openedGuides: ['1','2','3'], logins: 100, lastLogin: new Date().toISOString(), avatar: '👑' }
         };
 
-        // ===== ИСПОЛЬЗУЕМ X-ACCESS-KEY =====
         async function getAgents() {
             try {
-                const r = await fetch(JSONBIN_URL + '/latest', { 
-                    headers: { 'X-Access-Key': JSONBIN_API_KEY } 
-                });
+                const r = await fetch(JSONBIN_URL + '/latest', { headers: { 'X-Access-Key': JSONBIN_API_KEY } });
                 if(!r.ok) throw new Error('HTTP ' + r.status);
                 const d = await r.json();
-                console.log('✅ Загружено из облака:', Object.keys(d.record).join(', '));
                 localStorage.setItem('syndicate_agents', JSON.stringify(d.record));
                 return d.record;
             } catch(e) {
-                console.warn('⚠️ Облако недоступно:', e.message);
                 const s = localStorage.getItem('syndicate_agents');
                 return s ? JSON.parse(s) : defaultAgents;
             }
@@ -313,37 +588,182 @@
         async function saveAgents(agents) {
             localStorage.setItem('syndicate_agents', JSON.stringify(agents));
             try {
-                const r = await fetch(JSONBIN_URL, {
+                await fetch(JSONBIN_URL, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'X-Access-Key': JSONBIN_API_KEY
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-Access-Key': JSONBIN_API_KEY },
                     body: JSON.stringify(agents)
                 });
-                if(r.ok) console.log('✅ Сохранено в облако');
-                else console.warn('⚠️ Ошибка сохранения:', r.status);
-            } catch(e) { console.warn('⚠️ Сохранение не удалось:', e.message); }
+            } catch(e) {}
         }
 
         let currentAgent = null;
-        const ranks = [
-            { name: 'НОВОБРАНЕЦ', min: 0, max: 9 }, { name: 'ОПЕРАТИВНИК', min: 10, max: 24 },
-            { name: 'АГЕНТ', min: 25, max: 49 }, { name: 'ЭЛИТА', min: 50, max: 99 }, { name: 'ЛЕГЕНДА', min: 100, max: Infinity }
+
+        // ===== ЗВАНИЯ И МЕДАЛИ =====
+        const titles = [
+            { name: 'НОВИЧОК', minRep: 0 },
+            { name: 'АГЕНТ', minRep: 100 },
+            { name: 'ОПЕРАТИВНИК', minRep: 500 },
+            { name: 'СПЕЦИАЛИСТ', minRep: 1000 },
+            { name: 'ЭЛИТА', minRep: 5000 },
+            { name: 'ГЛАВА', minRep: 10000 }
         ];
-        const getRank = ops => ranks.find(r => ops >= r.min && ops <= r.max) || ranks[0];
-        const getProgress = ops => { const r = getRank(ops); return Math.min(((ops - r.min) / (r.max - r.min + 1)) * 100, 100); };
-        const allAch = [
-            { id: 'first_login', name: 'ПЕРВЫЙ ВХОД', desc: 'Войти в систему', icon: '🔓' },
-            { id: 'veteran', name: 'ВЕТЕРАН', desc: '10 операций', icon: '🎖' },
-            { id: 'elite', name: 'ЭЛИТНЫЙ АГЕНТ', desc: 'Достигнуть ЭЛИТЫ', icon: '⭐' },
-            { id: 'hacker', name: 'ХАКЕР', desc: 'Терминал 5 раз', icon: '💻' },
-            { id: 'social', name: 'В СЕТИ', desc: 'Discord + TikTok', icon: '🌐' },
-            { id: 'guide_master', name: 'МАСТЕР ГАЙДОВ', desc: 'Открыть 3 гайда', icon: '📚' },
-            { id: 'terminal_pro', name: 'ТЕРМИНАЛ-ПРО', desc: 'Все команды', icon: '⌨' },
-            { id: 'legend', name: 'ЛЕГЕНДА', desc: 'Ранг ЛЕГЕНДА', icon: '👑' }
+        const getTitle = rep => [...titles].reverse().find(t => rep >= t.minRep) || titles[0];
+
+        const medals = [
+            { id: 'first_login', icon: '🔓', name: 'ПЕРВЫЙ ВХОД' },
+            { id: 'hacker', icon: '💻', name: 'ХАКЕР' },
+            { id: 'guide_master', icon: '📚', name: 'МАСТЕР ГАЙДОВ' },
+            { id: 'terminal_pro', icon: '⌨️', name: 'ТЕРМИНАЛ-ПРО' },
+            { id: 'socializer', icon: '💬', name: 'СОЦИАЛИЗАТОР', desc: '10 сообщений в чате' },
+            { id: 'rich', icon: '💰', name: 'БОГАЧ', desc: '1000 синдикойнов' }
         ];
 
+        // ===== ЧАТ =====
+        let chatMessages = JSON.parse(localStorage.getItem('syndicate_chat') || '[]');
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg || !currentAgent) return;
+            
+            const chatMsg = {
+                author: currentAgent.name,
+                text: msg,
+                time: new Date().toLocaleTimeString(),
+                id: Date.now()
+            };
+            
+            chatMessages.push(chatMsg);
+            if (chatMessages.length > 50) chatMessages.shift();
+            localStorage.setItem('syndicate_chat', JSON.stringify(chatMessages));
+            
+            currentAgent.rep = (currentAgent.rep || 0) + 5;
+            currentAgent.coins = (currentAgent.coins || 0) + 1;
+            if (currentAgent.chatCount) currentAgent.chatCount++;
+            else currentAgent.chatCount = 1;
+            if (currentAgent.chatCount >= 10) unlockAch('socializer');
+            
+            input.value = '';
+            renderChat();
+            updateDash();
+            saveAgentData();
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = chatMessages.slice(-20).map(m => 
+                `<div class="chat-msg"><span class="author">${m.author}:</span> ${m.text} <span class="time">${m.time}</span></div>`
+            ).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // ===== ДОСТИЖЕНИЯ =====
+        function unlockAch(id) {
+            if (!currentAgent.achievements.includes(id)) {
+                currentAgent.achievements.push(id);
+                const medal = medals.find(m => m.id === id);
+                if (medal) showNotif(`🏆 ${medal.icon} ${medal.name}`);
+                saveAgentData();
+            }
+        }
+
+        function showNotif(msg) {
+            const n = document.createElement('div');
+            n.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#0a0a0a;border:2px solid #00ff41;padding:15px 30px;z-index:1000;box-shadow:0 0 20px #00ff41;font-family:VT323;color:#00ff41;font-size:1.3rem;animation:typeIn .3s;text-align:center;';
+            n.textContent = msg;
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 2000);
+        }
+
+        // ===== НАВИГАЦИЯ =====
+        function navigateTo(screen) {
+            AudioSystem.click();
+            glitchTransition(() => {
+                hideAll();
+                const map = { guides: 'guides-screen', terminal: 'terminal-screen', achievements: 'achievements-screen', agents: 'agents-screen', shop: 'shop-screen', chat: 'chat-screen', clans: 'clans-screen' };
+                const el = document.getElementById(map[screen]);
+                if (el) {
+                    el.style.display = 'block';
+                    if (screen === 'terminal') setTimeout(() => document.getElementById('terminal-input').focus(), 400);
+                    if (screen === 'chat') renderChat();
+                    if (screen === 'achievements') renderAchievements();
+                    if (screen === 'agents') renderAgentList();
+                }
+                currentAgent.rep = (currentAgent.rep || 0) + 2;
+                currentAgent.coins = (currentAgent.coins || 0) + 1;
+                updateDash();
+                saveAgentData();
+            });
+        }
+
+        function hideAll() {
+            ['login-screen','loader-container','dashboard','guides-screen','terminal-screen','achievements-screen','agents-screen','shop-screen','chat-screen','clans-screen'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+
+        function backToDashboard() {
+            AudioSystem.click();
+            glitchTransition(() => {
+                hideAll();
+                document.getElementById('dashboard').style.display = 'block';
+                updateDash();
+            });
+        }
+
+        function updateDash() {
+            if (!currentAgent) return;
+            document.getElementById('d-name').textContent = currentAgent.name;
+            document.getElementById('d-rep').textContent = currentAgent.rep || 0;
+            document.getElementById('d-coins').textContent = currentAgent.coins || 0;
+            document.getElementById('d-title').textContent = getTitle(currentAgent.rep || 0).name;
+            document.getElementById('d-achieve').textContent = `${currentAgent.achievements.length}/${medals.length}`;
+            document.getElementById('d-logins').textContent = currentAgent.logins || 1;
+            document.getElementById('agent-avatar').textContent = currentAgent.avatar || '🕶️';
+            
+            const repFill = document.getElementById('rep-fill');
+            const title = getTitle(currentAgent.rep || 0);
+            const nextTitle = titles[titles.indexOf(title) + 1];
+            if (nextTitle) {
+                const progress = ((currentAgent.rep - title.minRep) / (nextTitle.minRep - title.minRep)) * 100;
+                repFill.style.width = Math.min(progress, 100) + '%';
+            } else {
+                repFill.style.width = '100%';
+            }
+            
+            const medalsRow = document.getElementById('medals-row');
+            medalsRow.innerHTML = medals.map(m => 
+                `<span class="medal ${currentAgent.achievements.includes(m.id) ? 'unlocked' : ''}" title="${m.name}">${m.icon}</span>`
+            ).join('');
+        }
+
+        function renderAchievements() {
+            const list = document.getElementById('achievements-list');
+            list.innerHTML = medals.map(m => {
+                const unlocked = currentAgent.achievements.includes(m.id);
+                return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+                    <div><span style="font-size:1.5rem;">${m.icon}</span> <span style="font-size:1.2rem;">${m.name}</span></div>
+                    <div>${unlocked ? '✓' : '🔒'}</div>
+                </div>`;
+            }).join('');
+        }
+
+        async function renderAgentList() {
+            const list = document.getElementById('agents-list');
+            const agents = await getAgents();
+            list.innerHTML = Object.entries(agents).sort((a,b) => (b[1].rep||0) - (a[1].rep||0)).map(([name, data]) => 
+                `<div class="agent-row">
+                    <div>${name === 'admin' ? '👑 ' : ''}${name}</div>
+                    <div>${data.rep || 0}</div>
+                    <div>₴${data.coins || 0}</div>
+                    <div style="color:${name === currentAgent?.name ? '#00ff41' : '#0a1a0a'}">●</div>
+                </div>`
+            ).join('');
+            document.getElementById('agents-total').textContent = `ВСЕГО: ${Object.keys(agents).length}`;
+        }
+
+        // ===== АВТОРИЗАЦИЯ =====
         document.getElementById('start-btn').onclick = () => {
             AudioSystem.click();
             document.getElementById('start-screen').style.display = 'none';
@@ -353,177 +773,201 @@
         };
 
         let progress = 0;
-        const fill = document.getElementById('progress-fill'), ptext = document.getElementById('progress-text');
         function load() {
-            if(progress < 99) {
+            if (progress < 99) {
                 progress += 0.5;
-                if(Math.random()<0.05) progress += Math.random()*5;
-                if(progress > 99) progress = 99;
-                fill.style.width = progress + '%'; ptext.textContent = Math.floor(progress) + '%';
+                if (Math.random() < 0.05) progress += Math.random() * 5;
+                if (progress > 99) progress = 99;
+                document.getElementById('progress-fill').style.width = progress + '%';
+                document.getElementById('progress-text').textContent = Math.floor(progress) + '%';
                 setTimeout(load, 10);
             } else {
-                progress = 100; fill.style.width = '100%'; ptext.textContent = '100%';
+                progress = 100;
+                document.getElementById('progress-fill').style.width = '100%';
+                document.getElementById('progress-text').textContent = '100%';
                 AudioSystem.success();
-                setTimeout(() => { document.getElementById('loader-container').style.display = 'none'; document.getElementById('login-screen').style.display = 'block'; }, 500);
+                setTimeout(() => {
+                    document.getElementById('loader-container').style.display = 'none';
+                    document.getElementById('login-screen').style.display = 'block';
+                }, 500);
             }
         }
 
         document.getElementById('login-btn').onclick = login;
         document.getElementById('register-link').onclick = register;
-        document.getElementById('agent-pass').onkeypress = e => { if(e.key==='Enter') login(); };
+        document.getElementById('agent-pass').onkeypress = e => { if (e.key === 'Enter') login(); };
 
         async function login() {
             AudioSystem.click();
-            const name = document.getElementById('agent-name').value.trim(), pass = document.getElementById('agent-pass').value;
-            if(!name||!pass) return showError('ВСЕ ПОЛЯ ОБЯЗАТЕЛЬНЫ'), AudioSystem.error();
+            const name = document.getElementById('agent-name').value.trim();
+            const pass = document.getElementById('agent-pass').value;
+            if (!name || !pass) return showError('ВСЕ ПОЛЯ ОБЯЗАТЕЛЬНЫ');
+            
             const agents = await getAgents();
-            if(agents[name] && agents[name].pass === pass) {
+            const passHash = await hashPassword(pass);
+            
+            if (agents[name] && (agents[name].pass === pass || agents[name].passHash === passHash)) {
                 currentAgent = { name, ...agents[name] };
+                currentAgent.rep = currentAgent.rep || 0;
+                currentAgent.coins = currentAgent.coins || 0;
+                currentAgent.achievements = currentAgent.achievements || [];
                 currentAgent.openedGuides = currentAgent.openedGuides || [];
-                currentAgent.visitedSocials = currentAgent.visitedSocials || [];
                 currentAgent.commandsUsed = currentAgent.commandsUsed || [];
                 currentAgent.terminalUses = currentAgent.terminalUses || 0;
-                currentAgent.achievements = currentAgent.achievements || [];
-                unlockAch('first_login'); AudioSystem.login(); showWelcome(name);
-                await saveAgentData(); setTimeout(openDashboard, 2500);
-            } else { showError('НЕВЕРНЫЕ ДАННЫЕ'); AudioSystem.error(); }
+                currentAgent.logins = (currentAgent.logins || 0) + 1;
+                currentAgent.avatar = currentAgent.avatar || '🕶️';
+                
+                if (!agents[name].passHash) {
+                    agents[name].passHash = passHash;
+                    agents[name].pass = '';
+                    await saveAgents(agents);
+                }
+                
+                currentAgent.rep += 10;
+                currentAgent.coins += 5;
+                unlockAch('first_login');
+                AudioSystem.login();
+                showWelcome(name);
+                await saveAgentData();
+                setTimeout(() => { hideAll(); document.getElementById('dashboard').style.display = 'block'; updateDash(); }, 2500);
+            } else {
+                showError('НЕВЕРНЫЕ ДАННЫЕ');
+            }
         }
 
         async function register() {
             AudioSystem.click();
-            const name = document.getElementById('agent-name').value.trim(), pass = document.getElementById('agent-pass').value;
-            if(!name||!pass) return showError('ВСЕ ПОЛЯ ОБЯЗАТЕЛЬНЫ'), AudioSystem.error();
+            const name = document.getElementById('agent-name').value.trim();
+            const pass = document.getElementById('agent-pass').value;
+            if (!name || !pass) return showError('ВСЕ ПОЛЯ ОБЯЗАТЕЛЬНЫ');
+            
             const agents = await getAgents();
-            if(agents[name]) return showError('АГЕНТ УЖЕ СУЩЕСТВУЕТ'), AudioSystem.error();
-            agents[name] = { pass, ops: 0, achievements: [], terminalUses: 0, commandsUsed: [], openedGuides: [], visitedSocials: [], lastRank: 'НОВОБРАНЕЦ' };
+            if (agents[name]) return showError('АГЕНТ УЖЕ СУЩЕСТВУЕТ');
+            
+            const passHash = await hashPassword(pass);
+            agents[name] = { passHash, rep: 0, coins: 10, title: 'НОВИЧОК', achievements: [], terminalUses: 0, commandsUsed: [], openedGuides: [], logins: 1, lastLogin: new Date().toISOString(), avatar: '🕶️' };
             await saveAgents(agents);
             currentAgent = { name, ...agents[name] };
-            AudioSystem.success(); showWelcome(name);
-            setTimeout(openDashboard, 2500);
+            AudioSystem.success();
+            showWelcome(name);
+            setTimeout(() => { hideAll(); document.getElementById('dashboard').style.display = 'block'; updateDash(); }, 2500);
         }
 
-        function showError(m) { const e = document.getElementById('login-error'); e.textContent = m; setTimeout(() => e.textContent = '', 3000); }
-        function showWelcome(name) { const o = document.createElement('div'); o.className = 'welcome-overlay'; o.innerHTML = `<div class="welcome-text glitch-text">ДОБРО ПОЖАЛОВАТЬ<br>В ЛОГОВО СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ ${name.toUpperCase()}</span></div>`; document.body.appendChild(o); setTimeout(() => o.remove(), 2500); }
-
-        function hideAll() { ['login-screen','loader-container','dashboard','guides-screen','terminal-screen','achievements-screen','agents-screen'].forEach(id => document.getElementById(id).style.display = 'none'); }
-        function openDashboard() { hideAll(); document.getElementById('dashboard').style.display = 'block'; updateDash(); checkRankUp(); AudioSystem.success(); }
-        function backToDashboard() { hideAll(); document.getElementById('dashboard').style.display = 'block'; updateDash(); AudioSystem.click(); }
-        function updateDash() {
-            document.getElementById('d-agent-name').textContent = currentAgent.name;
-            document.getElementById('d-rank').textContent = getRank(currentAgent.ops).name;
-            document.getElementById('d-ops').textContent = currentAgent.ops;
-            document.getElementById('d-achieve').textContent = `${currentAgent.achievements.length}/${allAch.length}`;
-            document.getElementById('rank-fill').style.width = getProgress(currentAgent.ops) + '%';
-        }
-        function logout() { AudioSystem.click(); hideAll(); currentAgent = null; document.getElementById('login-screen').style.display = 'block'; document.getElementById('agent-name').value = ''; document.getElementById('agent-pass').value = ''; }
-
-        async function addOperation() {
-            AudioSystem.operation(); currentAgent.ops++;
-            const n = document.createElement('div');
-            n.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a0000;border:2px solid #0f0;padding:15px 30px;z-index:1000;box-shadow:0 0 20px #0f0;font-family:VT323;color:#0f0;font-size:1.5rem;animation:typeIn .3s;text-align:center;';
-            n.innerHTML = `✅ ОПЕРАЦИЯ!<br>ВСЕГО: ${currentAgent.ops}`;
-            document.body.appendChild(n);
-            setTimeout(() => { n.style.animation = 'typeIn .3s reverse'; setTimeout(() => n.remove(), 300); }, 2500);
-            checkAch(); checkRankUp(); updateDash(); await saveAgentData();
+        function showError(msg) {
+            const e = document.getElementById('login-error');
+            e.textContent = msg;
+            setTimeout(() => e.textContent = '', 3000);
         }
 
-        function openGuides() { hideAll(); document.getElementById('guides-screen').style.display = 'block'; AudioSystem.click(); }
-        async function toggleGuide(card) {
-            AudioSystem.click(); card.querySelector('.guide-content').classList.toggle('active');
-            const id = card.dataset.guide;
-            if(!currentAgent.openedGuides.includes(id)) { currentAgent.openedGuides.push(id); if(currentAgent.openedGuides.length >= 3) unlockAch('guide_master'); await saveAgentData(); }
+        function showWelcome(name) {
+            const o = document.createElement('div');
+            o.className = 'welcome-overlay';
+            o.innerHTML = `<div class="welcome-text">ДОБРО ПОЖАЛОВАТЬ<br>В ЛОГОВО СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ ${name.toUpperCase()}</span></div>`;
+            document.body.appendChild(o);
+            setTimeout(() => o.remove(), 2500);
         }
 
-        function openTerminal() { hideAll(); document.getElementById('terminal-screen').style.display = 'block'; setTimeout(() => document.getElementById('terminal-input').focus(), 100); AudioSystem.click(); }
-        document.getElementById('terminal-input').onkeypress = async function(e) {
-            if(e.key === 'Enter') {
-                const cmd = this.value.trim().toUpperCase(), out = document.getElementById('terminal-output');
-                const line = document.createElement('div'); line.className = 'terminal-line'; line.innerHTML = `<span style="color:#0f0;">> ${cmd}</span>`; out.appendChild(line);
-                if(!currentAgent.commandsUsed.includes(cmd)) { currentAgent.commandsUsed.push(cmd); if(['HELP','STATUS','GUIDES','CONNECT','SCAN','ENCRYPT','CLEAR','MISSION','AGENTS'].every(c => currentAgent.commandsUsed.includes(c))) unlockAch('terminal_pro'); await saveAgentData(); }
-                switch(cmd) {
-                    case 'HELP': addOut(out, ['╔══ КОМАНДЫ ══╗','HELP, STATUS, GUIDES, MISSION, AGENTS, CONNECT, SCAN, ENCRYPT, CLEAR, LOGOUT','╚════════════╝']); break;
-                    case 'STATUS': const r = getRank(currentAgent.ops); addOut(out, [`АГЕНТ: ${currentAgent.name}`,`РАНГ: ${r.name}`,`ОПС: ${currentAgent.ops}`]); break;
-                    case 'GUIDES': addOut(out, ['>>> ОТКРЫВАЮ ГАЙДЫ']); setTimeout(() => { hideAll(); document.getElementById('guides-screen').style.display = 'block'; }, 500); break;
-                    case 'MISSION': currentAgent.ops++; addOut(out, ['ОПЕРАЦИЯ...','ГОТОВО!']); checkAch(); checkRankUp(); await saveAgentData(); AudioSystem.operation(); break;
-                    case 'AGENTS': const ag = await getAgents(); const al = ['╔══ АГЕНТЫ ══╗']; Object.entries(ag).sort((a,b)=>b[1].ops-a[1].ops).forEach(([n,d])=>al.push(`${n.padEnd(15)} | ${getRank(d.ops||0).name}`)); al.push(`╚══ ВСЕГО: ${Object.keys(ag).length} ══╝`); addOut(out, al); break;
-                    case 'CONNECT': addOut(out, ['СОЕДИНЕНИЕ...','✓ ПОДКЛЮЧЕНО']); break;
-                    case 'SCAN': addOut(out, ['СКАН...','✓ ЧИСТО']); break;
-                    case 'ENCRYPT': addOut(out, ['ШИФР...','✓ ГОТОВО']); break;
-                    case 'CLEAR': out.innerHTML = ''; addOut(out, ['ОЧИЩЕНО']); break;
-                    case 'LOGOUT': addOut(out, ['ВЫХОД...']); setTimeout(logout, 1000); break;
-                    default: const el = document.createElement('div'); el.className = 'terminal-line terminal-error'; el.textContent = `! ${cmd}`; out.appendChild(el); AudioSystem.error();
-                }
-                currentAgent.terminalUses = (currentAgent.terminalUses||0)+1;
-                if(currentAgent.terminalUses >= 5) unlockAch('hacker');
-                await saveAgentData();
-                this.value = ''; out.scrollTop = out.scrollHeight; AudioSystem.click();
-            }
-        };
-        function addOut(out, lines) { lines.forEach(l => { const d = document.createElement('div'); d.className = 'terminal-line'; d.textContent = l; out.appendChild(d); }); }
-
-        function openAchievements() { hideAll(); document.getElementById('achievements-screen').style.display = 'block'; renderAch(); AudioSystem.click(); }
-        function renderAch() {
-            const list = document.getElementById('achievements-list'); list.innerHTML = '';
-            allAch.forEach(a => {
-                const u = currentAgent.achievements.includes(a.id), c = document.createElement('div');
-                c.className = `achievement-card ${u?'unlocked':'locked'}`;
-                c.innerHTML = `<div><div class="achievement-name">${a.icon} ${a.name}</div><div style="font-size:.9rem;color:#8b0000;">${a.desc}</div></div><div class="achievement-status">${u?'✓':'🔒'}</div>`;
-                list.appendChild(c);
+        function logout() {
+            AudioSystem.click();
+            glitchTransition(() => {
+                hideAll();
+                currentAgent = null;
+                document.getElementById('login-screen').style.display = 'block';
+                document.getElementById('agent-name').value = '';
+                document.getElementById('agent-pass').value = '';
             });
         }
-        function unlockAch(id) {
-            if(!currentAgent.achievements.includes(id)) {
-                currentAgent.achievements.push(id);
-                const a = allAch.find(x => x.id === id), p = document.createElement('div');
-                p.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a0000;border:2px solid #ff1744;padding:20px;z-index:1000;box-shadow:0 0 30px #ff1744;animation:typeIn .5s;font-family:VT323;color:#ff1744;text-align:center;';
-                p.innerHTML = `🏆 ДОСТИЖЕНИЕ!<br>${a.icon} ${a.name}`;
-                document.body.appendChild(p);
-                setTimeout(() => { p.style.animation = 'typeIn .5s reverse'; setTimeout(() => p.remove(), 500); }, 3000);
+
+        // ===== ГАЙДЫ =====
+        function toggleGuide(card) {
+            AudioSystem.click();
+            const content = card.querySelector('.guide-content');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            const id = card.dataset.guide;
+            if (!currentAgent.openedGuides.includes(id)) {
+                currentAgent.openedGuides.push(id);
+                currentAgent.rep += 5;
+                if (currentAgent.openedGuides.length >= 3) unlockAch('guide_master');
+                updateDash();
                 saveAgentData();
             }
         }
 
-        async function visitSocial(p) { if(!currentAgent.visitedSocials.includes(p)) { currentAgent.visitedSocials.push(p); if(currentAgent.visitedSocials.includes('discord') && currentAgent.visitedSocials.includes('tiktok')) unlockAch('social'); await saveAgentData(); } }
-
-        async function openAgentList() { hideAll(); document.getElementById('agents-screen').style.display = 'block'; await renderAgentList(); AudioSystem.click(); }
-        async function renderAgentList() {
-            const list = document.getElementById('agents-list'); list.innerHTML = '<div style="text-align:center;padding:20px;color:#8b0000;">ЗАГРУЗКА...</div>';
-            const agents = await getAgents(); list.innerHTML = '';
-            Object.entries(agents).sort((a,b)=>{ if(a[0]==='admin') return -1; if(b[0]==='admin') return 1; return b[1].ops - a[1].ops; }).forEach(([name, data]) => {
-                const row = document.createElement('div'); row.className = `agent-row ${name==='admin'?'admin-row':''}`;
-                const r = getRank(data.ops||0), ac = (data.achievements||[]).length;
-                row.innerHTML = `<div class="agent-cell name">${name==='admin'?'👑 ':''}${name}</div><div class="agent-cell rank">${r.name}</div><div class="agent-cell ops">${data.ops||0}</div><div class="agent-cell ach">${ac}/${allAch.length}</div><div class="agent-cell status"><span class="${name===currentAgent?.name?'status-online':'status-offline'}">${name===currentAgent?.name?'◉ ONLINE':'◉ OFFLINE'}</span></div>`;
-                row.onclick = () => showDetail(name, data); list.appendChild(row);
-            });
-            document.getElementById('agents-total').textContent = `ВСЕГО: ${Object.keys(agents).length}`;
-        }
-        async function syncAgents() { showNotif('🔄 СИНХР...'); await renderAgentList(); showNotif('✅ ГОТОВО!'); }
-        function showDetail(name, data) {
-            const ex = document.querySelector('.agent-detail-popup'); if(ex) ex.remove();
-            const r = getRank(data.ops||0), p = document.createElement('div'); p.className = 'agent-detail-popup';
-            p.innerHTML = `<button class="close-btn" onclick="this.parentElement.remove()">✕</button><div style="font-size:1.8rem;margin-bottom:15px;text-align:center;">${name==='admin'?'👑 ':''}${name}</div><div class="detail-row"><span class="detail-label">РАНГ:</span><span class="detail-value">${r.name}</span></div><div class="detail-row"><span class="detail-label">ОПС:</span><span class="detail-value">${data.ops||0}</span></div><div class="detail-row"><span class="detail-label">ДОСТ:</span><span class="detail-value">${(data.achievements||[]).length}/${allAch.length}</span></div><div style="margin-top:15px;text-align:center;color:#8b0000;">ДОСТИЖЕНИЯ:</div><div class="detail-achievements">${allAch.map(a => `<span class="detail-ach ${(data.achievements||[]).includes(a.id)?'unlocked':''}" title="${a.name}">${a.icon}</span>`).join('')}</div>`;
-            document.body.appendChild(p);
-        }
-        function exportAgents() { const d = JSON.parse(localStorage.getItem('syndicate_agents')||'{}'), b = new Blob([JSON.stringify(d,null,2)],{type:'application/json'}), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'syndicate_backup.json'; a.click(); URL.revokeObjectURL(a.href); showNotif('📥 ГОТОВО!'); }
-        function showNotif(m) { const n = document.createElement('div'); n.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a0000;border:2px solid #ff1744;padding:15px 30px;z-index:1000;box-shadow:0 0 20px #ff1744;font-family:VT323;color:#ff1744;font-size:1.3rem;animation:typeIn .3s;text-align:center;'; n.textContent = m; document.body.appendChild(n); setTimeout(() => { n.style.animation = 'typeIn .3s reverse'; setTimeout(() => n.remove(), 300); }, 2000); }
-        function checkAch() { if(currentAgent.ops >= 10) unlockAch('veteran'); if(getRank(currentAgent.ops).name === 'ЭЛИТА') unlockAch('elite'); if(getRank(currentAgent.ops).name === 'ЛЕГЕНДА') unlockAch('legend'); }
-        function checkRankUp() { const r = getRank(currentAgent.ops); if(currentAgent.lastRank && currentAgent.lastRank !== r.name) { const p = document.createElement('div'); p.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#000;border:3px solid #ff1744;padding:30px;z-index:1000;box-shadow:0 0 50px #ff1744;animation:typeIn .5s;font-family:VT323;color:#ff1744;text-align:center;font-size:2rem;'; p.innerHTML = `⭐ ПОВЫШЕНИЕ!<br>${r.name}`; document.body.appendChild(p); AudioSystem.success(); setTimeout(() => { p.style.animation = 'typeIn .5s reverse'; setTimeout(() => p.remove(), 500); }, 3000); } currentAgent.lastRank = r.name; }
-        async function saveAgentData() { if(!currentAgent) return; const agents = await getAgents(); agents[currentAgent.name] = { pass: agents[currentAgent.name]?.pass || '', ops: currentAgent.ops, achievements: currentAgent.achievements, terminalUses: currentAgent.terminalUses || 0, commandsUsed: currentAgent.commandsUsed || [], openedGuides: currentAgent.openedGuides || [], visitedSocials: currentAgent.visitedSocials || [], lastRank: currentAgent.lastRank }; await saveAgents(agents); }
-
-        document.onkeydown = e => {
-            if(document.getElementById('dashboard').style.display === 'block') {
-                switch(e.key) {
-                    case '1': case 'F1': e.preventDefault(); openGuides(); break;
-                    case '2': case 'F2': e.preventDefault(); openTerminal(); break;
-                    case '3': case 'F3': e.preventDefault(); openAchievements(); break;
-                    case '5': case 'F5': e.preventDefault(); addOperation(); break;
-                    case '6': case 'F6': e.preventDefault(); openAgentList(); break;
-                    case 'Escape': e.preventDefault(); logout(); break;
+        // ===== ТЕРМИНАЛ =====
+        document.getElementById('terminal-input').onkeypress = async function(e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value.trim().toUpperCase();
+                const out = document.getElementById('terminal-output');
+                out.innerHTML += `<div class="terminal-line" style="color:#0fa;">> ${cmd}</div>`;
+                
+                if (cmd && !currentAgent.commandsUsed.includes(cmd)) {
+                    currentAgent.commandsUsed.push(cmd);
+                    if (['HELP','STATUS','GUIDES','AGENTS','CONNECT','SCAN','ENCRYPT'].every(c => currentAgent.commandsUsed.includes(c))) unlockAch('terminal_pro');
+                    currentAgent.rep += 3;
+                    await saveAgentData();
                 }
+                
+                switch(cmd) {
+                    case 'HELP': out.innerHTML += '<div class="terminal-line">HELP | STATUS | GUIDES | AGENTS | CONNECT | SCAN | ENCRYPT | CLEAR | LOGOUT</div>'; break;
+                    case 'STATUS': out.innerHTML += `<div class="terminal-line">АГЕНТ: ${currentAgent.name} | РЕП: ${currentAgent.rep} | ₴${currentAgent.coins}</div>`; break;
+                    case 'GUIDES': out.innerHTML += '<div class="terminal-line">>>> ОТКРЫВАЮ ГАЙДЫ</div>'; setTimeout(() => navigateTo('guides'), 500); break;
+                    case 'AGENTS': const ag = await getAgents(); out.innerHTML += Object.entries(ag).map(([n,d]) => `<div class="terminal-line">${n.padEnd(15)} | РЕП: ${d.rep||0}</div>`).join(''); break;
+                    case 'CONNECT': out.innerHTML += '<div class="terminal-line">✓ ПОДКЛЮЧЕНО | ШИФР: AES-256</div>'; break;
+                    case 'SCAN': out.innerHTML += `<div class="terminal-line">СКАН... | УСТРОЙСТВ: ${Math.floor(Math.random()*10)+3} | УГРОЗ: 0</div>`; break;
+                    case 'ENCRYPT': out.innerHTML += '<div class="terminal-line">███ 100% | ✓ ЗАШИФРОВАНО</div>'; break;
+                    case 'CLEAR': out.innerHTML = ''; break;
+                    case 'LOGOUT': logout(); break;
+                    default: out.innerHTML += '<div class="terminal-line terminal-error">! НЕИЗВЕСТНАЯ КОМАНДА</div>';
+                }
+                
+                currentAgent.terminalUses = (currentAgent.terminalUses || 0) + 1;
+                if (currentAgent.terminalUses >= 5) unlockAch('hacker');
+                updateDash();
+                await saveAgentData();
+                this.value = '';
+                out.scrollTop = out.scrollHeight;
+                AudioSystem.click();
             }
         };
 
-        scratches();
+        async function saveAgentData() {
+            if (!currentAgent) return;
+            const agents = await getAgents();
+            agents[currentAgent.name] = {
+                passHash: agents[currentAgent.name]?.passHash || currentAgent.passHash,
+                rep: currentAgent.rep, coins: currentAgent.coins,
+                achievements: currentAgent.achievements,
+                terminalUses: currentAgent.terminalUses,
+                commandsUsed: currentAgent.commandsUsed,
+                openedGuides: currentAgent.openedGuides,
+                logins: currentAgent.logins,
+                lastLogin: new Date().toISOString(),
+                avatar: currentAgent.avatar,
+                chatCount: currentAgent.chatCount || 0
+            };
+            await saveAgents(agents);
+        }
+
+        // ===== ТЕМА =====
+        let theme = 'dark';
+        document.getElementById('theme-toggle').onclick = () => {
+            theme = theme === 'dark' ? 'light' : 'dark';
+            if (theme === 'light') {
+                document.body.style.background = '#e0ffe0';
+                document.body.style.color = '#003300';
+            } else {
+                document.body.style.background = '#0a0a0a';
+                document.body.style.color = '#00ff41';
+            }
+            document.getElementById('theme-toggle').textContent = theme === 'dark' ? '💚 ТЕМА' : '🖤 ТЕМА';
+        };
+
+        // ===== КЛАВИШИ =====
+        document.onkeydown = e => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('chat-input')) {
+                sendMessage();
+            }
+        };
     </script>
 </body>
 </html>
