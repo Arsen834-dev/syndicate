@@ -229,7 +229,8 @@
     </div>
 
     <script>
-        const JSONBIN_API_KEY = '$2a$10$fc9E5o8O1MEJ/TOjAIDMVOKZGwUspWNvaAhD1ZRYLWAQCxmbPB3dO';
+        // ===== НАСТРОЙКИ JSONBIN =====
+        const JSONBIN_API_KEY = '$2a$10$L5H9tTPDKRTBFlBp3hz4bOrYeVEYWzOuhLzONu8rGnmjtLHd2yCgy';
         const JSONBIN_BIN_ID = '6a2547d2da38895dfe944d4c';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
 
@@ -291,15 +292,19 @@
             'admin': { pass: 'admin123', ops: 999, achievements: ['first_login','veteran','elite','hacker','social','guide_master','terminal_pro','legend'], terminalUses: 10, commandsUsed: ['HELP','STATUS','GUIDES','CONNECT','SCAN','ENCRYPT','CLEAR','MISSION','AGENTS'], openedGuides: ['1','2','3'], visitedSocials: ['discord','tiktok'], lastRank: 'ЛЕГЕНДА' }
         };
 
+        // ===== ИСПОЛЬЗУЕМ X-ACCESS-KEY =====
         async function getAgents() {
             try {
-                const r = await fetch(JSONBIN_URL + '/latest', { headers: { 'X-Master-Key': JSONBIN_API_KEY } });
+                const r = await fetch(JSONBIN_URL + '/latest', { 
+                    headers: { 'X-Access-Key': JSONBIN_API_KEY } 
+                });
                 if(!r.ok) throw new Error('HTTP ' + r.status);
                 const d = await r.json();
+                console.log('✅ Загружено из облака:', Object.keys(d.record).join(', '));
                 localStorage.setItem('syndicate_agents', JSON.stringify(d.record));
                 return d.record;
             } catch(e) {
-                console.warn('Облако недоступно:', e.message);
+                console.warn('⚠️ Облако недоступно:', e.message);
                 const s = localStorage.getItem('syndicate_agents');
                 return s ? JSON.parse(s) : defaultAgents;
             }
@@ -308,12 +313,17 @@
         async function saveAgents(agents) {
             localStorage.setItem('syndicate_agents', JSON.stringify(agents));
             try {
-                await fetch(JSONBIN_URL, {
+                const r = await fetch(JSONBIN_URL, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY, 'X-Bin-Versioning': 'false' },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-Access-Key': JSONBIN_API_KEY
+                    },
                     body: JSON.stringify(agents)
                 });
-            } catch(e) { console.warn('Сохранение не удалось:', e.message); }
+                if(r.ok) console.log('✅ Сохранено в облако');
+                else console.warn('⚠️ Ошибка сохранения:', r.status);
+            } catch(e) { console.warn('⚠️ Сохранение не удалось:', e.message); }
         }
 
         let currentAgent = null;
