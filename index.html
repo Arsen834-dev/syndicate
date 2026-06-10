@@ -449,7 +449,6 @@ const tickerTexts = [
     "Карты: обновлена схема безопасных проходов через руины",
     "Сообщество: собрание агентов в субботу, явка обязательна",
     "Артефакты: найден довоенный компьютер с ценной информацией"
-    "Движение Фонариков передаёт вам привет!"
 ];
 function updateTicker() { var t = document.getElementById('ticker-text'); if(t) t.textContent = tickerTexts.join(' | '); var h = document.getElementById('header-ticker'); if(h) h.textContent = tickerTexts[Math.floor(Math.random()*tickerTexts.length)]; }
 setInterval(function() { var h = document.getElementById('header-ticker'); if(h) h.textContent = tickerTexts[Math.floor(Math.random()*tickerTexts.length)]; }, 30000);
