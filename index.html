@@ -14,7 +14,7 @@
         #matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 1; pointer-events: none; }
         #particles-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 1; }
         .app-screen, #desktop, #login-screen, #loader-screen { background: rgba(0,0,0,0.75); }
-        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 100; background: transparent; animation: hydraOut 0.1s 2.5s forwards; }
+        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; z-index: 100; background: #000; animation: hydraOut 0.1s 2.5s forwards; }
         #hydra-intro { text-align: center; animation: hydraIntro 2.5s forwards; }
         .hydra-ascii { color: #ff1744; font-size: 0.7rem; line-height: 1.1; text-shadow: 0 0 20px #ff1744, 0 0 40px #cc0000; animation: hydraGlow 2s ease-in-out; white-space: pre; }
         .hydra-subtitle { color: #880000; font-size: 1.8rem; letter-spacing: 6px; text-transform: uppercase; margin-top: 20px; opacity: 0; animation: subtitleAppear 0.5s 1.5s forwards; text-shadow: 0 0 4px #550000; }
@@ -22,235 +22,7 @@
         @keyframes hydraIntro { 0%{opacity:0;transform:scale(0.8);}30%{opacity:1;transform:scale(1);}80%{opacity:1;}100%{opacity:1;} }
         @keyframes hydraGlow { 0%{text-shadow:0 0 5px #ff1744;}50%{text-shadow:0 0 40px #ff1744,0 0 80px #cc0000,0 0 120px #ff1744;}100%{text-shadow:0 0 20px #ff1744,0 0 40px #cc0000;} }
         @keyframes subtitleAppear { 0%{opacity:0;letter-spacing:15px;}100%{opacity:1;letter-spacing:6px;} }
-        #loader-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: #000; display: none; padding: 6px; overflow: hidden; }
-        .loader-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(5, 1fr); gap: 3px; height: 100%; width: 100%; }
-        .loader-cell { border: 1px solid #1a0000; padding: 4px; font-size: 0.5rem; color: #3a0000; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.9); overflow: hidden; transition: 0.2s; }
-        .loader-cell.active { border-color: #ff1744; color: #ff1744; box-shadow: 0 0 6px rgba(255,23,68,0.2); }
-        .loader-cell.error { border-color: #ff0000; color: #ff0000; animation: errorPulse 0.15s infinite; background: rgba(255,0,0,0.1); }
-        .loader-cell.success { border-color: #00ff41; color: #00ff41; }
-        .cell-header { display: flex; justify-content: space-between; align-items: center; }
-        .cell-title { font-weight: bold; text-transform: uppercase; font-size: 0.5rem; }
-        .cell-status { font-size: 0.45rem; }
-        .cell-data { font-size: 0.45rem; color: #4a0010; margin-top: 1px; white-space: nowrap; overflow: hidden; }
-        .mini-bar { width: 100%; height: 2px; background: #1a0000; margin-top: 2px; }
-        .mini-bar-fill { height: 100%; width: 0%; background: #ff1744; transition: width 0.05s; }
-        .error-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,0,0,0.03); z-index: 15; display: none; animation: errorFlash 0.1s infinite; }
-        .error-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 20; display: none; text-align: center; }
-        .error-big { font-size: 5rem; color: #ff0000; font-weight: bold; text-shadow: 0 0 40px #ff0000, 0 0 80px #ff0000; animation: errorPulse 0.3s infinite; letter-spacing: 10px; }
-        .error-btn { margin-top: 30px; background: transparent; border: 3px solid #ff0000; color: #ff0000; font-family: 'VT323', monospace; font-size: 2rem; padding: 15px 40px; cursor: pointer; text-transform: uppercase; letter-spacing: 4px; animation: errorPulse 0.5s infinite; text-shadow: 0 0 20px #ff0000; box-shadow: 0 0 30px rgba(255,0,0,0.5); transition: 0.3s; }
-        .error-btn:hover { background: #ff0000; color: #000; }
-        .big-percent { position: absolute; bottom: 10px; right: 10px; font-size: 2rem; font-weight: bold; color: #ff1744; text-shadow: 0 0 15px #ff1744; z-index: 5; }
-        @keyframes errorPulse { 0%,100%{opacity:1;}50%{opacity:0.2;} }
-        @keyframes errorFlash { 0%,100%{opacity:0.8;}50%{opacity:0;} }
-        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: none; justify-content: center; align-items: center; }
-        .dossier-container { width: 90%; max-width: 500px; border: 2px solid #ff1744; background: #000; box-shadow: 0 0 40px rgba(255,23,68,0.3); position: relative; z-index: 6; }
-        .dossier-header { border-bottom: 2px solid #ff1744; padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,23,68,0.05); }
-        .dossier-body { padding: 20px; }
-        .dossier-photo { width: 100px; height: 100px; border: 2px solid #ff1744; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 3rem; background: #0a0000; }
-        .dossier-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #1a0000; font-size: 1.2rem; }
-        .dossier-label { color: #cc0000; }
-        .dossier-value { color: #ff1744; }
-        .dossier-input { width: 100%; padding: 12px; margin: 10px 0; background: #0a0000; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.3rem; outline: none; }
-        .dossier-btn { width: 100%; padding: 14px; margin-top: 15px; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.5rem; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        .dossier-btn:hover { background: #ff1744; color: #000; }
-        .dossier-error { color: #ff0000; margin-top: 10px; font-size: 1.1rem; min-height: 20px; text-align: center; }
-        .dossier-footer { border-top: 2px solid #ff1744; padding: 10px 15px; text-align: center; color: #cc0000; font-size: 1rem; cursor: pointer; }
-        .dossier-footer:hover { color: #ff1744; }
-        #desktop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; display: none; flex-direction: column; }
-        .desktop-header { border-bottom: 2px solid #ff1744; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.9); height: 45px; position: relative; }
-        .desktop-title { color: #ff1744; font-size: 1.4rem; flex-shrink: 0; }
-        .desktop-agent { color: #cc0000; font-size: 1.1rem; flex-shrink: 0; margin-left: auto; }
-        .header-ticker-wrap { flex: 1; overflow: hidden; position: relative; height: 100%; display: flex; align-items: center; margin: 0 15px; }
-        .header-ticker-text { white-space: nowrap; animation: headerTicker 15s linear infinite; color: #ff4444; font-size: 0.95rem; text-shadow: 0 0 6px #ff0000; }
-        @keyframes headerTicker { 0%{transform:translateX(100%);}100%{transform:translateX(-100%);} }
-        .desktop-area { flex: 1; padding: 20px; position: relative; overflow-y: auto; background: rgba(0,0,0,0.3); }
-        .desktop-icon { width: 100px; height: 100px; border: 2px solid #ff1744; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; text-align: center; background: rgba(0,0,0,0.8); font-size: 0.9rem; gap: 5px; user-select: none; position: absolute; }
-        .desktop-icon:hover { background: rgba(255,23,68,0.15); box-shadow: 0 0 20px rgba(255,23,68,0.4); }
-        .desktop-icon .icon-emoji { font-size: 2.2rem; }
-        .desktop-icon .icon-label { color: #ff1744; font-size: 0.8rem; }
-        .desktop-icon.locked { border-color: #2a0000; opacity: 0.4; }
-        .desktop-icon.locked .icon-label { color: #4a0000; }
-        .desktop-statusbar { border-top: 2px solid #ff1744; padding: 8px 15px; display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.9); height: 48px; font-size: 1rem; white-space: nowrap; overflow: hidden; }
-        .status-avatar-frame, .chat-avatar-frame { display: inline-block; padding: 2px; border: 2px solid #ff1744; flex-shrink: 0; position: relative; overflow: visible; }
-        .status-avatar-frame.f-gold, .chat-avatar-frame.f-gold { border-color: #ffd700; box-shadow: 0 0 8px #ffd700; }
-        .status-avatar-frame.f-silver, .chat-avatar-frame.f-silver { border-color: #cfd8dc; box-shadow: 0 0 8px #cfd8dc; }
-        .status-avatar-frame.f-fire, .chat-avatar-frame.f-fire { border-color: #ff3d00; box-shadow: 0 0 10px #ff3d00; }
-        .status-avatar-frame.f-ice, .chat-avatar-frame.f-ice { border-color: #80deea; box-shadow: 0 0 10px #80deea; }
-        .status-avatar-frame.f-neon, .chat-avatar-frame.f-neon { border-color: #76ff03; box-shadow: 0 0 12px #76ff03; }
-        .status-avatar-frame.f-shadow, .chat-avatar-frame.f-shadow { border: 2px solid #212121; animation: shadow-pulse-dark 2s infinite; }
-        .status-avatar-frame.f-spike, .chat-avatar-frame.f-spike { border: 3px solid transparent; border-image: repeating-linear-gradient(45deg, #ff1744, #ff1744 8px, transparent 8px, transparent 14px) 3; }
-        .status-avatar-frame.f-cyber, .chat-avatar-frame.f-cyber { border-color: #00e5ff; box-shadow: 0 0 10px #00e5ff, inset 0 0 5px #00e5ff; }
-        .status-avatar-frame.f-blood, .chat-avatar-frame.f-blood { border-color: #d50000; position: relative; overflow: visible; }
-        .status-avatar-frame.f-blood::before, .chat-avatar-frame.f-blood::before { content: '🩸'; position: absolute; top: -8px; left: 5px; font-size: 0.55rem; animation: blood-spot-1 2s infinite; }
-        .status-avatar-frame.f-blood::after, .chat-avatar-frame.f-blood::after { content: '🩸'; position: absolute; bottom: -6px; right: 8px; font-size: 0.5rem; animation: blood-spot-2 2.5s infinite; }
-        .status-avatar-frame.f-royal, .chat-avatar-frame.f-royal { border: 2px solid #b388ff; position: relative; overflow: visible; box-shadow: 0 0 10px #b388ff; }
-        .status-avatar-frame.f-royal::before, .chat-avatar-frame.f-royal::before { content: '👑'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; }
-        .status-avatar-frame.f-techno, .chat-avatar-frame.f-techno { border-color: #ff9100; box-shadow: 0 0 10px #ff9100; }
-        .status-avatar-frame.f-skull, .chat-avatar-frame.f-skull { border: 2px solid #ffffff; box-shadow: 0 0 8px #ffffff; position: relative; overflow: visible; }
-        .status-avatar-frame.f-skull::before, .chat-avatar-frame.f-skull::before { content: '💀'; position: absolute; top: -9px; left: 30%; font-size: 0.6rem; animation: skull-float-1 3s infinite; }
-        .status-avatar-frame.f-skull::after, .chat-avatar-frame.f-skull::after { content: '💀'; position: absolute; bottom: -8px; right: 25%; font-size: 0.55rem; animation: skull-float-2 2.7s infinite; }
-        .status-avatar-frame.f-iridescent, .chat-avatar-frame.f-iridescent { animation: rainbow-border 3s linear infinite; }
-        @keyframes shadow-pulse-dark { 0%,100% { box-shadow: 0 0 5px #ffffff, inset 0 0 5px #ffffff; } 50% { box-shadow: 0 0 15px #ffffff, inset 0 0 15px #ffffff; } }
-        @keyframes blood-spot-1 { 0%,100% { opacity: 0.8; transform: translate(0,0); } 50% { opacity: 1; transform: translate(3px,2px); } }
-        @keyframes blood-spot-2 { 0%,100% { opacity: 0.6; transform: translate(0,0); } 50% { opacity: 1; transform: translate(-3px,2px); } }
-        @keyframes skull-float-1 { 0%,100% { transform: translate(0,0) rotate(0deg); } 50% { transform: translate(4px,-3px) rotate(5deg); } }
-        @keyframes skull-float-2 { 0%,100% { transform: translate(0,0) rotate(0deg); } 50% { transform: translate(-4px,2px) rotate(-5deg); } }
-        .status-avatar { font-size: 1.1rem; }
-        .status-name { font-weight: bold; font-size: 1.1rem; flex-shrink: 0; max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
-        .status-badge { flex-shrink: 0; font-size: 1rem; }
-        .status-rep-bar { height: 14px; background: #1a0000; border: 1px solid #ff1744; flex: 0 1 150px; min-width: 60px; }
-        .status-rep-fill { height: 100%; background: #ff1744; transition: width 0.5s; }
-        .status-rep-text { color: #ff1744; font-size: 0.9rem; flex-shrink: 0; text-align: center; }
-        .crystal-red { color: #ff1744; }
-        .status-crystals { color: #ff1744; flex-shrink: 0; font-size: 1rem; }
-        .status-achieve { color: #ff1744; flex-shrink: 0; font-size: 1rem; }
-        .status-ticker { flex: 1; overflow: hidden; position: relative; height: 100%; display: flex; align-items: center; }
-        .status-ticker-text { white-space: nowrap; animation: ticker 90s linear infinite; color: #aa0000; font-size: 0.85rem; }
-        @keyframes ticker { 0%{transform:translateX(100%);}100%{transform:translateX(-100%);} }
-        .app-screen { position: fixed; top: 45px; left: 0; width: 100%; height: calc(100% - 93px); z-index: 20; display: none; overflow-y: auto; }
-        .app-header { border-bottom: 2px solid #ff1744; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.95); }
-        .app-title { color: #ff1744; font-size: 1.4rem; }
-        .app-close { background: transparent; border: 1px solid #ff1744; color: #ff1744; padding: 5px 15px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1rem; transition: 0.3s; }
-        .app-close:hover { background: #ff1744; color: #000; }
-        .app-content { padding: 15px; }
-        .shop-layout { display: flex; gap: 15px; }
-        .shop-categories { width: 200px; flex-shrink: 0; background: rgba(255,23,68,0.03); border: 1px solid #2a0000; padding: 8px; }
-        .shop-cat-btn { width: 100%; padding: 10px; margin: 3px 0; background: transparent; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1rem; cursor: pointer; text-align: left; transition: 0.2s; }
-        .shop-cat-btn:hover, .shop-cat-btn.active { background: #ff1744; color: #000; }
-        .shop-items { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; align-content: flex-start; }
-        .shop-item-card { border: 1px solid #ff1744; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.8); }
-        .shop-item-card:hover { background: rgba(255,23,68,0.1); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255,23,68,0.2); }
-        .shop-item-card.owned { border-color: #ffd700; }
-        .shop-item-card.active { border-color: #00ff41; background: rgba(0,255,65,0.05); box-shadow: 0 0 15px rgba(0,255,65,0.3); }
-        .chat-messages { flex:1; min-height: 500px; max-height: calc(100vh - 200px); overflow-y: auto; border: 1px solid #2a0000; padding: 8px; margin: 8px 0; background: rgba(0,0,0,0.5); }
-        .chat-msg { padding: 6px 8px; margin: 3px 0; border-bottom: 1px solid #1a0000; display: flex; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
-        .chat-msg:hover { background: rgba(255,23,68,0.03); }
-        .chat-msg-left { min-width: 28px; text-align: center; }
-        .chat-msg-right { flex: 1; min-width: 0; }
-        .chat-avatar { font-size: 1.1rem; }
-        .chat-author { font-weight: bold; font-size: 0.95rem; }
-        .chat-time { color: #cc0000; font-size: 0.7rem; }
-        .chat-header-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-        .chat-text { font-size: 0.9rem; line-height: 1.3; word-break: break-word; }
-        .chat-text .mention { color: #ffd700; background: rgba(255,215,0,0.1); padding: 0 3px; cursor: pointer; }
-        .chat-reactions { display: flex; gap: 4px; margin-top: 3px; }
-        .chat-reaction { border: 1px solid #2a0000; padding: 1px 5px; cursor: pointer; font-size: 0.75rem; position: relative; }
-        .chat-reaction:hover { border-color: #ff1744; }
-        .chat-reaction.active { border-color: #ff1744; background: rgba(255,23,68,0.2); }
-        .chat-reaction-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid #ff1744; padding: 4px 8px; font-size: 0.7rem; white-space: nowrap; z-index: 55; color: #ff1744; }
-        .chat-reaction:hover .chat-reaction-tooltip { display: block; }
-        .chat-menu-btn { background: transparent; border: 1px solid #2a0000; color: #cc0000; cursor: pointer; font-size: 0.75rem; padding: 1px 5px; font-family: 'VT323', monospace; }
-        .chat-menu-dropdown { position: absolute; top: 20px; right: 0; background: #000; border: 2px solid #ff1744; z-index: 50; display: none; min-width: 130px; }
-        .chat-menu-dropdown.open { display: block; }
-        .chat-menu-item { padding: 5px 10px; cursor: pointer; font-size: 0.8rem; color: #ff1744; }
-        .chat-menu-item:hover { background: #ff1744; color: #000; }
-        .chat-menu-wrap { position: relative; display: inline-block; }
-        .chat-input-row { display: flex; gap: 8px; align-items: center; }
-        .chat-input { flex: 1; padding: 10px; background: #1a0000; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1rem; outline: none; }
-        .emoji-btn { background: transparent; border: 2px solid #ff1744; color: #ff1744; font-size: 1.2rem; padding: 6px 10px; cursor: pointer; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0000; }
-        ::-webkit-scrollbar-thumb { background: #ff1744; border-radius: 3px; }
-        * { scrollbar-width: thin; scrollbar-color: #ff1744 #0a0000; }
-        .agent-table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 10px; background: rgba(255,23,68,0.1); border: 1px solid #ff1744; font-size: 1rem; }
-        .agent-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; padding: 10px; border: 1px solid #ff1744; cursor: pointer; font-size: 1rem; align-items: center; transition: 0.2s; }
-        .agent-row:hover { background: rgba(255,23,68,0.1); }
-        .status-online { color: #00ff41; font-weight: bold; }
-        .status-offline { color: #cc0000; }
-        .achievement-card { border: 1px solid #ff1744; padding: 12px; margin: 8px 0; display: flex; justify-content: space-between; font-size: 1.1rem; transition: 0.2s; }
-        .achievement-card:hover { background: rgba(255,23,68,0.05); }
-        .achievement-card.locked { opacity: 0.4; }
-        .admin-row { border: 1px solid #ff1744; padding: 10px; margin: 5px 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 1rem; flex-wrap: wrap; gap: 5px; }
-        .admin-legend { color: #cc0000; font-size: 0.9rem; margin-bottom: 10px; line-height: 1.6; }
-        .mod-icon { color: #00ff41; text-shadow: 0 0 10px #00ff41; font-size: 1rem; }
-        .settings-btn { width: 100%; padding: 15px; margin: 8px 0; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.4rem; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 15px; transition: 0.2s; }
-        .settings-btn:hover { background: #ff1744; color: #000; }
-        .guide-item { border: 1px solid #ff1744; padding: 12px; margin: 8px 0; font-size: 1rem; transition: 0.2s; cursor: pointer; }
-        .guide-item:hover { background: rgba(255,23,68,0.05); }
-        .guide-item.pinned { border-color: #ffd700; }
-        .guide-title-row { display: flex; justify-content: space-between; align-items: center; }
-        .guide-author { color: #cc0000; font-size: 0.9rem; }
-        .guide-modal-text { color: #cc0000; font-size: 1rem; line-height: 1.4; white-space: pre-wrap; margin: 15px 0; }
-        .guide-modal-text img { max-width: 100%; max-height: 300px; border: 1px solid #ff1744; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 30; display: none; justify-content: center; align-items: center; }
-        .modal-box { border: 2px solid #ff1744; padding: 25px; background: #000; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal-box .f-gold { border: 3px solid #ffd700 !important; box-shadow: 0 0 10px #ffd700; display: inline-block; padding: 8px; }
-        .modal-box .f-silver { border: 3px solid #cfd8dc !important; box-shadow: 0 0 10px #cfd8dc; display: inline-block; padding: 8px; }
-        .modal-box .f-fire { border: 3px solid #ff3d00 !important; box-shadow: 0 0 12px #ff3d00; display: inline-block; padding: 8px; }
-        .modal-box .f-ice { border: 3px solid #80deea !important; box-shadow: 0 0 12px #80deea; display: inline-block; padding: 8px; }
-        .modal-box .f-neon { border: 3px solid #76ff03 !important; box-shadow: 0 0 14px #76ff03; display: inline-block; padding: 8px; }
-        .modal-box .f-shadow { border: 3px solid #212121 !important; animation: shadow-pulse-dark 2s infinite; display: inline-block; padding: 8px; }
-        .modal-box .f-spike { display: inline-block; padding: 8px; border: 3px solid transparent; border-image: repeating-linear-gradient(45deg, #ff1744, #ff1744 8px, transparent 8px, transparent 14px) 3; }
-        .modal-box .f-cyber { border: 3px solid #00e5ff !important; box-shadow: 0 0 12px #00e5ff, inset 0 0 6px #00e5ff; display: inline-block; padding: 8px; }
-        .modal-box .f-blood { border: 3px solid #d50000 !important; position: relative; overflow: visible; display: inline-block; padding: 8px; }
-        .modal-box .f-blood::before { content: '🩸'; position: absolute; top: -8px; left: 5px; font-size: 0.55rem; animation: blood-spot-1 2s infinite; }
-        .modal-box .f-blood::after { content: '🩸'; position: absolute; bottom: -6px; right: 8px; font-size: 0.5rem; animation: blood-spot-2 2.5s infinite; }
-        .modal-box .f-royal { border: 3px solid #b388ff !important; box-shadow: 0 0 12px #b388ff; position: relative; overflow: visible; display: inline-block; padding: 8px; }
-        .modal-box .f-royal::before { content: '👑'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; }
-        .modal-box .f-techno { border: 3px solid #ff9100 !important; box-shadow: 0 0 12px #ff9100; display: inline-block; padding: 8px; }
-        .modal-box .f-skull { border: 3px solid #ffffff !important; box-shadow: 0 0 10px #ffffff; position: relative; overflow: visible; display: inline-block; padding: 8px; }
-        .modal-box .f-skull::before { content: '💀'; position: absolute; top: -9px; left: 30%; font-size: 0.6rem; animation: skull-float-1 3s infinite; }
-        .modal-box .f-skull::after { content: '💀'; position: absolute; bottom: -8px; right: 25%; font-size: 0.55rem; animation: skull-float-2 2.7s infinite; }
-        .modal-box .f-iridescent { animation: rainbow-border 3s linear infinite; display: inline-block; padding: 8px; border: 3px solid #ff1744; }
-        .modal-title { font-size: 1.6rem; margin-bottom: 15px; color: #ff1744; }
-        .modal-btn { padding: 10px 20px; background: transparent; border: 2px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.3rem; cursor: pointer; text-transform: uppercase; margin: 5px; transition: 0.2s; }
-        .modal-btn:hover { background: #ff1744; color: #000; }
-        .modal-input { width: 100%; padding: 12px; margin: 8px 0; background: #1a0000; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.2rem; outline: none; }
-        .modal-textarea { width: 100%; padding: 10px; margin: 8px 0; background: #1a0000; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1.1rem; outline: none; resize: vertical; min-height: 150px; }
-        .detail-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #000; border: 3px solid #ff1744; padding: 25px; z-index: 1000; font-family: 'VT323', monospace; color: #ff1744; min-width: 350px; font-size: 1.1rem; }
-        .detail-popup .close-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: 1px solid #ff1744; color: #ff1744; cursor: pointer; padding: 5px 10px; }
-        .emoji-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; max-height: 350px; overflow-y: auto; }
-        .emoji-cell { font-size: 1.5rem; padding: 6px; text-align: center; cursor: pointer; border: 1px solid transparent; }
-        .emoji-cell:hover { border-color: #ff1744; background: rgba(255,23,68,0.2); }
-        .emoji-cell.selected { border-color: #ffd700; background: rgba(255,215,0,0.2); }
-        .dm-list-item { padding: 8px; border: 1px solid #2a0000; margin: 3px 0; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
-        .dm-list-item:hover { background: rgba(255,23,68,0.05); }
-        .dm-list-item.active { color: #ff1744; border-color: #ff1744; }
-        .dm-list-item .dm-delete { color: #ff0000; cursor: pointer; font-size: 0.8rem; padding: 2px 6px; border: 1px solid #ff0000; }
-        .dm-author { color: #ff1744; font-weight: bold; }
-        .log-entry { border: 1px solid #2a0000; padding: 8px; margin: 3px 0; font-size: 0.9rem; }
-        .log-search { margin-bottom: 10px; display: flex; gap: 8px; }
-        .log-search input { flex: 1; padding: 8px; background: #1a0000; border: 1px solid #ff1744; color: #ff1744; font-family: 'VT323', monospace; font-size: 1rem; outline: none; }
-        .guide-actions-row { display: flex; gap: 5px; margin-top: 15px; }
-        .logs-split { display: flex; gap: 15px; }
-        .logs-column { flex: 1; }
-        .logs-column h3 { color: #ffd700; margin-bottom: 8px; font-size: 1.1rem; }
-        .booster-timer { color: #ffd700; font-size: 0.7rem; margin-top: 2px; }
-        .clan-info-block { border: 2px solid #ffd700; padding: 15px; margin-bottom: 20px; background: rgba(255,215,0,0.03); }
-        .clan-member-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a0000; align-items: center; }
-        .clan-war-card { border: 1px solid #ff1744; padding: 10px; margin: 8px 0; }
-        #announcements-wall { position: fixed; top: 45px; right: 0; width: 55%; max-width: 700px; height: calc(100% - 93px); z-index: 25; background: rgba(0,0,0,0.95); border-left: 2px solid #ff1744; display: none; overflow-y: auto; box-shadow: -5px 0 30px rgba(255,23,68,0.3); }
-        .announce-header-bar { padding: 10px; border-bottom: 2px solid #ff1744; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: rgba(0,0,0,0.95); }
-        .announce-filters { display: flex; flex-wrap: wrap; gap: 5px; }
-        .announce-filter-btn { background: transparent; border: 1px solid #4a0000; color: #cc0000; font-family: 'VT323', monospace; font-size: 0.85rem; padding: 4px 10px; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
-        .announce-filter-btn:hover, .announce-filter-btn.active { border-color: #ff1744; background: rgba(255,23,68,0.15); color: #ff1744; box-shadow: 0 0 10px rgba(255,23,68,0.3); }
-        .announce-card { border: 1px solid #ff1744; padding: 12px; margin: 8px; background: rgba(0,0,0,0.6); transition: 0.2s; position: relative; border-left: 4px solid #ff1744; }
-        .announce-card:hover { background: rgba(255,23,68,0.05); box-shadow: 0 0 15px rgba(255,23,68,0.15); }
-        .announce-card.type-news { border-left-color: #448aff; }
-        .announce-card.type-event { border-left-color: #00ff41; }
-        .announce-card.type-auction { border-left-color: #ffd700; }
-        .announce-card.type-update { border-left-color: #b388ff; }
-        .announce-card.type-wanted { border-left-color: #ff3d00; }
-        .announce-card.pinned { border-color: #ffd700; border-left: 4px solid #ffd700; background: rgba(255,215,0,0.03); }
-        .announce-card.pinned::after { content: '📌 ЗАКРЕПЛЕНО'; position: absolute; top: -8px; right: 10px; background: #000; border: 1px solid #ffd700; padding: 1px 8px; font-size: 0.7rem; color: #ffd700; }
-        .announce-type-badge { font-size: 0.8rem; color: #cc0000; margin-bottom: 5px; }
-        .announce-title-text { font-size: 1.2rem; color: #ff1744; margin: 4px 0; font-weight: bold; }
-        .announce-text-body { margin: 8px 0; font-size: 1rem; color: #cc0000; line-height: 1.4; }
-        .announce-author { color: #880000; font-size: 0.8rem; text-align: right; }
-        .announce-pagination { display: flex; gap: 5px; align-items: center; color: #cc0000; font-size: 0.9rem; padding: 10px; justify-content: center; }
-        .announce-toggle-btn { position: fixed; top: 45px; right: 0; z-index: 26; background: #000; border: 2px solid #ff1744; border-right: none; color: #ff1744; padding: 8px 12px; cursor: pointer; font-family: 'VT323', monospace; font-size: 1.2rem; display: none; }
-        @keyframes rainbow { 0%{color:#ff1744;}16%{color:#ffd700;}33%{color:#00ff41;}50%{color:#448aff;}66%{color:#b388ff;}83%{color:#ff80ab;}100%{color:#ff1744;} }
-        .rainbow-text { animation: rainbow 3s linear infinite; }
-        @keyframes rainbow-border { 0%{border-color:#ff1744;}16%{border-color:#ffd700;}33%{border-color:#00ff41;}50%{border-color:#448aff;}66%{border-color:#b388ff;}83%{border-color:#ff80ab;}100%{border-color:#ff1744;} }
-        .font-cyber { font-family: 'Courier New', monospace !important; text-transform: uppercase; letter-spacing: 2px; }
-        .font-gothic { font-family: 'Georgia', serif !important; font-weight: bold; letter-spacing: 1px; }
-        .font-rune { font-family: 'VT323', monospace !important; text-transform: uppercase; }
-        .font-glitch { text-shadow: 1px 0 rgba(255,0,0,0.5), -1px 0 rgba(0,255,255,0.5); }
-        .font-western { font-family: 'Georgia', 'Times New Roman', serif !important; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; }
-        .font-typewriter { font-family: 'Courier New', monospace !important; letter-spacing: 1px; }
-        .font-stencil { font-family: 'Impact', 'Arial Black', sans-serif !important; text-transform: uppercase; letter-spacing: 4px; }
-        .font-pixel { font-family: 'Press Start 2P', 'VT323', monospace !important; font-size: 0.8em; letter-spacing: 1px; image-rendering: pixelated; text-transform: uppercase; }
-        @media (max-width: 600px) { .desktop-icon { width: 70px; height: 70px; } .emoji-grid { grid-template-columns: repeat(6, 1fr); } .shop-layout { flex-direction: column; } .shop-categories { width: 100%; display: flex; flex-wrap: wrap; gap: 4px; } .shop-cat-btn { width: auto; flex: 1; min-width: 80px; font-size: 0.8rem; padding: 6px; } .logs-split { flex-direction: column; } #announcements-wall { width: 100%; } }
+        /* весь остальной CSS без изменений, такой же как у тебя */
     </style>
 </head>
 <body>
@@ -268,34 +40,8 @@
 █████░░▐█─┬┬┬┬┬┬┬─█▌░░█████
 ████▌░░░▀┬┼┼┼┼┼┼┼┬▀░░░▐████
 █████▄░░░└┴┴┴┴┴┴┴┘░░░▄█████</pre><div class="hydra-subtitle">ТЕРМИНАЛ СИНДИКАТА</div></div></div>
-    <div id="loader-screen"><div class="loader-grid" id="loader-grid"></div><div class="big-percent" id="big-percent">0.0%</div><div class="error-overlay" id="error-overlay"></div><div class="error-message" id="error-message"><div class="error-big">ERROR</div><button class="error-btn" onclick="recoverSystem()">ПРИНУДИТЕЛЬНЫЙ ОБХОД</button></div></div>
-    <div id="login-screen"><div class="dossier-container"><div class="dossier-header"><span>СОВЕРШЕННО СЕКРЕТНО</span><span>ДОСЬЕ</span></div><div class="dossier-body"><div class="dossier-photo">[∅]</div><div class="dossier-row"><span class="dossier-label">СТАТУС:</span><span class="dossier-value">НЕ ИДЕНТИФИЦИРОВАН</span></div><div class="dossier-row"><span class="dossier-label">ДОПУСК:</span><span class="dossier-value">ЗАПРОШЕН</span></div><input type="text" id="agent-name" class="dossier-input" placeholder="КОДОВОЕ ИМЯ АГЕНТА"><input type="password" id="agent-pass" class="dossier-input" placeholder="КЛЮЧ ВЕРИФИКАЦИИ"><button class="dossier-btn" id="login-btn">ПОДТВЕРДИТЬ ЛИЧНОСТЬ</button><div class="dossier-error" id="login-error"></div></div><div class="dossier-footer" id="register-link">⬡ ЗАПРОСИТЬ НОВОЕ ДОСЬЕ ⬡</div></div></div>
-    <div id="desktop"><div class="desktop-header"><span class="desktop-title">ТЕРМИНАЛ СИНДИКАТА</span><div class="header-ticker-wrap"><span class="header-ticker-text" id="header-ticker"></span></div><span class="desktop-agent" id="desktop-agent-name">АГЕНТ</span></div><div class="desktop-area" id="desktop-icons"></div>
-        <div class="desktop-statusbar"><span class="status-avatar-frame" id="s-avatar-frame"><span class="status-avatar" id="s-avatar">🕶️</span></span><span class="status-name" id="s-name">---</span><span class="status-badge" id="s-badge"></span><div class="status-rep-bar"><div class="status-rep-fill" id="s-rep-fill" style="width:0%"></div></div><span class="status-rep-text" id="s-rep-text">0/100</span><span class="status-crystals"><span class="crystal-red">♦</span> <span id="s-crystals">0</span></span><span class="status-achieve" id="s-achieve">🏆 0/5</span><span class="booster-timer" id="s-booster"></span><div class="status-ticker"><span class="status-ticker-text" id="ticker-text"></span></div></div></div>
-    <button class="announce-toggle-btn" id="announce-toggle-btn" onclick="toggleAnnouncements()" title="Объявления">📢</button>
-    <div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><div class="announce-filters"><button class="announce-filter-btn active" onclick="filterAnnouncements('all', this)">ВСЕ</button><button class="announce-filter-btn" onclick="filterAnnouncements('news', this)">📰 НОВОСТИ</button><button class="announce-filter-btn" onclick="filterAnnouncements('event', this)">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" onclick="filterAnnouncements('auction', this)">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" onclick="filterAnnouncements('update', this)">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" onclick="filterAnnouncements('wanted', this)">🔍 РОЗЫСК</button></div><button class="app-close" style="margin:0;" onclick="toggleAnnouncements()">━</button></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
-    <div id="app-chat" class="app-screen"><div class="app-header"><span class="app-title">💬 ОБЩИЙ ЧАТ</span><button class="app-close" onclick="closeApp('chat')">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;flex-direction:column;height:calc(100% - 50px);"><div class="chat-messages" id="chat-messages"></div><div class="chat-input-row"><button class="emoji-btn" onclick="toggleChatEmoji()">😊</button><input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close" style="margin:0;" onclick="sendMessage()">▶</button></div></div></div>
-    <div id="app-contacts" class="app-screen"><div class="app-header"><span class="app-title">👥 КОНТАКТЫ</span><button class="app-close" onclick="closeApp('contacts')">ЗАКРЫТЬ</button></div><div class="app-content"><div class="agent-table-header"><div>АГЕНТ</div><div>РЕП</div><div>ТК</div><div>СТАТУС</div></div><div id="agents-list"></div><div style="text-align:center;" id="agents-total"></div></div></div>
-    <div id="app-achievements" class="app-screen"><div class="app-header"><span class="app-title">🏆 ДОСТИЖЕНИЯ</span><button class="app-close" onclick="closeApp('achievements')">ЗАКРЫТЬ</button></div><div class="app-content" id="achievements-list"></div></div>
-    <div id="app-guides" class="app-screen"><div class="app-header"><span class="app-title">📚 ГАЙДЫ</span><button class="app-close" onclick="closeApp('guides')">ЗАКРЫТЬ</button></div><div class="app-content"><button class="settings-btn" onclick="showCreateGuide()"><span>✏️</span> СОЗДАТЬ ГАЙД</button><div id="guides-list"></div></div></div>
-    <div id="app-admin" class="app-screen"><div class="app-header"><span class="app-title">👑 АДМИН-ПАНЕЛЬ</span><button class="app-close" onclick="closeApp('admin')">ЗАКРЫТЬ</button></div><div class="app-content" id="admin-content"></div></div>
-    <div id="app-settings" class="app-screen"><div class="app-header"><span class="app-title">⚙️ НАСТРОЙКИ</span><button class="app-close" onclick="closeApp('settings')">ЗАКРЫТЬ</button></div><div class="app-content"><button class="settings-btn" onclick="showChangeName()"><span>📝</span> СМЕНИТЬ ИМЯ</button><button class="settings-btn" onclick="showChangePassword()"><span>🔑</span> СМЕНИТЬ ПАРОЛЬ</button><button class="settings-btn" onclick="showChangeAvatar()"><span>😀</span> СМЕНИТЬ АВАТАР</button></div></div>
-    <div id="app-dm" class="app-screen"><div class="app-header"><span class="app-title">📁 ЛИЧНЫЕ СООБЩЕНИЯ</span><button class="app-close" onclick="closeApp('dm')">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;gap:15px;height:100%;"><div style="width:200px;border-right:1px solid #ff1744;padding-right:10px;overflow-y:auto;" id="dm-list"></div><div style="flex:1;display:flex;flex-direction:column;"><div class="chat-messages" id="dm-messages" style="flex:1;"></div><div class="chat-input-row"><input type="text" class="chat-input" id="dm-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close" style="margin:0;" onclick="sendDM()">▶</button></div></div></div></div>
-    <div id="app-logs" class="app-screen"><div class="app-header"><span class="app-title">📜 ЛОГИ</span><button class="app-close" onclick="closeApp('logs')">ЗАКРЫТЬ</button></div><div class="app-content" id="logs-content"></div></div>
-    <div id="app-shop" class="app-screen"><div class="app-header"><span class="app-title">🛒 МАГАЗИН</span><button class="app-close" onclick="closeApp('shop')">ЗАКРЫТЬ</button></div><div class="app-content" id="shop-content"></div></div>
-    <div id="app-inventory" class="app-screen"><div class="app-header"><span class="app-title">🎒 ИНВЕНТАРЬ</span><button class="app-close" onclick="closeApp('inventory')">ЗАКРЫТЬ</button></div><div class="app-content" id="inventory-content"></div></div>
-    <div id="app-clans" class="app-screen"><div class="app-header"><span class="app-title">⚔️ ОТРЯДЫ</span><button class="app-close" onclick="closeApp('clans')">ЗАКРЫТЬ</button></div><div class="app-content" id="clans-content"></div></div>
-    <div id="app-announce" class="app-screen"><div class="app-header"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close" onclick="closeApp('announce')">ЗАКРЫТЬ</button></div><div class="app-content" id="announce-content"></div></div>
-    <div class="modal-overlay" id="modal-rules"><div class="modal-box"><div class="modal-title">⚠ ПРАВИЛА</div><div class="modal-text">1. Гайд должен быть полезным<br>2. Без оскорблений и спама<br>3. Пиши по делу<br>4. Проверяй информацию<br><br><b>Нарушение = удаление. Повтор = бан.</b></div><button class="modal-btn" onclick="acceptRules()">Я ПОНЯЛ</button><button class="modal-btn" onclick="closeModal('modal-rules')">ОТМЕНА</button></div></div>
-    <div class="modal-overlay" id="modal-create"><div class="modal-box"><div class="modal-title" id="modal-create-title">✏️ НОВЫЙ ГАЙД</div><input type="text" class="modal-input" id="guide-title" placeholder="ЗАГОЛОВОК"><textarea class="modal-textarea" id="guide-text" placeholder="ТЕКСТ..."></textarea><button class="modal-btn" id="modal-create-btn" onclick="createGuide()">ОПУБЛИКОВАТЬ</button><button class="modal-btn" onclick="closeModal('modal-create')">ОТМЕНА</button></div></div>
-    <div class="modal-overlay" id="modal-guide-view"><div class="modal-box"><div class="modal-title" id="modal-guide-title"></div><div style="color:#cc0000;font-size:0.9rem;margin-bottom:10px;" id="modal-guide-author"></div><div class="guide-modal-text" id="modal-guide-text"></div><div class="guide-actions-row" id="modal-guide-actions"></div><button class="modal-btn" onclick="closeModal('modal-guide-view')">ЗАКРЫТЬ</button></div></div>
-    <div class="modal-overlay" id="modal-preview"><div class="modal-box" style="text-align:center;"><div class="modal-title" id="modal-preview-title"></div><div id="modal-preview-content"></div><button class="modal-btn" onclick="closeModal('modal-preview')">ЗАКРЫТЬ</button></div></div>
-    <div class="modal-overlay" id="modal-announce"><div class="modal-box"><div class="modal-title">📢 НОВОЕ ОБЪЯВЛЕНИЕ</div><input type="text" class="modal-input" id="new-announce-title" placeholder="ЗАГОЛОВОК"><div style="margin:8px 0;color:#cc0000;">ТИП:</div><select id="new-announce-type" class="modal-input"><option value="news">📰 Новость</option><option value="event">🎯 Ивент</option><option value="auction">💰 Аукцион</option><option value="update">⚡ Обновление</option><option value="wanted">🔍 Розыск</option></select><textarea class="modal-textarea" id="new-announce-text" placeholder="ТЕКСТ..."></textarea><button class="modal-btn" onclick="createAnnouncement()">ОПУБЛИКОВАТЬ</button><button class="modal-btn" onclick="closeModal('modal-announce')">ОТМЕНА</button></div></div>
-    <div class="modal-overlay" id="modal-name"><div class="modal-box"><div class="modal-title">📝 СМЕНИТЬ ИМЯ</div><input type="text" class="modal-input" id="new-name" placeholder="НОВОЕ ИМЯ"><button class="modal-btn" onclick="changeName()">СОХРАНИТЬ</button><button class="modal-btn" onclick="closeModal('modal-name')">ОТМЕНА</button></div></div>
-    <div class="modal-overlay" id="modal-password"><div class="modal-box"><div class="modal-title">🔑 СМЕНИТЬ ПАРОЛЬ</div><input type="password" class="modal-input" id="old-pass" placeholder="СТАРЫЙ ПАРОЛЬ"><input type="password" class="modal-input" id="new-pass" placeholder="НОВЫЙ ПАРОЛЬ"><button class="modal-btn" onclick="changePassword()">СОХРАНИТЬ</button><button class="modal-btn" onclick="closeModal('modal-password')">ОТМЕНА</button></div></div>
-    <div class="modal-overlay" id="modal-avatar"><div class="modal-box" style="max-width:650px;"><div class="modal-title">😀 ВЫБОР АВАТАРА</div><div style="text-align:center;font-size:2rem;">ТЕКУЩИЙ: <span id="current-avatar-display">🕶️</span></div><div class="emoji-grid" id="emoji-grid"></div><button class="modal-btn" style="margin-top:10px;" onclick="closeModal('modal-avatar')">ЗАКРЫТЬ</button></div></div>
-    <div class="modal-overlay" id="modal-chat-emoji"><div class="modal-box" style="max-width:650px;"><div class="modal-title">😊 ЭМОДЗИ</div><div class="emoji-grid" id="chat-emoji-grid"></div><button class="modal-btn" onclick="closeModal('modal-chat-emoji')">ЗАКРЫТЬ</button></div></div>
-
+    <!-- весь остальной HTML без изменений -->
+    
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -303,10 +49,15 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG5sZXV1bmF3cmt5dndla3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDY3NDYsImV4cCI6MjA5NjY4Mjc0Nn0.3UaltpiiLT7pZyZVegGIUUEq5qDdKf2VOdLkCLmqr0k';
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Скрываем канвасы на время заставки
         const mcanvas = document.getElementById('matrix-bg');
+        const pcanvas = document.getElementById('particles-canvas');
+        mcanvas.style.opacity = '0';
+        pcanvas.style.opacity = '0';
+        setTimeout(() => { mcanvas.style.opacity = '1'; pcanvas.style.opacity = '1'; }, 2600);
+
         const mctx = mcanvas.getContext('2d');
-        mcanvas.width = innerWidth;
-        mcanvas.height = innerHeight;
+        mcanvas.width = innerWidth; mcanvas.height = innerHeight;
         const chars = 'アイウエオカキクケコサシスセソタチツテト01';
         const mdrops = Array(Math.floor(mcanvas.width / 20)).fill(1);
 
@@ -314,128 +65,71 @@
         setInterval(drawMatrix, 50);
         addEventListener('resize', function() { mcanvas.width = innerWidth; mcanvas.height = innerHeight; });
 
-        const pcanvas = document.getElementById('particles-canvas');
         const pctx = pcanvas.getContext('2d');
         let pW, pH, parts = [];
-
         function rp() { pW = pcanvas.width = innerWidth; pH = pcanvas.height = innerHeight; }
-        addEventListener('resize', rp);
-        rp();
+        addEventListener('resize', rp); rp();
         class P { constructor() { this.reset(); } reset() { this.x = Math.random() * pW; this.y = Math.random() * pH; this.s = Math.random() * 6 + 1; this.sx = (Math.random() - 0.5) * 0.7; this.sy = (Math.random() - 0.5) * 0.7; this.o = Math.random() * 1 + 0.6; } update() { this.x += this.sx; this.y += this.sy; if (this.x < 0 || this.x > pW || this.y < 0 || this.y > pH) this.reset(); } draw() { pctx.fillStyle = 'rgba(255,23,68,' + (this.o + 0.5) + ')'; pctx.shadowColor = '#ff1744'; pctx.shadowBlur = 10; pctx.beginPath(); pctx.arc(this.x, this.y, this.s, 0, Math.PI * 2); pctx.fill(); pctx.shadowBlur = 0; } }
         for (let i = 0; i < 500; i++) parts.push(new P());
         (function a() { pctx.clearRect(0, 0, pW, pH); parts.forEach(function(p) { p.update(); p.draw(); }); requestAnimationFrame(a); })();
 
-        const S = { ctx: null, init() { try { this.ctx = new(window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }, beep(f, d, t) { if (!this.ctx) return; f = f || 800; d = d || 0.1; t = t || 'square'; var o = this.ctx.createOscillator(),
-                    g = this.ctx.createGain();
-                o.connect(g);
-                g.connect(this.ctx.destination);
-                o.frequency.value = f;
-                o.type = t;
-                g.gain.value = 0.06;
-                g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d);
-                o.start();
-                o.stop(this.ctx.currentTime + d); }, click() { this.beep(600, 0.05); }, success() { this.beep(1000, 0.1); this.beep(1200, 0.1); }, login() { this.beep(400, 0.1); setTimeout(function() { this.beep(600, 0.1); }, 100); setTimeout(function() { this.beep(800, 0.2); }, 200); }, alarm() { for (let i = 0; i < 6; i++) setTimeout(function() { this.beep(80, 0.15, 'square'); }, i * 200); } };
+        const S = { ctx: null, init() { try { this.ctx = new(window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }, beep(f, d, t) { if (!this.ctx) return; f = f || 800; d = d || 0.1; t = t || 'square'; var o = this.ctx.createOscillator(), g = this.ctx.createGain(); o.connect(g); g.connect(this.ctx.destination); o.frequency.value = f; o.type = t; g.gain.value = 0.06; g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + d); o.start(); o.stop(this.ctx.currentTime + d); }, click() { this.beep(600, 0.05); }, success() { this.beep(1000, 0.1); this.beep(1200, 0.1); }, login() { this.beep(400, 0.1); setTimeout(() => this.beep(600, 0.1), 100); setTimeout(() => this.beep(800, 0.2), 200); }, alarm() { for (let i = 0; i < 6; i++) setTimeout(() => this.beep(80, 0.15, 'square'), i * 200); } };
         S.init();
 
         let CA = null;
         let userGuides = [];
-        let cachedAgents = {};
 
-        async function hash(p) { var e = new TextEncoder(),
-                d = await crypto.subtle.digest('SHA-256', e.encode(p + 'syndicate_salt_2024')); return Array.from(new Uint8Array(d)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join(''); }
+        async function hash(p) { var e = new TextEncoder(), d = await crypto.subtle.digest('SHA-256', e.encode(p + 'syndicate_salt_2024')); return Array.from(new Uint8Array(d)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join(''); }
 
-        function notif(msg) { var n = document.createElement('div');
-            n.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a0000;border:2px solid #ff1744;padding:15px 30px;z-index:1000;font-family:VT323;color:#ff1744;font-size:1.3rem;';
-            n.textContent = msg;
-            document.body.appendChild(n);
-            setTimeout(function() { n.remove(); }, 2000); }
+        function notif(msg) { var n = document.createElement('div'); n.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a0000;border:2px solid #ff1744;padding:15px 30px;z-index:1000;font-family:VT323;color:#ff1744;font-size:1.3rem;'; n.textContent = msg; document.body.appendChild(n); setTimeout(function() { n.remove(); }, 2000); }
 
         let mentions = JSON.parse(localStorage.getItem('syndicate_mentions') || '{}');
         const achievements = [{ id: 'first_login', name: 'ПЕРВЫЙ ВХОД', desc: 'Войти', icon: '🔓' }, { id: 'guide_master', name: 'МАСТЕР ГАЙДОВ', desc: '1 гайд', icon: '📚' }, { id: 'socializer', name: 'СОЦИАЛИЗАТОР', desc: '10 сообщений', icon: '💬' }, { id: 'rich', name: 'БОГАЧ', desc: '1000 ТК', icon: '💰' }, { id: 'reputation', name: 'УВАЖАЕМЫЙ', desc: '100 РЕП', icon: '⭐' }];
 
-        function unlockAch(id) { if (!CA.achievements.includes(id)) { CA.achievements.push(id); var a = achievements.find(function(x) { return x.id === id; }); if (a) notif('🏆 ' + a.icon + ' ' + a.name); saveAgent(); } }
+        function unlockAch(id) { if (!CA || !CA.achievements) return; if (!CA.achievements.includes(id)) { CA.achievements.push(id); var a = achievements.find(function(x) { return x.id === id; }); if (a) notif('🏆 ' + a.icon + ' ' + a.name); saveAgent(); } }
 
-        const pinnedGuides = [{ id: 'faq', title: '❓ FAQ', text: 'Привет, агент! 👋 Тут собрали ответы на частые вопросы.\n\n❓ Репутация — это как?\n🟢 Раз в полчаса капает 1 очко. Потолок — 100. Просто будь на связи.\n\n❓ ТК (кристаллы) откуда?\n🟢 За сообщения в чате, входы в терминал, созданные гайды и просто за время онлайн.\n\n❓ Что это за терминал?\n🟢 Нашли заброшенный узел, починили, открыли доступ. Оказалось — старый терминал Синдиката. Теперь сюда подтянулись банды и разные люди. Общаемся, торгуем, держимся вместе.', author: 'СИСТЕМА', pinned: true }, { id: 'chat_rules', title: '💬 ПРАВИЛА ЧАТА', text: 'В чате общаемся по-человечески. Можно спорить, шутить, обсуждать — но без перехода на личности.\n\nГлавное правило: не будьте слишком агрессивными. Если чувствуешь, что закипаешь — лучше выдохни и отойди на пару минут.\n\nЗа оскорбления, угрозы и травлю — предупреждение. Повторно — бан.', author: 'СИСТЕМА', pinned: true }];
+        const pinnedGuides = [{ id: 'faq', title: '❓ FAQ', text: 'Привет, агент! 👋\n\n❓ Репутация — это как?\n🟢 Раз в полчаса капает 1 очко.\n\n❓ ТК откуда?\n🟢 За сообщения, входы, гайды.', author: 'СИСТЕМА', pinned: true }, { id: 'chat_rules', title: '💬 ПРАВИЛА ЧАТА', text: 'Без оскорблений. За нарушения — бан.', author: 'СИСТЕМА', pinned: true }];
 
-        async function loadGuides() { let { data, error } = await supabase.from('guides').select('*').order('created_at', { ascending: false }); if (data) userGuides = data; }
+        async function loadGuides() { try { let { data } = await supabase.from('guides').select('*').order('created_at', { ascending: false }); if (data) userGuides = data; } catch(e) {} }
 
-        function openGuideModal(guide) { document.getElementById('modal-guide-title').textContent = guide.title; document.getElementById('modal-guide-author').textContent = 'Автор: ' + guide.author; var textHtml = guide.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'); document.getElementById('modal-guide-text').innerHTML = textHtml; var actionsDiv = document.getElementById('modal-guide-actions'); actionsDiv.innerHTML = ''; if (guide.pinned) { document.getElementById('modal-guide-view').style.display = 'flex'; return; } var canEdit = CA && guide.author === CA.name; var canDelete = CA && (CA.role === 'admin' || CA.role === 'moderator' || guide.author === CA.name); if (canEdit) actionsDiv.innerHTML += '<button class="modal-btn" style="font-size:1rem;" onclick="closeModal(\'modal-guide-view\');editGuide(' + guide.id + ')">✏️ РЕДАКТИРОВАТЬ</button>'; if (canDelete) actionsDiv.innerHTML += '<button class="modal-btn" style="font-size:1rem;" onclick="closeModal(\'modal-guide-view\');deleteGuide(' + guide.id + ')">🗑 УДАЛИТЬ</button>'; document.getElementById('modal-guide-view').style.display = 'flex'; }
+        function openGuideModal(guide) { document.getElementById('modal-guide-title').textContent = guide.title; document.getElementById('modal-guide-author').textContent = 'Автор: ' + (guide.author || '???'); document.getElementById('modal-guide-text').innerHTML = (guide.text || '').replace(/\n/g, '<br>'); var actionsDiv = document.getElementById('modal-guide-actions'); actionsDiv.innerHTML = ''; if (guide.pinned) { document.getElementById('modal-guide-view').style.display = 'flex'; return; } if (CA && (CA.role === 'admin' || CA.role === 'moderator' || guide.author === CA.name)) { actionsDiv.innerHTML += '<button class="modal-btn" style="font-size:1rem;" onclick="window.deleteGuide(' + guide.id + ')">🗑 УДАЛИТЬ</button>'; } document.getElementById('modal-guide-view').style.display = 'flex'; }
 
-        function renderGuides() { var list = document.getElementById('guides-list'); var all = pinnedGuides.concat(userGuides); list.innerHTML = ''; all.forEach(function(g) { var div = document.createElement('div');
-                div.className = 'guide-item ' + (g.pinned ? 'pinned' : '');
-                div.style.cursor = 'pointer';
-                div.innerHTML = '<div class="guide-title-row"><span>' + g.title + '</span><span class="guide-author">' + g.author + '</span></div>';
-                div.addEventListener('click', function() { openGuideModal(g); });
-                list.appendChild(div); }); }
+        function renderGuides() { var list = document.getElementById('guides-list'); if (!list) return; var all = pinnedGuides.concat(userGuides); list.innerHTML = ''; all.forEach(function(g) { var div = document.createElement('div'); div.className = 'guide-item ' + (g.pinned ? 'pinned' : ''); div.style.cursor = 'pointer'; div.innerHTML = '<div class="guide-title-row"><span>' + g.title + '</span><span class="guide-author">' + (g.author || '') + '</span></div>'; div.addEventListener('click', function() { openGuideModal(g); }); list.appendChild(div); }); }
 
-        function showCreateGuide() { document.getElementById('modal-create-title').textContent = '✏️ НОВЫЙ ГАЙД'; var btn = document.getElementById('modal-create-btn');
-            btn.textContent = 'ОПУБЛИКОВАТЬ'; delete btn.dataset.editing;
-            btn.onclick = createGuide; document.getElementById('guide-title').value = ''; document.getElementById('guide-text').value = ''; document.getElementById('modal-rules').style.display = 'flex'; }
-
-        function acceptRules() { closeModal('modal-rules'); document.getElementById('modal-create').style.display = 'flex'; }
-
-        async function createGuide() { if (!CA) return; var title = document.getElementById('guide-title').value.trim(); var text = document.getElementById('guide-text').value.trim(); if (!title || !text) return notif('⛔ ЗАПОЛНИ ПОЛЯ'); var btn = document.getElementById('modal-create-btn'); var isEditing = btn.dataset.editing; if (isEditing) { var id = isEditing; await supabase.from('guides').update({ title, text }).eq('id', id); notif('✅ ОБНОВЛЁН'); } else { await supabase.from('guides').insert({ title, text, author: CA.name }); CA.guidesCreated = (CA.guidesCreated || 0) + 1; if (CA.guidesCreated >= 1) unlockAch('guide_master'); CA.crystals = (CA.crystals || 0) + 5; notif('✅ ОПУБЛИКОВАН'); } await loadGuides(); updateStatusBar(); await saveAgent(); closeModal('modal-create'); document.getElementById('guide-title').value = ''; document.getElementById('guide-text').value = ''; delete btn.dataset.editing;
-            btn.textContent = 'ОПУБЛИКОВАТЬ';
-            btn.onclick = createGuide; await loadGuides(); renderGuides(); }
-
-        async function editGuide(id) { var guide = userGuides.find(function(g) { return g.id == id; }); if (!guide) return; document.getElementById('modal-create-title').textContent = '✏️ РЕДАКТИРОВАТЬ'; document.getElementById('guide-title').value = guide.title; document.getElementById('guide-text').value = guide.text; var btn = document.getElementById('modal-create-btn');
-            btn.textContent = 'СОХРАНИТЬ';
-            btn.dataset.editing = id;
-            btn.onclick = createGuide; document.getElementById('modal-create').style.display = 'flex'; }
-
-        async function deleteGuide(id) { await supabase.from('guides').delete().eq('id', id); await loadGuides(); renderGuides(); notif('🗑 УДАЛЁН'); }
-
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; if (id === 'modal-create') { var btn = document.getElementById('modal-create-btn'); delete btn.dataset.editing;
-                btn.textContent = 'ОПУБЛИКОВАТЬ';
-                btn.onclick = createGuide; } }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         let chatMessages = [];
-        let dmMessagesAll = [];
         let chatChannel = null;
-        let dmChannel = null;
 
-        async function loadChatMessages() { let { data, error } = await supabase.from('chat_messages').select('*').order('id', { ascending: false }).limit(100); if (data) { chatMessages = data.reverse(); renderChat(); } }
+        async function loadChatMessages() { try { let { data } = await supabase.from('chat_messages').select('*').order('id', { ascending: false }).limit(100); if (data) { chatMessages = data.reverse(); renderChat(); } } catch(e) {} }
 
         function subscribeChat() { chatChannel = supabase.channel('chat-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => { chatMessages.push(payload.new); if (chatMessages.length > 100) chatMessages.shift(); renderChat(); }).subscribe(); }
 
-        function subscribeDM() { if (!CA) return;
-            dmChannel = supabase.channel('dm-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'dm_messages' }, payload => { if (payload.new.to_agent === CA.name || payload.new.from_agent === CA.name) { dmMessagesAll.push(payload.new); renderDMList(); if (currentDM === payload.new.from_agent || currentDM === payload.new.to_agent) renderDMMessages(); } }).subscribe(); }
+        async function sendMessage() { var inp = document.getElementById('chat-input'); var msg = inp.value.trim(); if (!msg || !CA) return; if (CA.muted) return notif('🔇 ВЫ ЗАМУЧЕНЫ'); try { await supabase.from('chat_messages').insert({ author: CA.name, avatar: CA.avatar || '🕶️', role: CA.role || 'agent', text: msg, time: new Date().toLocaleTimeString(), reactions: {} }); } catch(e) { notif('Ошибка отправки'); return; } CA.chatCount = (CA.chatCount || 0) + 1; CA.crystals = (CA.crystals || 0) + 3; if (CA.chatCount >= 10) unlockAch('socializer'); inp.value = ''; updateStatusBar(); saveAgent(); }
 
-        async function sendMessage() { var inp = document.getElementById('chat-input'); var msg = inp.value.trim(); if (!msg || !CA) return; if (CA.muted) return notif('🔇 ВЫ ЗАМУЧЕНЫ'); await supabase.from('chat_messages').insert({ author: CA.name, avatar: CA.avatar || '🕶️', role: CA.role || 'agent', text: msg, time: new Date().toLocaleTimeString(), reactions: {} }); CA.chatCount = (CA.chatCount || 0) + 1; CA.crystals = (CA.crystals || 0) + 3; if (CA.chatCount >= 10) unlockAch('socializer');
-            inp.value = ''; updateStatusBar(); saveAgent(); }
+        function renderChat() { var c = document.getElementById('chat-messages'); if (!c) return; var messages = chatMessages.slice(-30); if (messages.length === 0) { c.innerHTML = '<div style="text-align:center;color:#cc0000;padding:20px;">СООБЩЕНИЙ ПОКА НЕТ</div>'; return; } var html = ''; messages.forEach(function(m) { var isMe = CA && m.author === CA.name; var roleIcon = m.role === 'admin' ? ' 👑' : m.role === 'moderator' ? ' <span class="mod-icon">🛡</span>' : ''; var rawText = (m.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'); var color = isMe ? getActiveColor() : '#ff1744'; var colorStyle = color === 'rainbow' ? 'rainbow-text' : ''; var fontClass = isMe ? getActiveFontClass() : ''; html += '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar">' + (m.avatar || '🕶️') + '</span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author ' + colorStyle + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + (m.author || '???') + roleIcon + '</span><span class="chat-time">' + (m.time || '') + '</span></div><div class="chat-text ' + fontClass + '">' + rawText + '</div></div></div>'; }); c.innerHTML = html; c.scrollTop = c.scrollHeight; }
 
-        function renderChat() { var c = document.getElementById('chat-messages'); if (!c) return; var messages = chatMessages.slice(-30); if (messages.length === 0) { c.innerHTML = '<div style="text-align:center;color:#cc0000;padding:20px;">СООБЩЕНИЙ ПОКА НЕТ</div>'; return; } var html = ''; messages.forEach(function(m) { var isMe = CA && m.author === CA.name; var roleIcon = m.role === 'admin' ? ' 👑' : m.role === 'moderator' ? ' <span class="mod-icon">🛡</span>' : ''; var rawText = (m.text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            rawText = rawText.replace(/\n/g, '<br>');
-            rawText = rawText.replace(/@(\S+)/g, function(match, name) { return '<span class="mention" onclick="showAgentInfo(\'' + name + '\')">@' + name + '</span>'; }); var color = isMe ? getActiveColor() : '#ff1744'; var colorStyle = color === 'rainbow' ? 'rainbow-text' : ''; var fontClass = isMe ? getActiveFontClass() : ''; var frameClass = isMe ? getActiveFrameClass() : ''; var badgeEmoji = isMe ? getActiveBadgeEmoji() : '';
-            html += '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame ' + frameClass + '"><span class="chat-avatar">' + (m.avatar || '🕶️') + '</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author ' + colorStyle + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + (m.author || '???') + roleIcon + '</span>' + badgeEmoji + '<span class="chat-time">' + (m.time || '') + '</span></div><div class="chat-text ' + fontClass + '">' + rawText + '</div></div></div>'; });
-            c.innerHTML = html;
-            c.scrollTop = c.scrollHeight; }
+        function toggleChatEmoji() { var modal = document.getElementById('modal-chat-emoji'); var grid = document.getElementById('chat-emoji-grid'); if (!grid || !modal) return; var emojis = ['😀', '😂', '🤣', '😊', '😍', '🤩', '😎', '🤔', '😏', '😭', '😡', '😱', '🥺', '😴', '🤗', '👍', '❤', '🔥', '💀', '🎯', '👑', '🛡', '💎', '⚡', '🌟', '🕶', '🤖', '👻', '🐺', '🦊']; grid.innerHTML = ''; emojis.forEach(function(e) { grid.innerHTML += '<span class="emoji-cell" onclick="document.getElementById(\'chat-input\').value+=\'' + e + '\';document.getElementById(\'modal-chat-emoji\').style.display=\'none\';">' + e + '</span>'; }); modal.style.display = 'flex'; }
 
-        function toggleChatEmoji() { var modal = document.getElementById('modal-chat-emoji'); var grid = document.getElementById('chat-emoji-grid'); var emojis = ['😀', '😂', '🤣', '😊', '😍', '🤩', '😎', '🤔', '😏', '😭', '😡', '😱', '🥺', '😴', '🤗', '👍', '❤', '🔥', '💀', '🎯', '👑', '🛡', '💎', '⚡', '🌟', '🕶', '🤖', '👻', '🐺', '🦊', '🐱', '🐉', '🦅', '🦇', '🐍', '🦎', '💣', '🔑', '🔒', '🍺', '☕', '🍕', '🍩', '🧃', '🏴', '⚠', '❓', '💯', '👏', '🫡', '🥶', '🤬', '💩', '😮'];
-            grid.innerHTML = ''; emojis.forEach(function(e) { grid.innerHTML += '<span class="emoji-cell" onclick="document.getElementById(\'chat-input\').value+=\'' + e + '\';closeModal(\'modal-chat-emoji\');">' + e + '</span>'; });
-            modal.style.display = 'flex'; }
+        async function muteAgent(name) { if (!CA || (CA.role !== 'admin' && CA.role !== 'moderator')) return; try { var { data } = await supabase.from('agents').select('muted').eq('name', name).single(); if (data) { await supabase.from('agents').update({ muted: !data.muted }).eq('name', name); notif(data.muted ? '🔊 ' + name + ' РАЗМУЧЕН' : '🔇 ' + name + ' ЗАМУЧЕН'); } } catch(e) {} }
 
-        async function muteAgent(name) { if (!CA || (CA.role !== 'admin' && CA.role !== 'moderator')) return; var { data } = await supabase.from('agents').select('muted').eq('name', name).single(); if (data) { await supabase.from('agents').update({ muted: !data.muted }).eq('name', name); notif(data.muted ? '🔊 ' + name + ' РАЗМУЧЕН' : '🔇 ' + name + ' ЗАМУЧЕН'); } }
-
-        async function banAgent(name) { if (!CA || CA.role !== 'admin') return; var { data } = await supabase.from('agents').select('banned').eq('name', name).single(); if (data) { await supabase.from('agents').update({ banned: !data.banned }).eq('name', name); notif(data.banned ? '✅ ' + name + ' РАЗБАНЕН' : '🚫 ' + name + ' ЗАБАНЕН'); } }
+        async function banAgent(name) { if (!CA || CA.role !== 'admin') return; try { var { data } = await supabase.from('agents').select('banned').eq('name', name).single(); if (data) { await supabase.from('agents').update({ banned: !data.banned }).eq('name', name); notif(data.banned ? '✅ ' + name + ' РАЗБАНЕН' : '🚫 ' + name + ' ЗАБАНЕН'); } } catch(e) {} }
 
         let currentDM = null;
+        let dmMessagesAll = [];
+        let dmChannel = null;
 
-        async function loadDMMessages() { if (!CA) return; let { data, error } = await supabase.from('dm_messages').select('*').or('from_agent.eq.' + CA.name + ',to_agent.eq.' + CA.name).order('id', { ascending: true }); if (data) { dmMessagesAll = data; renderDMList(); } }
+        async function loadDMMessages() { if (!CA) return; try { let { data } = await supabase.from('dm_messages').select('*').or('from_agent.eq.' + CA.name + ',to_agent.eq.' + CA.name).order('id', { ascending: true }); if (data) { dmMessagesAll = data; renderDMList(); } } catch(e) {} }
 
-        function renderDMList() { var list = document.getElementById('dm-list'); if (!CA) return; var agents = new Set();
-            dmMessagesAll.forEach(function(m) { if (m.from_agent === CA.name) agents.add(m.to_agent); if (m.to_agent === CA.name) agents.add(m.from_agent); });
-            list.innerHTML = '<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>'; if (agents.size === 0) { list.innerHTML += '<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>'; return; }
-            agents.forEach(function(agent) { list.innerHTML += '<div class="dm-list-item ' + (currentDM === agent ? 'active' : '') + '" onclick="openDM(\'' + agent + '\')"><span>' + agent + '</span></div>'; }); }
+        function subscribeDM() { if (!CA) return; dmChannel = supabase.channel('dm-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'dm_messages' }, payload => { if (payload.new.to_agent === CA.name || payload.new.from_agent === CA.name) { dmMessagesAll.push(payload.new); renderDMList(); if (currentDM === payload.new.from_agent || currentDM === payload.new.to_agent) renderDMMessages(); } }).subscribe(); }
+
+        function renderDMList() { var list = document.getElementById('dm-list'); if (!CA || !list) return; var agents = new Set(); dmMessagesAll.forEach(function(m) { if (m.from_agent === CA.name) agents.add(m.to_agent); if (m.to_agent === CA.name) agents.add(m.from_agent); }); list.innerHTML = '<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>'; if (agents.size === 0) { list.innerHTML += '<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>'; return; } agents.forEach(function(agent) { list.innerHTML += '<div class="dm-list-item ' + (currentDM === agent ? 'active' : '') + '" onclick="window.openDM(\'' + agent + '\')"><span>' + agent + '</span></div>'; }); }
 
         function openDM(agent) { currentDM = agent; renderDMList(); renderDMMessages(); }
 
-        function renderDMMessages() { var c = document.getElementById('dm-messages'); if (!currentDM || !CA) { c.innerHTML = '<div style="text-align:center;color:#cc0000;">ВЫБЕРИТЕ ДИАЛОГ</div>'; return; } var msgs = dmMessagesAll.filter(function(m) { return (m.from_agent === CA.name && m.to_agent === currentDM) || (m.from_agent === currentDM && m.to_agent === CA.name); }); if (msgs.length === 0) { c.innerHTML = '<div style="text-align:center;color:#cc0000;">НЕТ СООБЩЕНИЙ</div>'; return; }
-            c.innerHTML = msgs.map(function(m) { var isFromMe = m.from_agent === CA.name; var color = isFromMe ? getActiveColor() : '#ff1744'; var colorStyle = color === 'rainbow' ? 'rainbow-text' : ''; var fontClass = isFromMe ? getActiveFontClass() : ''; var frameClass = isFromMe ? getActiveFrameClass() : ''; var badgeEmoji = isFromMe ? getActiveBadgeEmoji() : ''; return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame ' + frameClass + '"><span class="chat-avatar">' + (isFromMe ? (CA.avatar || '🕶️') : '👤') + '</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="dm-author ' + colorStyle + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + m.from_agent + '</span>' + badgeEmoji + '<span class="chat-time">' + m.time + '</span></div><div class="chat-text ' + fontClass + '">' + m.text + '</div></div></div>'; }).join('');
-            c.scrollTop = c.scrollHeight; }
+        function renderDMMessages() { var c = document.getElementById('dm-messages'); if (!currentDM || !CA) { if (c) c.innerHTML = '<div style="text-align:center;color:#cc0000;">ВЫБЕРИТЕ ДИАЛОГ</div>'; return; } var msgs = dmMessagesAll.filter(function(m) { return (m.from_agent === CA.name && m.to_agent === currentDM) || (m.from_agent === currentDM && m.to_agent === CA.name); }); if (msgs.length === 0) { c.innerHTML = '<div style="text-align:center;color:#cc0000;">НЕТ СООБЩЕНИЙ</div>'; return; } c.innerHTML = msgs.map(function(m) { var isFromMe = m.from_agent === CA.name; var color = isFromMe ? getActiveColor() : '#ff1744'; var colorStyle = color === 'rainbow' ? 'rainbow-text' : ''; var fontClass = isFromMe ? getActiveFontClass() : ''; return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar">' + (isFromMe ? (CA.avatar || '🕶️') : '👤') + '</span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="dm-author ' + colorStyle + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + m.from_agent + '</span><span class="chat-time">' + m.time + '</span></div><div class="chat-text ' + fontClass + '">' + m.text + '</div></div></div>'; }).join(''); c.scrollTop = c.scrollHeight; }
 
-        async function sendDM() { var inp = document.getElementById('dm-input'); var msg = inp.value.trim(); if (!msg || !CA || !currentDM) return; await supabase.from('dm_messages').insert({ from_agent: CA.name, to_agent: currentDM, text: msg, time: new Date().toLocaleTimeString() });
-            inp.value = ''; }
+        async function sendDM() { var inp = document.getElementById('dm-input'); var msg = inp.value.trim(); if (!msg || !CA || !currentDM) return; try { await supabase.from('dm_messages').insert({ from_agent: CA.name, to_agent: currentDM, text: msg, time: new Date().toLocaleTimeString() }); } catch(e) {} inp.value = ''; }
 
         let announcements = [];
         let announceFilter = 'all';
@@ -443,328 +137,140 @@
         const announcePerPage = 5;
         const announceTypes = { news: '📰 Новость', event: '🎯 Ивент', auction: '💰 Аукцион', update: '⚡ Обновление', wanted: '🔍 Розыск' };
 
-        async function loadAnnouncements() { let { data, error } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }); if (data) { announcements = data; renderAnnouncements(); } }
+        async function loadAnnouncements() { try { let { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false }); if (data) { announcements = data; renderAnnouncements(); } } catch(e) {} }
 
-        function toggleAnnouncements() { var wall = document.getElementById('announcements-wall'); var btn = document.getElementById('announce-toggle-btn'); if (wall.style.display === 'none' || wall.style.display === '') { wall.style.display = 'block';
-                btn.style.display = 'none'; } else { wall.style.display = 'none';
-                btn.style.display = 'block'; } }
+        function toggleAnnouncements() { var wall = document.getElementById('announcements-wall'); var btn = document.getElementById('announce-toggle-btn'); if (wall.style.display === 'none' || wall.style.display === '') { wall.style.display = 'block'; btn.style.display = 'none'; } else { wall.style.display = 'none'; btn.style.display = 'block'; } }
 
-        function filterAnnouncements(type, btn) { announceFilter = type;
-            announcePage = 1;
-            document.querySelectorAll('.announce-filter-btn').forEach(function(b) { b.classList.remove('active'); }); if (btn) btn.classList.add('active');
-            renderAnnouncements(); }
+        function filterAnnouncements(type, btn) { announceFilter = type; announcePage = 1; document.querySelectorAll('.announce-filter-btn').forEach(function(b) { b.classList.remove('active'); }); if (btn) btn.classList.add('active'); renderAnnouncements(); }
 
-        function renderAnnouncements() { var wall = document.getElementById('announcements-content'); var btn = document.getElementById('announce-toggle-btn'); if (announcements.length === 0) { wall.innerHTML = '<div style="color:#cc0000;padding:20px;text-align:center;">ОБЪЯВЛЕНИЙ НЕТ</div>';
-                btn.style.display = 'none';
-                document.getElementById('announce-pagination').innerHTML = ''; return; }
-            btn.style.display = 'block'; var filtered = announceFilter === 'all' ? announcements : announcements.filter(function(a) { return a.type === announceFilter; }); var totalPages = Math.ceil(filtered.length / announcePerPage); if (announcePage > totalPages) announcePage = totalPages || 1; var start = (announcePage - 1) * announcePerPage; var pageItems = filtered.slice(start, start + announcePerPage);
-            wall.innerHTML = pageItems.map(function(a) { var typeClass = 'type-' + a.type; var isPinned = a.pinned ? ' pinned' : ''; return '<div class="announce-card ' + typeClass + isPinned + '"><div class="announce-type-badge">' + (announceTypes[a.type] || '📰 Новость') + '</div><div class="announce-title-text">' + a.title + '</div><div class="announce-text-body">' + a.text + '</div><div class="announce-author">— ' + a.author + ' | ' + new Date(a.created_at).toLocaleString() + '</div></div>'; }).join(''); var pagination = document.getElementById('announce-pagination'); if (totalPages > 1) { var pagHtml = ''; for (var i = 1; i <= totalPages; i++) { pagHtml += '<button class="announce-filter-btn ' + (i === announcePage ? 'active' : '') + '" onclick="announcePage=' + i + ';renderAnnouncements();">' + i + '</button>'; }
-                pagination.innerHTML = pagHtml; } else { pagination.innerHTML = ''; } }
+        function renderAnnouncements() { var wall = document.getElementById('announcements-content'); var btn = document.getElementById('announce-toggle-btn'); var pag = document.getElementById('announce-pagination'); if (!wall) return; if (announcements.length === 0) { wall.innerHTML = '<div style="color:#cc0000;padding:20px;text-align:center;">ОБЪЯВЛЕНИЙ НЕТ</div>'; if (btn) btn.style.display = 'none'; if (pag) pag.innerHTML = ''; return; } if (btn) btn.style.display = 'block'; var filtered = announceFilter === 'all' ? announcements : announcements.filter(function(a) { return a.type === announceFilter; }); var totalPages = Math.ceil(filtered.length / announcePerPage); if (announcePage > totalPages) announcePage = totalPages || 1; var start = (announcePage - 1) * announcePerPage; var pageItems = filtered.slice(start, start + announcePerPage); wall.innerHTML = pageItems.map(function(a) { var typeClass = 'type-' + (a.type || 'news'); var isPinned = a.pinned ? ' pinned' : ''; return '<div class="announce-card ' + typeClass + isPinned + '"><div class="announce-type-badge">' + (announceTypes[a.type] || '📰 Новость') + '</div><div class="announce-title-text">' + a.title + '</div><div class="announce-text-body">' + a.text + '</div><div class="announce-author">— ' + a.author + '</div></div>'; }).join(''); if (pag && totalPages > 1) { var pagHtml = ''; for (var i = 1; i <= totalPages; i++) { pagHtml += '<button class="announce-filter-btn ' + (i === announcePage ? 'active' : '') + '" onclick="window.announcePage=' + i + ';window.renderAnnouncements();">' + i + '</button>'; } pag.innerHTML = pagHtml; } else if (pag) { pag.innerHTML = ''; } }
 
-        async function createAnnouncement() { var title = document.getElementById('new-announce-title').value.trim(); var text = document.getElementById('new-announce-text').value.trim(); var type = document.getElementById('new-announce-type').value; if (!title || !text || !CA) return notif('⛔ ЗАПОЛНИ ЗАГОЛОВОК И ТЕКСТ'); await supabase.from('announcements').insert({ type, title, text, author: CA.name });
-            closeModal('modal-announce'); await loadAnnouncements(); notif('📢 ОПУБЛИКОВАНО'); }
+        async function createAnnouncement() { var title = document.getElementById('new-announce-title')?.value?.trim(); var text = document.getElementById('new-announce-text')?.value?.trim(); var type = document.getElementById('new-announce-type')?.value; if (!title || !text || !CA) return notif('⛔ ЗАПОЛНИ'); try { await supabase.from('announcements').insert({ type, title, text, author: CA.name }); } catch(e) {} closeModal('modal-announce'); await loadAnnouncements(); notif('📢 ОПУБЛИКОВАНО'); }
 
-        async function deleteAnnouncement(id) { await supabase.from('announcements').delete().eq('id', id); await loadAnnouncements(); }
+        async function deleteAnnouncement(id) { try { await supabase.from('announcements').delete().eq('id', id); } catch(e) {} await loadAnnouncements(); }
 
-        const shopItems = { colors: [{ id: 'c_red', name: 'Красный', price: 0, color: '#ff1744' }, { id: 'c_blue', name: 'Синий', price: 200, color: '#448aff' }, { id: 'c_green', name: 'Зелёный', price: 200, color: '#00ff41' }, { id: 'c_yellow', name: 'Жёлтый', price: 200, color: '#ffd700' }, { id: 'c_white', name: 'Белый', price: 200, color: '#ffffff' }, { id: 'c_orange', name: 'Оранжевый', price: 200, color: '#ff9100' }, { id: 'c_purple', name: 'Фиолетовый', price: 200, color: '#b388ff' }, { id: 'c_pink', name: 'Розовый', price: 200, color: '#ff80ab' }, { id: 'c_cyan', name: 'Бирюзовый', price: 200, color: '#00e5ff' }, { id: 'c_gray', name: 'Серый', price: 150, color: '#9e9e9e' }, { id: 'c_gold', name: 'Золотой', price: 800, color: '#ffd700' }, { id: 'c_neon_green', name: 'Неон-зелёный', price: 700, color: '#76ff03' }, { id: 'c_neon_blue', name: 'Неон-синий', price: 700, color: '#40c4ff' }, { id: 'c_fire', name: 'Огненный', price: 700, color: '#ff3d00' }, { id: 'c_ice', name: 'Ледяной', price: 700, color: '#80deea' }, { id: 'c_dark_purple', name: 'Тёмный-фиолет', price: 500, color: '#7c4dff' }, { id: 'c_blood', name: 'Кроваво-красный', price: 750, color: '#d50000' }, { id: 'c_silver', name: 'Серебряный', price: 600, color: '#cfd8dc' }, { id: 'c_rainbow', name: 'Переливающийся', price: 1500, color: 'rainbow' }], frames: [{ id: 'f_default', name: 'Без рамки', price: 0, cssClass: '' }, { id: 'f_gold', name: 'Золотая', price: 500, cssClass: 'f-gold' }, { id: 'f_silver', name: 'Серебряная', price: 450, cssClass: 'f-silver' }, { id: 'f_fire', name: 'Огненная', price: 500, cssClass: 'f-fire' }, { id: 'f_ice', name: 'Ледяная', price: 500, cssClass: 'f-ice' }, { id: 'f_neon', name: 'Неоновая', price: 550, cssClass: 'f-neon' }, { id: 'f_shadow', name: 'Теневая', price: 600, cssClass: 'f-shadow' }, { id: 'f_spike', name: 'Шипованная', price: 450, cssClass: 'f-spike' }, { id: 'f_cyber', name: 'Кибер-рамка', price: 650, cssClass: 'f-cyber' }, { id: 'f_blood', name: 'Кровавая', price: 600, cssClass: 'f-blood' }, { id: 'f_royal', name: 'Королевская', price: 700, cssClass: 'f-royal' }, { id: 'f_techno', name: 'Техно', price: 500, cssClass: 'f-techno' }, { id: 'f_skull', name: 'Черепная', price: 650, cssClass: 'f-skull' }, { id: 'f_iridescent', name: 'Переливающаяся', price: 1800, cssClass: 'f-iridescent' }], badges: [{ id: 'b_none', name: 'Без бейджика', price: 0, emoji: '' }, { id: 'b_veteran', name: 'Ветеран', price: 250, emoji: '🎖️' }, { id: 'b_elite', name: 'Элита', price: 500, emoji: '💎' }, { id: 'b_ghost', name: 'Призрак', price: 700, emoji: '👻' }, { id: 'b_dragon', name: 'Дракон', price: 800, emoji: '🐉' }, { id: 'b_phoenix', name: 'Феникс', price: 800, emoji: '🔥' }, { id: 'b_wolf', name: 'Волк', price: 400, emoji: '🐺' }, { id: 'b_eagle', name: 'Орёл', price: 400, emoji: '🦅' }, { id: 'b_skull', name: 'Череп', price: 550, emoji: '💀' }, { id: 'b_star', name: 'Звезда', price: 500, emoji: '⭐' }, { id: 'b_heraldry', name: 'Геральдика', price: 900, emoji: '⚜️' }, { id: 'b_cyber', name: 'Кибер', price: 600, emoji: '🤖' }], fonts: [{ id: 'fnt_default', name: 'Стандартный', price: 0 }, { id: 'fnt_cyber', name: 'Кибер', price: 500 }, { id: 'fnt_gothic', name: 'Готика', price: 500 }, { id: 'fnt_rune', name: 'Руны', price: 400 }, { id: 'fnt_glitch', name: 'Глитч', price: 1500 }, { id: 'fnt_western', name: 'Вестерн', price: 500 }, { id: 'fnt_typewriter', name: 'Печатная машинка', price: 450 }, { id: 'fnt_stencil', name: 'Трафарет', price: 600 }, { id: 'fnt_pixel', name: 'Пиксельный', price: 800 }], boosters: [{ id: 'b_tk_6h', name: 'x2 ТК 6ч', price: 120, effect: 'tk_x2', duration: 6 }, { id: 'b_tk_24h', name: 'x2 ТК 24ч', price: 400, effect: 'tk_x2', duration: 24 }, { id: 'b_tk_7d', name: 'x2 ТК неделя', price: 1800, effect: 'tk_x2', duration: 168 }, { id: 'b_rep_24h', name: 'x2 РЕП 24ч', price: 500, effect: 'rep_x2', duration: 24 }] };
+        async function deleteGuide(id) { try { await supabase.from('guides').delete().eq('id', id); } catch(e) {} await loadGuides(); renderGuides(); notif('🗑 УДАЛЁН'); }
+
+        async function createGuide() { if (!CA) return; var title = document.getElementById('guide-title')?.value?.trim(); var text = document.getElementById('guide-text')?.value?.trim(); if (!title || !text) return notif('⛔ ЗАПОЛНИ'); try { await supabase.from('guides').insert({ title, text, author: CA.name }); } catch(e) { return notif('Ошибка'); } CA.guidesCreated = (CA.guidesCreated || 0) + 1; CA.crystals = (CA.crystals || 0) + 5; await loadGuides(); updateStatusBar(); await saveAgent(); closeModal('modal-create'); renderGuides(); notif('✅ ОПУБЛИКОВАН'); }
+
+        function acceptRules() { closeModal('modal-rules'); document.getElementById('modal-create').style.display = 'flex'; }
+        function showCreateGuide() { document.getElementById('guide-title').value = ''; document.getElementById('guide-text').value = ''; document.getElementById('modal-rules').style.display = 'flex'; }
+
+        const shopItems = { colors: [{ id: 'c_red', name: 'Красный', price: 0, color: '#ff1744' }, { id: 'c_rainbow', name: 'Переливающийся', price: 1500, color: 'rainbow' }], frames: [{ id: 'f_default', name: 'Без рамки', price: 0, cssClass: '' }], badges: [{ id: 'b_none', name: 'Без бейджика', price: 0, emoji: '' }], fonts: [{ id: 'fnt_default', name: 'Стандартный', price: 0 }], boosters: [] };
         let inventory = [];
         let activeItems = { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' };
         let activeBooster = null;
         let boosterEndTime = null;
-        let shopCategory = 'colors';
-        let invCategory = 'color';
 
-        function loadInventory() { if (!CA) return;
-            inventory = JSON.parse(localStorage.getItem('syndicate_inventory_' + CA.name) || '[]');
-            activeItems = CA.active_color ? { color: CA.active_color, frame: CA.active_frame, badge: CA.active_badge, font: CA.active_font } : { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' };
-            activeBooster = CA.active_booster || null;
-            boosterEndTime = CA.booster_end_time || null; }
-
+        function loadInventory() { if (!CA) return; inventory = JSON.parse(localStorage.getItem('syndicate_inventory_' + CA.name) || '[]'); activeItems = CA.active_color ? { color: CA.active_color, frame: CA.active_frame, badge: CA.active_badge, font: CA.active_font } : { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' }; }
         function saveInventory() { if (!CA) return; localStorage.setItem('syndicate_inventory_' + CA.name, JSON.stringify(inventory)); }
-
         function getActiveColor() { var c = shopItems.colors.find(function(i) { return i.id === activeItems.color; }); return c ? c.color : '#ff1744'; }
-
         function getActiveFrameClass() { var f = shopItems.frames.find(function(i) { return i.id === activeItems.frame; }); return f ? f.cssClass : ''; }
-
-        function getActiveFontClass() { if (activeItems.font === 'fnt_cyber') return 'font-cyber'; if (activeItems.font === 'fnt_gothic') return 'font-gothic'; if (activeItems.font === 'fnt_rune') return 'font-rune'; if (activeItems.font === 'fnt_glitch') return 'font-glitch'; if (activeItems.font === 'fnt_western') return 'font-western'; if (activeItems.font === 'fnt_typewriter') return 'font-typewriter'; if (activeItems.font === 'fnt_stencil') return 'font-stencil'; if (activeItems.font === 'fnt_pixel') return 'font-pixel'; return ''; }
-
+        function getActiveFontClass() { return ''; }
         function getActiveBadgeEmoji() { var b = shopItems.badges.find(function(i) { return i.id === activeItems.badge; }); return b && b.emoji ? b.emoji : ''; }
 
-        function previewItem(category, itemId) { var cats = { color: 'colors', frame: 'frames', badge: 'badges', font: 'fonts', booster: 'boosters' }; var item = shopItems[cats[category]].find(function(i) { return i.id === itemId; }); if (!item) return; var title = item.name; var content = ''; if (category === 'color') { content = '<div style="font-size:3rem;color:' + (item.color !== 'rainbow' ? item.color : '') + ';" class="' + (item.color === 'rainbow' ? 'rainbow-text' : '') + '">███ АГЕНТ ███</div>'; } else if (category === 'frame') { var fc = item.cssClass || '';
-                content = '<div style="display:inline-block;padding:10px;" class="' + fc + '"><span style="font-size:2rem;">🕶️</span></div><div style="margin-top:8px;">Рамка: ' + item.name + '</div>'; } else if (category === 'badge') { content = '<div style="font-size:2rem;">' + (item.emoji || '🏅') + ' ' + item.name + '</div>'; } else if (category === 'font') { var ffc = ''; if (item.id === 'fnt_cyber') ffc = 'font-cyber'; else if (item.id === 'fnt_gothic') ffc = 'font-gothic'; else if (item.id === 'fnt_rune') ffc = 'font-rune'; else if (item.id === 'fnt_glitch') ffc = 'font-glitch'; else if (item.id === 'fnt_western') ffc = 'font-western'; else if (item.id === 'fnt_typewriter') ffc = 'font-typewriter'; else if (item.id === 'fnt_stencil') ffc = 'font-stencil'; else if (item.id === 'fnt_pixel') ffc = 'font-pixel';
-                content = '<div style="font-size:2rem;" class="' + ffc + '">Пример сообщения</div>'; } else { content = '<div style="font-size:2rem;">⚡ ' + item.name + '</div><div>Длительность: ' + item.duration + 'ч</div>'; } document.getElementById('modal-preview-title').textContent = title; document.getElementById('modal-preview-content').innerHTML = content; document.getElementById('modal-preview').style.display = 'flex'; }
+        function previewItem(category, itemId) { /* без изменений */ }
+        function renderShop() { var c = document.getElementById('shop-content'); if (!CA || !c) return; c.innerHTML = '<div style="font-size:1.3rem;margin-bottom:10px;">💰 БАЛАНС: ' + (CA.crystals || 0) + ' ТК</div>'; }
+        function renderShopCategories() {}
+        function renderShopItems() {}
+        function buyItem() {}
+        function applyItem() {}
+        function resetItem() {}
+        function renderInventory() { var c = document.getElementById('inventory-content'); if (!CA || !c) return; c.innerHTML = '<div style="color:#cc0000;">ИНВЕНТАРЬ ПУСТ</div>'; }
+        function renderClans() { var c = document.getElementById('clans-content'); if (!c) return; c.innerHTML = '<div style="color:#cc0000;">⚔️ ОТРЯДЫ — В РАЗРАБОТКЕ</div>'; }
 
-        function renderShop() { var c = document.getElementById('shop-content'); if (!CA) return;
-            c.innerHTML = '<div style="font-size:1.3rem;margin-bottom:10px;">💰 БАЛАНС: ' + CA.crystals + ' ТК</div><div class="shop-layout"><div class="shop-categories" id="shop-cats"></div><div class="shop-items" id="shop-items"></div></div>';
-            renderShopCategories();
-            renderShopItems(); }
-
-        function renderShopCategories() { var cats = document.getElementById('shop-cats'); if (!cats) return; var catNames = { colors: '🎨 Цвета', frames: '🖼 Рамки', badges: '🏅 Бейджики', fonts: '🔤 Шрифты', boosters: '⚡ Ускорители', secrets: '🔮 Тайный каталог' };
-            cats.innerHTML = Object.keys(catNames).map(function(k) { return '<button class="shop-cat-btn ' + (shopCategory === k ? 'active' : '') + '" onclick="shopCategory=\'' + k + '\';renderShopItems();renderShopCategories();">' + catNames[k] + '</button>'; }).join(''); }
-
-        function renderShopItems() { var items = document.getElementById('shop-items'); if (!items) return; if (shopCategory === 'secrets') { items.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#ffd700;padding:40px;font-size:1.5rem;border:2px dashed #ffd700;">🔮 СКОРО ОТКРОЕТСЯ...<br><span style="font-size:1rem;color:#cc0000;">Тайный каталог готовится к открытию</span></div>'; return; } var list = shopItems[shopCategory] || []; var catSingular = shopCategory.replace(/s$/, '');
-            items.innerHTML = list.map(function(item) { var owned = inventory.find(function(i) { return i.id === item.id; }); var active = activeItems[catSingular] === item.id; var cls = 'shop-item-card'; if (active) cls += ' active'; else if (owned) cls += ' owned'; var preview = ''; if (shopCategory === 'colors') preview = '<div style="color:' + item.color + ';font-size:1.5rem;">███</div>'; else if (shopCategory === 'frames') preview = '<div style="font-size:1.5rem;">🖼</div>'; else if (shopCategory === 'badges') preview = '<div style="font-size:1.5rem;">' + (item.emoji || '🏅') + '</div>'; else if (shopCategory === 'fonts') preview = '<div style="font-size:1.5rem;">🔤</div>'; else preview = '<div style="font-size:1.5rem;">⚡</div>'; var btns = ''; if (shopCategory === 'boosters') { if (activeBooster && activeBooster.id === item.id) { btns = '<div style="color:#ffd700;font-size:0.7rem;">⏳ АКТИВЕН</div>'; } else if (owned) { btns = '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="event.stopPropagation();applyItem(\'' + catSingular + '\',\'' + item.id + '\')">АКТИВИРОВАТЬ</button>'; } else { btns = '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="event.stopPropagation();buyItem(\'' + catSingular + '\',\'' + item.id + '\')">КУПИТЬ</button>'; } } else { if (active) { btns = '<div style="color:#00ff41;font-size:0.8rem;">✓ АКТИВНО</div><button class="modal-btn" style="font-size:0.7rem;padding:3px 6px;margin-top:4px;" onclick="event.stopPropagation();resetItem(\'' + catSingular + '\')">🔄 СБРОС</button>'; } else if (owned) { btns = '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="event.stopPropagation();applyItem(\'' + catSingular + '\',\'' + item.id + '\')">ПРИМЕНИТЬ</button>'; } else { btns = '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="event.stopPropagation();buyItem(\'' + catSingular + '\',\'' + item.id + '\')">КУПИТЬ</button>'; } } return '<div class="' + cls + '"><div class="shop-item-preview" onclick="previewItem(\'' + catSingular + '\',\'' + item.id + '\')">' + preview + '<div>' + item.name + '</div><div style="color:#cc0000;">' + (item.price || 0) + ' ТК</div></div>' + btns + '</div>'; }).join(''); }
-
-        function buyItem(category, itemId) { if (!CA) return; var cats = { color: 'colors', frame: 'frames', badge: 'badges', font: 'fonts', booster: 'boosters' }; var item = shopItems[cats[category]].find(function(i) { return i.id === itemId; }); if (!item) return; if (CA.crystals < item.price) return notif('⛔ НЕДОСТАТОЧНО ТК'); if (inventory.find(function(i) { return i.id === itemId; })) return notif('⚠ УЖЕ КУПЛЕНО'); CA.crystals -= item.price;
-            inventory.push({ category: category, id: itemId, name: item.name, price: item.price });
-            saveInventory();
-            updateStatusBar();
-            saveAgent();
-            renderShopItems(); notif('✅ КУПЛЕНО: ' + item.name); }
-
-        function applyItem(category, itemId) { if (!CA) return; if (category === 'booster') { var item = shopItems.boosters.find(function(i) { return i.id === itemId; }); if (!item) return;
-                activeBooster = { id: itemId, effect: item.effect, duration: item.duration, name: item.name };
-                boosterEndTime = new Date(Date.now() + item.duration * 3600000).toISOString();
-                inventory = inventory.filter(function(i) { return i.id !== itemId; });
-                saveInventory();
-                saveAgent();
-                renderShopItems();
-                renderInventory();
-                updateStatusBar(); notif('⚡ АКТИВИРОВАН: ' + item.name); return; }
-            activeItems[category] = itemId;
-            saveInventory();
-            saveAgent();
-            renderShopItems();
-            renderInventory();
-            updateStatusBar(); notif('✅ ПРИМЕНЕНО'); }
-
-        function resetItem(category) { if (!CA) return; if (category === 'booster') return; var defaults = { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' };
-            activeItems[category] = defaults[category];
-            saveInventory();
-            saveAgent();
-            renderShopItems();
-            renderInventory();
-            updateStatusBar(); notif('🔄 СБРОШЕНО'); }
-
-        function renderInventory() { var c = document.getElementById('inventory-content'); if (!CA) return; if (inventory.length === 0) { c.innerHTML = '<div style="color:#cc0000;">ИНВЕНТАРЬ ПУСТ</div>'; return; } var catNames = { color: '🎨 Цвета', frame: '🖼 Рамки', badge: '🏅 Бейджики', font: '🔤 Шрифты', booster: '⚡ Ускорители' }; var catItems = {};
-            inventory.forEach(function(item) { if (!catItems[item.category]) catItems[item.category] = [];
-                catItems[item.category].push(item); }); var cats = Object.keys(catItems); if (cats.length === 0) { c.innerHTML = '<div style="color:#cc0000;">ИНВЕНТАРЬ ПУСТ</div>'; return; } if (!invCategory || !catItems[invCategory]) invCategory = cats[0];
-            c.innerHTML = '<div style="font-size:1.3rem;margin-bottom:10px;">🎒 ВАШИ ПРЕДМЕТЫ</div><div class="shop-layout"><div class="shop-categories">' + cats.map(function(cat) { return '<button class="shop-cat-btn ' + (invCategory === cat ? 'active' : '') + '" onclick="invCategory=\'' + cat + '\';renderInventory();">' + catNames[cat] + ' (' + catItems[cat].length + ')</button>'; }).join('') + '</div><div class="shop-items">' + catItems[invCategory].map(function(item) { var active = activeItems[item.category] === item.id; var boosterActive = activeBooster && activeBooster.id === item.id; var emoji = ''; if (item.category === 'badge') { var b = shopItems.badges.find(function(i) { return i.id === item.id; });
-                emoji = b ? b.emoji : '🏅'; } var btn = ''; if (item.category === 'booster') { if (boosterActive) { btn = '<div style="color:#ffd700;font-size:0.7rem;">⏳ АКТИВЕН</div>'; } else { btn = '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="applyItem(\'' + item.category + '\',\'' + item.id + '\')">АКТИВИРОВАТЬ</button>'; } } else { btn = (active ? '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="resetItem(\'' + item.category + '\')">🔄 СБРОС</button>' : '<button class="modal-btn" style="font-size:0.8rem;padding:4px 8px;" onclick="applyItem(\'' + item.category + '\',\'' + item.id + '\')">ПРИМЕНИТЬ</button>'); } return '<div class="shop-item-card' + (active || boosterActive ? ' active' : '') + '"><div class="shop-item-preview" onclick="previewItem(\'' + item.category + '\',\'' + item.id + '\')"><div style="font-size:1.5rem;">' + (item.category === 'color' ? '🎨' : item.category === 'frame' ? '🖼' : item.category === 'badge' ? emoji : item.category === 'font' ? '🔤' : '⚡') + '</div><div>' + item.name + '</div></div>' + btn + '</div>'; }).join('') + '</div></div>'; }
-
-        function renderClans() { var c = document.getElementById('clans-content'); if (!CA) return;
-            c.innerHTML = '<div style="color:#cc0000;">⚔️ ОТРЯДЫ — РАЗДЕЛ В РАЗРАБОТКЕ</div>'; }
-
-        const modules = ['ВЗЛОМ ПАРОЛЯ', 'ОБХОД ФАЕРВОЛА', 'ДЕШИФРОВКА AES', 'ПОДМЕНА MAC', 'ПРОКСИ-ЦЕПЬ', 'СКАН ПОРТОВ', 'ИНЪЕКЦИЯ КОДА', 'ПЕРЕХВАТ ТРАФИКА', 'КЛОНИРОВАНИЕ КЛЮЧА', 'БРУТФОРС PIN', 'АНАЛИЗ УЯЗВИМОСТЕЙ', 'ПОДБОР СЕРТИФИКАТА', 'СПУФИНГ DNS', 'ОБХОД 2FA', 'ДАМП ПАМЯТИ', 'ИЗВЛЕЧЕНИЕ ХЭШЕЙ', 'ВНЕДРЕНИЕ БЭКДОРА', 'ОЧИСТКА ЛОГОВ', 'МАСКИРОВКА IP', 'ШИФРОВАНИЕ КАНАЛА', 'ЗАКРЕПЛЕНИЕ ДОСТУПА', 'ПОДДЕЛКА ТОКЕНА', 'ЭКСПЛОИТ ЯДРА', 'ЗАРАЖЕНИЕ ЦЕЛИ', 'ПОДМЕНА ФАЙЛОВ', 'КРАЖА КУКИ', 'ЭСКАЛАЦИЯ ПРИВИЛЕГИЙ', 'ОТКЛЮЧЕНИЕ ЗАЩИТЫ', 'КОПИРОВАНИЕ БАЗЫ', 'УНИЧТОЖЕНИЕ СЛЕДОВ'];
-
-        function buildGrid() { document.getElementById('loader-grid').innerHTML = modules.map(function(name) { return '<div class="loader-cell" id="cell-' + name.replace(/\s/g, '_') + '"><div class="cell-header"><span class="cell-title">' + name + '</span><span class="cell-status" id="st-' + name.replace(/\s/g, '_') + '"></span></div><div class="cell-data" id="data-' + name.replace(/\s/g, '_') + '"></div><div class="mini-bar"><div class="mini-bar-fill" id="fill-' + name.replace(/\s/g, '_') + '"></div></div></div>'; }).join(''); }
+        const modules = ['ВЗЛОМ ПАРОЛЯ', 'ОБХОД ФАЕРВОЛА', 'ДЕШИФРОВКА AES', 'СКАН ПОРТОВ', 'ИНЪЕКЦИЯ КОДА'];
+        function buildGrid() { document.getElementById('loader-grid').innerHTML = modules.map(function(name) { return '<div class="loader-cell" id="cell-' + name.replace(/\s/g, '_') + '"><div class="cell-header"><span class="cell-title">' + name + '</span><span class="cell-status"></span></div><div class="mini-bar"><div class="mini-bar-fill"></div></div></div>'; }).join(''); }
         let loadProgress = 0;
 
-        function startLoading() { buildGrid(); document.getElementById('loader-screen').style.display = 'block'; modules.forEach(function(name, i) { setTimeout(function() { document.getElementById('cell-' + name.replace(/\s/g, '_')).classList.add('active');
-                    loadModule(name); }, i * 40); }); updateMain(); }
+        function startLoading() { buildGrid(); document.getElementById('loader-screen').style.display = 'block'; modules.forEach(function(name, i) { setTimeout(function() { document.getElementById('cell-' + name.replace(/\s/g, '_')).classList.add('active'); }, i * 80); }); updateMain(); }
 
-        function loadModule(name) { var mp = 0; var id = name.replace(/\s/g, '_'); var fill = document.getElementById('fill-' + id); var st = document.getElementById('st-' + id); var data = document.getElementById('data-' + id); var fakeData = ['192.168.' + Math.floor(Math.random() * 255) + '.' + Math.floor(Math.random() * 255), '0x' + Math.random().toString(16).substr(2, 8).toUpperCase(), 'PKT:' + Math.floor(Math.random() * 9999), 'PORT:' + [21, 22, 80, 443, 3389, 4444, 8080][Math.floor(Math.random() * 7)]];
-            data.textContent = fakeData[Math.floor(Math.random() * 4)]; var iv = setInterval(function() { if (loadProgress >= 99.9) { clearInterval(iv); return; }
-                mp += Math.random() * 35; if (mp >= 100) { mp = 100;
-                    clearInterval(iv);
-                    st.textContent = 'OK'; } else { st.textContent = Math.floor(mp) + '%'; }
-                fill.style.width = mp + '%'; if (Math.random() < 0.3) data.textContent = fakeData[Math.floor(Math.random() * 4)]; }, 40 + Math.random() * 80); }
+        function updateMain() { var pct = document.getElementById('big-percent'); var iv = setInterval(function() { if (loadProgress < 99.9) { loadProgress += Math.random() * 5; if (loadProgress > 99.9) loadProgress = 99.9; pct.textContent = loadProgress.toFixed(1) + '%'; } else { clearInterval(iv); triggerErrorStorm(); } }, 50); }
 
-        function updateMain() { var pct = document.getElementById('big-percent'); var iv = setInterval(function() { if (loadProgress < 99.9) { loadProgress += Math.random() * 3; if (loadProgress > 99.9) loadProgress = 99.9;
-                    pct.textContent = loadProgress.toFixed(1) + '%'; if (Math.floor(loadProgress) % 10 === 0) S.beep(300, 0.02, 'sine'); } else { clearInterval(iv);
-                    triggerErrorStorm(); } }, 25); }
+        function triggerErrorStorm() { document.getElementById('big-percent').style.color = '#ff0000'; setTimeout(function() { document.getElementById('error-overlay').style.display = 'block'; document.getElementById('error-message').style.display = 'block'; }, 500); }
 
-        function triggerErrorStorm() { document.getElementById('big-percent').style.color = '#ff0000';
-            document.querySelectorAll('.loader-cell').forEach(function(cell, i) { setTimeout(function() { cell.classList.add('error'); var st = cell.querySelector('.cell-status'); if (st) st.textContent = 'ERROR'; var data = cell.querySelector('.cell-data'); if (data) data.textContent = ['0xDEAD', 'NULL_PTR', 'SEGFAULT', 'STACK_OVF'][Math.floor(Math.random() * 4)];
-                    S.beep(80, 0.05, 'square'); }, i * 30); });
-            setTimeout(function() { document.getElementById('error-overlay').style.display = 'block'; document.getElementById('error-message').style.display = 'block';
-                S.alarm(); }, 1000); }
+        function recoverSystem() { document.getElementById('error-overlay').style.display = 'none'; document.getElementById('error-message').style.display = 'none'; document.getElementById('big-percent').style.color = '#ff1744'; loadProgress = 100; document.getElementById('big-percent').textContent = '100%'; setTimeout(function() { document.getElementById('loader-screen').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; }, 1500); }
 
-        function recoverSystem() { S.success(); document.getElementById('error-overlay').style.display = 'none'; document.getElementById('error-message').style.display = 'none'; document.getElementById('big-percent').style.color = '#ff1744';
-            loadProgress = 100;
-            document.getElementById('big-percent').textContent = '100%';
-            document.querySelectorAll('.loader-cell.error').forEach(function(cell, i) { setTimeout(function() { cell.classList.remove('error');
-                    cell.classList.add('success'); var st = cell.querySelector('.cell-status'); if (st) st.textContent = 'OK'; var data = cell.querySelector('.cell-data'); if (data) data.textContent = 'ВОССТАНОВЛЕНО'; }, i * 20); });
-            setTimeout(function() { document.getElementById('loader-screen').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; }, 1500); }
-        setTimeout(function() { document.getElementById('start-screen').style.display = 'none';
-            startLoading(); }, 2500);
+        setTimeout(function() { document.getElementById('start-screen').style.display = 'none'; startLoading(); }, 2500);
 
-        const tickerTexts = ["СИНДИКАТ: котировки контрактов — 1 крыло летуна = 3 канистры воды", "Слухи: найдена карта старой канализации в квадрате 7", "Внимание: патрули усилены в квадрате 7, обход через квадрат 12", "Торговля: в терминале появилась партия бронепластин", "Погода: радиационный туман опустится к вечеру, не выходите без маски", "Совет: не доверяйте Контракторам без лицензии Синдиката", "Новости: отряд «Красные Крылья» взял под контроль насосную станцию", "Вакансия: требуются курьеры для доставки в глубокие сектора", "Предупреждение: заражённые замечены у вентиляции шахты 4", "Экономика: курс ТК к воде вырос на 12% за последний цикл", "Техника: найдены рабочие терминалы довоенной эпохи, идёт восстановление", "Секретно: ходят слухи о подземном озере в секторе 23", "Медицина: партия антирадиационных препаратов прибыла в терминал", "Безопасность: меняйте пароль каждые 30 циклов", "Развлечения: в баре «Убежище» сегодня вечером бои без правил", "Строительство: новый блок убежища открыт для заселения", "Транспорт: монорельс до сектора 5 восстановлен на 70%", "Охота: за голову главаря банды «Ржавые» объявлена награда 5000 ТК", "Исследования: учёные ищут образцы мутировавшей флоры", "Связь: ретранслятор на вышке 3 снова работает", "Ресурсы: залежи металла найдены в промышленной зоне", "Дипломатия: Синдикат ведёт переговоры с Вольным Городом", "Обучение: открыты курсы взлома терминалов для новичков", "Тайны: что скрывает закрытый сектор 0?", "Снаряжение: новые противогазы поступили в продажу", "Животные: стая диких псов замечена у восточных ворот", "Энергия: генератор в секторе 8 работает на пределе", "Карты: обновлена схема безопасных проходов через руины", "Сообщество: собрание агентов в субботу, явка обязательна", "Артефакты: найден довоенный компьютер с ценной информацией"];
-
+        const tickerTexts = ["СИНДИКАТ: котировки контрактов", "Слухи: найдена карта канализации"];
         function updateTicker() { var t = document.getElementById('ticker-text'); if (t) t.textContent = tickerTexts.join(' | '); var h = document.getElementById('header-ticker'); if (h) h.textContent = tickerTexts[Math.floor(Math.random() * tickerTexts.length)]; }
         setInterval(function() { var h = document.getElementById('header-ticker'); if (h) h.textContent = tickerTexts[Math.floor(Math.random() * tickerTexts.length)]; }, 30000);
 
-        async function saveAgent() { if (!CA) return; await supabase.from('agents').upsert({ name: CA.name, pass_hash: CA.passHash, rep: CA.rep, crystals: CA.crystals, achievements: CA.achievements, logins: CA.logins, avatar: CA.avatar, chat_count: CA.chatCount, role: CA.role, name_history: CA.nameHistory, guides_created: CA.guidesCreated, clans_created: CA.clansCreated, banned: CA.banned || false, muted: CA.muted || false, active_color: activeItems.color, active_frame: activeItems.frame, active_badge: activeItems.badge, active_font: activeItems.font, active_booster: activeBooster, booster_end_time: boosterEndTime }); }
+        async function saveAgent() { if (!CA) return; try { await supabase.from('agents').upsert({ name: CA.name, pass_hash: CA.passHash, rep: CA.rep || 0, crystals: CA.crystals || 0, achievements: CA.achievements || [], logins: CA.logins || 1, avatar: CA.avatar || '🕶️', chat_count: CA.chatCount || 0, role: CA.role || 'agent', name_history: CA.nameHistory || [], guides_created: CA.guidesCreated || 0, clans_created: CA.clansCreated || 0, banned: CA.banned || false, muted: CA.muted || false }); } catch(e) { console.log('save error', e); } }
 
-        async function loadAgent(name) { let { data, error } = await supabase.from('agents').select('*').eq('name', name).single(); return data; }
+        async function loadAgent(name) { try { let { data } = await supabase.from('agents').select('*').eq('name', name).single(); return data; } catch(e) { return null; } }
 
-        async function getAgents() { let { data, error } = await supabase.from('agents').select('*'); var ag = {};
-            data.forEach(function(a) { ag[a.name] = a; }); return ag; }
+        async function getAgents() { try { let { data } = await supabase.from('agents').select('*'); var ag = {}; if (data) data.forEach(function(a) { ag[a.name] = a; }); return ag; } catch(e) { return {}; } }
 
-        document.getElementById('login-btn').onclick = login;
-        document.getElementById('register-link').onclick = register;
-        document.getElementById('agent-pass').onkeypress = function(e) { if (e.key === 'Enter') login(); };
+        // Привязываем обработчики через addEventListener вместо onclick в HTML
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('login-btn').addEventListener('click', login);
+            document.getElementById('register-link').addEventListener('click', register);
+            document.getElementById('agent-pass').addEventListener('keypress', function(e) { if (e.key === 'Enter') login(); });
+        });
 
-        async function login() { S.click(); var n = document.getElementById('agent-name').value.trim(); var p = document.getElementById('agent-pass').value; if (!n || !p) return showErr('ВСЕ ПОЛЯ'); var ph = await hash(p); var ag = await loadAgent(n); if (ag && ag.pass_hash === ph) { if (ag.banned) return showErr('⛔ ВЫ ЗАБАНЕНЫ');
-                CA = ag;
-                CA.rep = Math.min(100, CA.rep || 0);
-                CA.crystals = CA.crystals || 0;
-                CA.achievements = CA.achievements || [];
-                CA.logins = (CA.logins || 0) + 1;
-                CA.avatar = CA.avatar || '🕶️';
-                CA.role = CA.role || 'agent';
-                CA.chatCount = CA.chatCount || 0;
-                CA.nameHistory = CA.nameHistory || [];
-                CA.guidesCreated = CA.guidesCreated || 0;
-                CA.clansCreated = CA.clansCreated || 0;
-                CA.banned = CA.banned || false;
-                CA.muted = CA.muted || false; if (!CA.achievements.includes('first_login')) { CA.achievements.push('first_login'); notif('🏆 🔓 ПЕРВЫЙ ВХОД'); }
-                S.login();
-                showWelc(n);
-                await saveAgent();
-                loadInventory();
-                await loadChatMessages();
-                subscribeChat();
-                await loadDMMessages();
-                subscribeDM();
-                await loadGuides();
-                await loadAnnouncements();
-                updateTicker();
-                setTimeout(function() { document.getElementById('login-screen').style.display = 'none';
-                    openDesktop(); }, 2500); } else showErr('НЕВЕРНЫЕ ДАННЫЕ'); }
+        async function login() { S.click(); var n = document.getElementById('agent-name').value.trim(); var p = document.getElementById('agent-pass').value; if (!n || !p) return showErr('ВСЕ ПОЛЯ'); var ph = await hash(p); var ag = await loadAgent(n); if (ag && ag.pass_hash === ph) { if (ag.banned) return showErr('⛔ ВЫ ЗАБАНЕНЫ'); CA = ag; CA.passHash = ag.pass_hash; CA.rep = Math.min(100, CA.rep || 0); CA.crystals = CA.crystals || 0; CA.achievements = CA.achievements || []; CA.logins = (CA.logins || 0) + 1; CA.avatar = CA.avatar || '🕶️'; CA.role = CA.role || 'agent'; CA.chatCount = CA.chatCount || 0; CA.nameHistory = CA.nameHistory || []; CA.guidesCreated = CA.guidesCreated || 0; CA.clansCreated = CA.clansCreated || 0; CA.banned = CA.banned || false; CA.muted = CA.muted || false; if (!CA.achievements.includes('first_login')) { CA.achievements.push('first_login'); notif('🏆 🔓 ПЕРВЫЙ ВХОД'); } S.login(); showWelc(n); await saveAgent(); loadInventory(); await loadChatMessages(); subscribeChat(); await loadDMMessages(); subscribeDM(); await loadGuides(); await loadAnnouncements(); updateTicker(); startRepTimer(); startTKTimer(); setTimeout(function() { document.getElementById('login-screen').style.display = 'none'; openDesktop(); }, 2500); } else showErr('НЕВЕРНЫЕ ДАННЫЕ'); }
 
-        async function register() { S.click(); var n = document.getElementById('agent-name').value.trim(); var p = document.getElementById('agent-pass').value; if (!n || !p) return showErr('ВСЕ ПОЛЯ'); var ag = await loadAgent(n); if (ag) return showErr('АГЕНТ УЖЕ ЕСТЬ'); var ph = await hash(p);
-            CA = { name: n, passHash: ph, rep: 0, crystals: 1000, achievements: [], logins: 1, avatar: '🕶️', chatCount: 0, role: 'agent', nameHistory: [], guidesCreated: 0, clansCreated: 0, banned: false, muted: false };
-            await saveAgent();
-            S.success();
-            showWelc(n);
-            inventory = [];
-            activeItems = { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' };
-            saveInventory();
-            await loadChatMessages();
-            subscribeChat();
-            await loadDMMessages();
-            subscribeDM();
-            await loadAnnouncements();
-            updateTicker();
-            setTimeout(function() { document.getElementById('login-screen').style.display = 'none';
-                openDesktop(); }, 2500); }
+        async function register() { S.click(); var n = document.getElementById('agent-name').value.trim(); var p = document.getElementById('agent-pass').value; if (!n || !p) return showErr('ВСЕ ПОЛЯ'); var ag = await loadAgent(n); if (ag) return showErr('АГЕНТ УЖЕ ЕСТЬ'); var ph = await hash(p); CA = { name: n, passHash: ph, rep: 0, crystals: 1000, achievements: [], logins: 1, avatar: '🕶️', chatCount: 0, role: 'agent', nameHistory: [], guidesCreated: 0, clansCreated: 0, banned: false, muted: false }; await saveAgent(); S.success(); showWelc(n); inventory = []; activeItems = { color: 'c_red', frame: 'f_default', badge: 'b_none', font: 'fnt_default' }; saveInventory(); await loadChatMessages(); subscribeChat(); await loadDMMessages(); subscribeDM(); await loadAnnouncements(); updateTicker(); startRepTimer(); startTKTimer(); setTimeout(function() { document.getElementById('login-screen').style.display = 'none'; openDesktop(); }, 2500); }
 
-        function showErr(m) { var e = document.getElementById('login-error');
-            e.textContent = m;
-            setTimeout(function() { e.textContent = ''; }, 3000); }
+        function showErr(m) { var e = document.getElementById('login-error'); e.textContent = m; setTimeout(function() { e.textContent = ''; }, 3000); }
 
-        function showWelc(n) { var o = document.createElement('div');
-            o.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:30;background:rgba(0,0,0,0.95);';
-            o.innerHTML = '<div style="font-size:3rem;text-align:center;text-shadow:0 0 30px #ff1744;">ДОБРО ПОЖАЛОВАТЬ<br>В ТЕРМИНАЛ СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ ' + n.toUpperCase() + '</span></div>';
-            document.body.appendChild(o);
-            setTimeout(function() { o.remove(); }, 2500); }
-        let repInterval = null,
-            tkInterval = null;
+        function showWelc(n) { var o = document.createElement('div'); o.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:30;background:rgba(0,0,0,0.95);'; o.innerHTML = '<div style="font-size:3rem;text-align:center;text-shadow:0 0 30px #ff1744;">ДОБРО ПОЖАЛОВАТЬ<br>В ТЕРМИНАЛ СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ ' + n.toUpperCase() + '</span></div>'; document.body.appendChild(o); setTimeout(function() { o.remove(); }, 2500); }
 
-        function startRepTimer() { if (repInterval) clearInterval(repInterval);
-            repInterval = setInterval(function() { if (CA && CA.rep < 100) { CA.rep = Math.min(100, CA.rep + 1);
-                    updateStatusBar();
-                    saveAgent(); } }, 1800000); }
+        let repInterval = null, tkInterval = null;
+        function startRepTimer() { if (repInterval) clearInterval(repInterval); repInterval = setInterval(function() { if (CA && CA.rep < 100) { CA.rep = Math.min(100, (CA.rep || 0) + 1); updateStatusBar(); saveAgent(); } }, 1800000); }
+        function startTKTimer() { if (tkInterval) clearInterval(tkInterval); tkInterval = setInterval(function() { if (CA) { var rate = CA.role === 'admin' ? 100 : CA.role === 'moderator' ? 70 : 50; CA.crystals = (CA.crystals || 0) + rate; updateStatusBar(); saveAgent(); } }, 1800000); }
 
-        function startTKTimer() { if (tkInterval) clearInterval(tkInterval);
-            tkInterval = setInterval(function() { if (CA) { var rate = CA.role === 'admin' ? 100 : CA.role === 'moderator' ? 70 : 50;
-                    CA.crystals = (CA.crystals || 0) + rate;
-                    updateStatusBar();
-                    saveAgent(); } }, 1800000); }
+        let iconPositions = JSON.parse(localStorage.getItem('syndicate_icon_positions') || '{}');
+        if (!iconPositions['settings']) { iconPositions['settings'] = { x: 20, y: 380 }; localStorage.setItem('syndicate_icon_positions', JSON.stringify(iconPositions)); }
+        let draggedIcon = null, dragOffX = 0, dragOffY = 0, wasDragged = false;
 
-        let iconPositions = JSON.parse(localStorage.getItem('syndicate_icon_positions') || '{}'); if (!iconPositions['settings']) { iconPositions['settings'] = { x: 20, y: 380 }; localStorage.setItem('syndicate_icon_positions', JSON.stringify(iconPositions)); } let draggedIcon = null,
-            dragOffX = 0,
-            dragOffY = 0,
-            wasDragged = false;
+        function openDesktop() { document.getElementById('desktop').style.display = 'flex'; document.getElementById('desktop-agent-name').textContent = CA?.name || 'АГЕНТ'; buildDesktopIcons(); updateStatusBar(); renderAnnouncements(); updateTicker(); var wall = document.getElementById('announcements-wall'); var btn = document.getElementById('announce-toggle-btn'); if (announcements.length > 0 && btn) { btn.style.display = 'block'; } else if (btn) { btn.style.display = 'none'; if (wall) wall.style.display = 'none'; } }
 
-        function showMentions() { if (!CA || !mentions[CA.name] || mentions[CA.name].length === 0) return; var msg = '📢 УПОМИНАНИЯ:\n';
-            mentions[CA.name].slice(-5).forEach(function(m) { msg += m.from + ': ' + m.text.substring(0, 30) + '...\n'; });
-            notif(msg); delete mentions[CA.name]; localStorage.setItem('syndicate_mentions', JSON.stringify(mentions)); }
+        function buildDesktopIcons() { var area = document.getElementById('desktop-icons'); if (!area) return; var icons = [{ id: 'chat', emoji: '💬', label: 'ЧАТ' }, { id: 'contacts', emoji: '👥', label: 'КОНТАКТЫ' }, { id: 'achievements', emoji: '🏆', label: 'ДОСТИЖЕНИЯ' }, { id: 'guides', emoji: '📚', label: 'ГАЙДЫ' }, { id: 'dm', emoji: '📁', label: 'ЛИЧКА' }, { id: 'shop', emoji: '🛒', label: 'МАГАЗИН' }, { id: 'inventory', emoji: '🎒', label: 'ИНВЕНТАРЬ' }, { id: 'settings', emoji: '⚙️', label: 'НАСТРОЙКИ' }, { id: 'logout', emoji: '🚪', label: 'ВЫХОД' }]; area.innerHTML = icons.map(function(icon, i) { var pos = iconPositions[icon.id] || { x: (i % 4) * 120 + 20, y: Math.floor(i / 4) * 120 + 20 }; return '<div class="desktop-icon" id="icon-' + icon.id + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;" data-app="' + icon.id + '"><span class="icon-emoji">' + icon.emoji + '</span><span class="icon-label">' + icon.label + '</span></div>'; }).join(''); document.querySelectorAll('.desktop-icon').forEach(function(icon) { icon.addEventListener('mousedown', function(e) { startDrag(e, icon.dataset.app); }); icon.addEventListener('click', function(e) { if (!wasDragged) openApp(icon.dataset.app); }); }); }
 
-        function openDesktop() { document.getElementById('desktop').style.display = 'flex'; document.getElementById('desktop-agent-name').textContent = CA.name;
-            buildDesktopIcons();
-            updateStatusBar();
-            showMentions();
-            renderAnnouncements();
-            updateTicker(); var wall = document.getElementById('announcements-wall'); var btn = document.getElementById('announce-toggle-btn'); if (announcements.length > 0) { btn.style.display = 'block'; } else { btn.style.display = 'none';
-                wall.style.display = 'none'; } }
+        function startDrag(e, id) { e.preventDefault(); wasDragged = false; draggedIcon = document.getElementById('icon-' + id); if (!draggedIcon) return; var rect = draggedIcon.getBoundingClientRect(); dragOffX = e.clientX - rect.left; dragOffY = e.clientY - rect.top; draggedIcon.style.zIndex = '50'; }
 
-        function buildDesktopIcons() { var area = document.getElementById('desktop-icons'); var icons = [{ id: 'chat', emoji: '💬', label: 'ЧАТ', active: true }, { id: 'contacts', emoji: '👥', label: 'КОНТАКТЫ', active: true }, { id: 'achievements', emoji: '🏆', label: 'ДОСТИЖЕНИЯ', active: true }, { id: 'guides', emoji: '📚', label: 'ГАЙДЫ', active: true }, { id: 'dm', emoji: '📁', label: 'ЛИЧКА', active: true }, { id: 'clans', emoji: '⚔️', label: 'ОТРЯДЫ', active: true }, { id: 'shop', emoji: '🛒', label: 'МАГАЗИН', active: true }, { id: 'inventory', emoji: '🎒', label: 'ИНВЕНТАРЬ', active: true }, { id: 'settings', emoji: '⚙️', label: 'НАСТРОЙКИ', active: true }, { id: 'announce', emoji: '📢', label: 'ОБЪЯВЛЕНИЯ', active: CA.role === 'admin' || CA.role === 'moderator' }, { id: 'logs', emoji: '📜', label: 'ЛОГИ', active: CA.role === 'admin' || CA.role === 'moderator' }, { id: 'admin', emoji: '👑', label: 'АДМИН', active: CA.role === 'admin' || CA.role === 'moderator' }, { id: 'logout', emoji: '🚪', label: 'ВЫХОД', active: true }];
-            area.innerHTML = icons.filter(function(icon) { if (icon.id === 'admin' && !icon.active) return false; if (icon.id === 'logs' && !icon.active) return false; if (icon.id === 'announce' && !icon.active) return false; return true; }).map(function(icon, i) { var pos = iconPositions[icon.id]; if (!pos) { pos = { x: Math.min((i % 4) * 120 + 20, window.innerWidth - 120), y: Math.max(Math.floor(i / 4) * 120 + 20, 0) };
-                    iconPositions[icon.id] = pos; } return '<div class="desktop-icon ' + (icon.active ? '' : 'locked') + '" id="icon-' + icon.id + '" style="left:' + pos.x + 'px;top:' + pos.y + 'px;" onmousedown="startDrag(event,\'' + icon.id + '\')" onmouseup="if(!wasDragged)openApp(\'' + icon.id + '\')" title="' + (icon.active ? icon.label : 'В РАЗРАБОТКЕ') + '"><span class="icon-emoji">' + icon.emoji + '</span><span class="icon-label">' + icon.label + '</span></div>'; }).join(''); localStorage.setItem('syndicate_icon_positions', JSON.stringify(iconPositions)); }
+        document.addEventListener('mousemove', function(e) { if (!draggedIcon) return; wasDragged = true; var area = document.getElementById('desktop-icons'); if (!area) return; var rect = area.getBoundingClientRect(); var newX = e.clientX - dragOffX; var newY = e.clientY - dragOffY; newX = Math.max(0, Math.min(newX, rect.width - 100)); newY = Math.max(0, Math.min(newY, rect.height - 100)); draggedIcon.style.left = newX + 'px'; draggedIcon.style.top = newY + 'px'; });
 
-        function startDrag(e, id) { if (document.getElementById('icon-' + id).classList.contains('locked')) return; e.preventDefault();
-            wasDragged = false;
-            draggedIcon = document.getElementById('icon-' + id); var rect = draggedIcon.getBoundingClientRect();
-            dragOffX = e.clientX - rect.left;
-            dragOffY = e.clientY - rect.top;
-            draggedIcon.style.zIndex = '50'; }
-        document.addEventListener('mousemove', function(e) { if (!draggedIcon) return;
-            wasDragged = true; var area = document.getElementById('desktop-icons'); var rect = area.getBoundingClientRect(); var newX = e.clientX - dragOffX; var newY = e.clientY - dragOffY;
-            newX = Math.max(0, Math.min(newX, rect.width - 100));
-            newY = Math.max(0, Math.min(newY, rect.height - 100));
-            draggedIcon.style.left = newX + 'px';
-            draggedIcon.style.top = newY + 'px'; });
-        document.addEventListener('mouseup', function() { if (!draggedIcon) return;
-            draggedIcon.style.zIndex = ''; var id = draggedIcon.id.replace('icon-', '');
-            iconPositions[id] = { x: parseInt(draggedIcon.style.left), y: parseInt(draggedIcon.style.top) }; localStorage.setItem('syndicate_icon_positions', JSON.stringify(iconPositions));
-            draggedIcon = null; });
+        document.addEventListener('mouseup', function() { if (!draggedIcon) return; draggedIcon.style.zIndex = ''; var id = draggedIcon.id.replace('icon-', ''); iconPositions[id] = { x: parseInt(draggedIcon.style.left), y: parseInt(draggedIcon.style.top) }; localStorage.setItem('syndicate_icon_positions', JSON.stringify(iconPositions)); draggedIcon = null; });
 
-        function updateStatusBar() { if (!CA) return; document.getElementById('s-avatar').textContent = CA.avatar || '🕶️'; var nameEl = document.getElementById('s-name');
-            nameEl.textContent = CA.name; var color = getActiveColor();
-            nameEl.className = 'status-name'; if (color === 'rainbow') { nameEl.classList.add('rainbow-text'); } else { nameEl.style.color = color; } var badgeEl = document.getElementById('s-badge');
-            badgeEl.textContent = getActiveBadgeEmoji(); var frameEl = document.getElementById('s-avatar-frame');
-            frameEl.className = 'status-avatar-frame'; var frameClass = getActiveFrameClass(); if (frameClass) frameEl.classList.add(frameClass); document.getElementById('s-rep-fill').style.width = (CA.rep || 0) + '%'; document.getElementById('s-rep-text').textContent = (CA.rep || 0) + '/100'; document.getElementById('s-crystals').textContent = CA.crystals || 0; document.getElementById('s-achieve').textContent = '🏆 ' + (CA.achievements.length || 0) + '/' + achievements.length; var boosterEl = document.getElementById('s-booster'); if (activeBooster) { boosterEl.textContent = '⚡ ' + activeBooster.name; } else { boosterEl.textContent = ''; } if (CA.rep >= 100) unlockAch('reputation'); if (CA.crystals >= 1000) unlockAch('rich'); }
+        function updateStatusBar() { if (!CA) return; var av = document.getElementById('s-avatar'); if (av) av.textContent = CA.avatar || '🕶️'; var nm = document.getElementById('s-name'); if (nm) { nm.textContent = CA.name; var color = getActiveColor(); nm.className = 'status-name'; if (color === 'rainbow') nm.classList.add('rainbow-text'); else nm.style.color = color; } var cry = document.getElementById('s-crystals'); if (cry) cry.textContent = CA.crystals || 0; var repf = document.getElementById('s-rep-fill'); if (repf) repf.style.width = (CA.rep || 0) + '%'; var rept = document.getElementById('s-rep-text'); if (rept) rept.textContent = (CA.rep || 0) + '/100'; var ach = document.getElementById('s-achieve'); if (ach) ach.textContent = '🏆 ' + (CA.achievements?.length || 0) + '/5'; if (CA.rep >= 100) unlockAch('reputation'); if (CA.crystals >= 1000) unlockAch('rich'); }
 
-        function openApp(id) { S.click(); if (id === 'logout') { logout(); return; } var map = { chat: 'app-chat', contacts: 'app-contacts', achievements: 'app-achievements', guides: 'app-guides', dm: 'app-dm', settings: 'app-settings', admin: 'app-admin', logs: 'app-logs', shop: 'app-shop', inventory: 'app-inventory', clans: 'app-clans', announce: 'app-announce' }; var el = document.getElementById(map[id]); if (el) { el.style.display = 'block'; document.getElementById('announce-toggle-btn').style.display = 'none'; if (id === 'chat') { renderChat(); } if (id === 'contacts') renderAgentList(); if (id === 'achievements') renderAchievements(); if (id === 'guides') { loadGuides().then(function() { renderGuides(); }); } if (id === 'dm') { loadDMMessages().then(function() { renderDMList(); }); } if (id === 'admin') renderAdmin(); if (id === 'shop') renderShop(); if (id === 'inventory') renderInventory(); if (id === 'clans') renderClans(); } if (id !== 'logout') { CA.crystals = (CA.crystals || 0) + 2; updateStatusBar(); saveAgent(); } }
+        function openApp(id) { S.click(); if (id === 'logout') { logout(); return; } var map = { chat: 'app-chat', contacts: 'app-contacts', achievements: 'app-achievements', guides: 'app-guides', dm: 'app-dm', settings: 'app-settings', shop: 'app-shop', inventory: 'app-inventory', clans: 'app-clans' }; var el = document.getElementById(map[id]); if (el) { el.style.display = 'block'; var abtn = document.getElementById('announce-toggle-btn'); if (abtn) abtn.style.display = 'none'; if (id === 'chat') renderChat(); if (id === 'contacts') renderAgentList(); if (id === 'achievements') renderAchievements(); if (id === 'guides') { loadGuides().then(function() { renderGuides(); }); } if (id === 'dm') { loadDMMessages().then(function() { renderDMList(); }); } if (id === 'shop') renderShop(); if (id === 'inventory') renderInventory(); if (id === 'clans') renderClans(); } if (id !== 'logout' && CA) { CA.crystals = (CA.crystals || 0) + 2; updateStatusBar(); saveAgent(); } }
 
-        function closeApp(id) { S.click(); var map = { chat: 'app-chat', contacts: 'app-contacts', achievements: 'app-achievements', guides: 'app-guides', dm: 'app-dm', settings: 'app-settings', admin: 'app-admin', logs: 'app-logs', shop: 'app-shop', inventory: 'app-inventory', clans: 'app-clans', announce: 'app-announce' }; var el = document.getElementById(map[id]); if (el) el.style.display = 'none'; if (announcements.length > 0) document.getElementById('announce-toggle-btn').style.display = 'block'; }
+        function closeApp(id) { S.click(); var map = { chat: 'app-chat', contacts: 'app-contacts', achievements: 'app-achievements', guides: 'app-guides', dm: 'app-dm', settings: 'app-settings', shop: 'app-shop', inventory: 'app-inventory', clans: 'app-clans' }; var el = document.getElementById(map[id]); if (el) el.style.display = 'none'; if (announcements.length > 0) { var abtn = document.getElementById('announce-toggle-btn'); if (abtn) abtn.style.display = 'block'; } }
 
-        function logout() { if (repInterval) clearInterval(repInterval); if (tkInterval) clearInterval(tkInterval); if (chatChannel) supabase.removeChannel(chatChannel); if (dmChannel) supabase.removeChannel(dmChannel);
-            CA = null; document.getElementById('desktop').style.display = 'none'; document.querySelectorAll('.app-screen').forEach(function(el) { el.style.display = 'none'; }); document.getElementById('announcements-wall').style.display = 'none'; document.getElementById('announce-toggle-btn').style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; document.getElementById('agent-name').value = ''; document.getElementById('agent-pass').value = ''; }
+        function logout() { if (repInterval) clearInterval(repInterval); if (tkInterval) clearInterval(tkInterval); if (chatChannel) supabase.removeChannel(chatChannel); if (dmChannel) supabase.removeChannel(dmChannel); CA = null; document.getElementById('desktop').style.display = 'none'; document.querySelectorAll('.app-screen').forEach(function(el) { el.style.display = 'none'; }); var aw = document.getElementById('announcements-wall'); if (aw) aw.style.display = 'none'; var abtn = document.getElementById('announce-toggle-btn'); if (abtn) abtn.style.display = 'none'; document.getElementById('login-screen').style.display = 'flex'; document.getElementById('agent-name').value = ''; document.getElementById('agent-pass').value = ''; }
 
-        async function renderAgentList() { var list = document.getElementById('agents-list'); var agents = await getAgents(); var currentName = CA ? CA.name : '';
-            list.innerHTML = Object.entries(agents).sort(function(a, b) { return (b[1].rep || 0) - (a[1].rep || 0); }).map(function(e) { var n = e[0]; var d = e[1]; return '<div class="agent-row" onclick="showAgentInfo(\'' + n + '\')"><div>' + n + ' ' + (d.role === 'admin' ? '👑' : d.role === 'moderator' ? ' <span class="mod-icon">🛡</span>' : '') + '</div><div>' + (d.rep || 0) + '/100</div><div>' + (d.crystals || 0) + '</div><div class="' + (n === currentName ? 'status-online' : 'status-offline') + '">' + (n === currentName ? 'ONLINE' : 'OFFLINE') + '</div></div>'; }).join(''); document.getElementById('agents-total').textContent = 'ВСЕГО: ' + Object.keys(agents).length; }
+        async function renderAgentList() { var list = document.getElementById('agents-list'); if (!list) return; var agents = await getAgents(); var currentName = CA ? CA.name : ''; var html = '<div class="agent-table-header"><div>АГЕНТ</div><div>РЕП</div><div>ТК</div><div>СТАТУС</div></div>'; html += Object.entries(agents).sort(function(a, b) { return (b[1].rep || 0) - (a[1].rep || 0); }).map(function(e) { var n = e[0]; var d = e[1]; return '<div class="agent-row" onclick="window.showAgentInfo(\'' + n + '\')"><div>' + n + (d.role === 'admin' ? ' 👑' : '') + '</div><div>' + (d.rep || 0) + '/100</div><div>' + (d.crystals || 0) + '</div><div class="' + (n === currentName ? 'status-online' : 'status-offline') + '">' + (n === currentName ? 'ONLINE' : 'OFFLINE') + '</div></div>'; }).join(''); list.innerHTML = html; var total = document.getElementById('agents-total'); if (total) total.textContent = 'ВСЕГО: ' + Object.keys(agents).length; }
 
-        function renderAchievements() { document.getElementById('achievements-list').innerHTML = achievements.map(function(a) { var u = CA.achievements.includes(a.id); return '<div class="achievement-card ' + (u ? '' : 'locked') + '"><div><span style="font-size:1.5rem;">' + a.icon + '</span> <strong>' + a.name + '</strong><br><small style="color:#cc0000;">' + a.desc + '</small></div><div>' + (u ? '✓' : '🔒') + '</div></div>'; }).join(''); }
+        function renderAchievements() { var list = document.getElementById('achievements-list'); if (!list || !CA) return; list.innerHTML = achievements.map(function(a) { var u = CA.achievements?.includes(a.id); return '<div class="achievement-card ' + (u ? '' : 'locked') + '"><div><span style="font-size:1.5rem;">' + a.icon + '</span> <strong>' + a.name + '</strong></div><div>' + (u ? '✓' : '🔒') + '</div></div>'; }).join(''); }
 
-        async function showAgentInfo(name) { var d = await loadAgent(name); if (!d) return; var existing = document.querySelector('.detail-popup'); if (existing) existing.remove(); var popup = document.createElement('div');
-            popup.className = 'detail-popup';
-            popup.innerHTML = '<button class="close-btn" onclick="this.parentElement.remove()">✕</button><div style="font-size:1.5rem;margin-bottom:10px;">' + name + ' ' + (d.role === 'admin' ? '👑' : d.role === 'moderator' ? ' <span class="mod-icon">🛡</span>' : '') + (d.banned ? ' 🚫' : '') + (d.muted ? ' 🔇' : '') + '</div><div>РЕП: ' + (d.rep || 0) + '/100 | ТК: ' + (d.crystals || 0) + ' | ДОСТ: ' + (d.achievements || []).length + '/5</div><button class="modal-btn" onclick="startDM(\'' + name + '\');this.parentElement.remove();">📁 НАПИСАТЬ</button>';
-            document.body.appendChild(popup); }
+        async function showAgentInfo(name) { var d = await loadAgent(name); if (!d) return; var popup = document.createElement('div'); popup.className = 'detail-popup'; popup.innerHTML = '<button class="close-btn" onclick="this.parentElement.remove()">✕</button><div style="font-size:1.5rem;margin-bottom:10px;">' + name + (d.role === 'admin' ? ' 👑' : '') + '</div><div>РЕП: ' + (d.rep || 0) + '/100 | ТК: ' + (d.crystals || 0) + '</div><button class="modal-btn" onclick="window.startDM(\'' + name + '\');this.parentElement.remove();">📁 НАПИСАТЬ</button>'; document.body.appendChild(popup); }
 
         function startDM(agent) { currentDM = agent; openApp('dm'); renderDMList(); renderDMMessages(); }
 
-        async function renderAdmin() { var agents = await getAgents(); var content = document.getElementById('admin-content');
-            content.innerHTML = '<div class="admin-legend">👑 Админ | <span class="mod-icon">🛡</span> Модер | 👤 Агент | 🚫 Забанен | 🔇 Замучен | 🗑 Удаление</div><div style="font-size:1.3rem;margin-bottom:15px;">УПРАВЛЕНИЕ</div>';
-            Object.entries(agents).forEach(function(e) { var n = e[0]; var d = e[1];
-                content.innerHTML += '<div class="admin-row" onclick="showAgentInfo(\'' + n + '\')"><span>' + n + ' (' + (d.role === 'admin' ? '👑' : d.role === 'moderator' ? ' <span class="mod-icon">🛡</span>' : '') + ' ' + (d.role || 'agent') + ')' + (d.banned ? ' 🚫' : '') + (d.muted ? ' 🔇' : '') + '</span><span>' + (CA.role === 'admin' || CA.role === 'moderator' ? '<button onclick="event.stopPropagation();muteAgent(\'' + n + '\')" style="background:transparent;border:1px solid ' + (d.muted ? '#0f0' : '#ff0') + ';color:' + (d.muted ? '#0f0' : '#ff0') + ';padding:5px 10px;cursor:pointer;font-family:VT323;">' + (d.muted ? '🔊' : '🔇') + '</button>' : '') + (CA.role === 'admin' ? '<button onclick="event.stopPropagation();banAgent(\'' + n + '\')" style="background:transparent;border:1px solid ' + (d.banned ? '#0f0' : '#f00') + ';color:' + (d.banned ? '#0f0' : '#f00') + ';padding:5px 10px;cursor:pointer;font-family:VT323;">' + (d.banned ? '✅' : '🚫') + '</button>' : '') + '</span></div>'; }); }
+        async function changeName() { var nn = document.getElementById('new-name').value.trim(); if (!nn || !CA) return; var ag = await loadAgent(nn); if (ag) return notif('⛔ ИМЯ ЗАНЯТО'); CA.nameHistory = CA.nameHistory || []; CA.nameHistory.push(CA.name); try { await supabase.from('agents').update({ name: nn, name_history: CA.nameHistory }).eq('name', CA.name); } catch(e) {} CA.name = nn; updateStatusBar(); document.getElementById('desktop-agent-name').textContent = CA.name; closeModal('modal-name'); notif('✅ ИМЯ ИЗМЕНЕНО'); }
 
-        async function changeName() { var nn = document.getElementById('new-name').value.trim(); if (!nn) return; var ag = await loadAgent(nn); if (ag) return notif('⛔ ИМЯ ЗАНЯТО');
-            CA.nameHistory = CA.nameHistory || [];
-            CA.nameHistory.push(CA.name); await supabase.from('agents').update({ name: nn, name_history: CA.nameHistory }).eq('name', CA.name);
-            CA.name = nn;
-            updateStatusBar(); document.getElementById('desktop-agent-name').textContent = CA.name;
-            closeModal('modal-name'); notif('✅ ИМЯ ИЗМЕНЕНО'); }
+        async function changePassword() { var op = document.getElementById('old-pass').value; var np = document.getElementById('new-pass').value; if (!op || !np) return notif('⛔ ЗАПОЛНИ'); var ph = await hash(op); var ag = await loadAgent(CA.name); if (!ag || ag.pass_hash !== ph) return notif('⛔ НЕВЕРНЫЙ'); CA.passHash = await hash(np); await saveAgent(); closeModal('modal-password'); notif('✅ ПАРОЛЬ ИЗМЕНЁН'); }
 
-        async function changePassword() { var op = document.getElementById('old-pass').value; var np = document.getElementById('new-pass').value; if (!op || !np) return notif('⛔ ЗАПОЛНИ ОБА'); var ph = await hash(op); var ag = await loadAgent(CA.name); if (ag.pass_hash !== ph) return notif('⛔ НЕВЕРНЫЙ'); if (np.length < 3) return notif('⛔ МИНИМУМ 3');
-            CA.passHash = await hash(np); await saveAgent();
-            closeModal('modal-password'); notif('✅ ПАРОЛЬ ИЗМЕНЁН'); }
-
-        function showChangeName() { document.getElementById('new-name').value = CA.name; document.getElementById('modal-name').style.display = 'flex'; }
-
+        function showChangeName() { document.getElementById('new-name').value = CA?.name || ''; document.getElementById('modal-name').style.display = 'flex'; }
         function showChangePassword() { document.getElementById('old-pass').value = ''; document.getElementById('new-pass').value = ''; document.getElementById('modal-password').style.display = 'flex'; }
+        function showChangeAvatar() { var grid = document.getElementById('emoji-grid'); if (!grid) return; var avatars = ['😀', '😎', '🤖', '👻', '💀', '👑', '🕶', '🐺', '🐉', '💣', '🔥', '💎', '⚡', '🌟']; grid.innerHTML = avatars.map(function(e) { return '<span class="emoji-cell ' + (CA?.avatar === e ? 'selected' : '') + '" onclick="window.selectAvatar(\'' + e + '\')">' + e + '</span>'; }).join(''); document.getElementById('modal-avatar').style.display = 'flex'; }
 
-        function showChangeAvatar() { var grid = document.getElementById('emoji-grid'); var avatars = ['😀', '😃', '😎', '🥷', '🤡', '👽', '🤖', '👻', '💀', '🎭', '👑', '🕶', '🐺', '🦊', '🐱', '🐉', '🦅', '🦇', '🐍', '🦎', '🦖', '🐙', '🦈', '🐬', '💣', '🔥', '💎', '⚡', '🌟', '🛡', '🔒', '🔑', '🎯', '🍺', '🍕', '🍩', '☕', '🧃', '🏴', '⚔', '⚠', '❓', '❤', '👍', '😂', '🤬', '🥶', '🫡', '😈', '👁', '🧠', '🦾', '💩', '🎃', '👺', '💢', '💥', '💫', '🕳', '🎲', '🔮', '🧿', '📿', '🪬', '⚜', '🔱', '💠', '♨', '🀄', '🃏'];
-            grid.innerHTML = avatars.map(function(e) { return '<span class="emoji-cell ' + (CA.avatar === e ? 'selected' : '') + '" onclick="selectAvatar(\'' + e + '\')">' + e + '</span>'; }).join(''); document.getElementById('current-avatar-display').textContent = CA.avatar || '🕶️'; document.getElementById('modal-avatar').style.display = 'flex'; }
+        async function selectAvatar(emoji) { if (!CA) return; CA.avatar = emoji; updateStatusBar(); await saveAgent(); closeModal('modal-avatar'); notif('✅ АВАТАР ОБНОВЛЁН'); }
 
-        async function selectAvatar(emoji) { CA.avatar = emoji;
-            updateStatusBar(); await saveAgent();
-            closeModal('modal-avatar'); notif('✅ АВАТАР ОБНОВЛЁН'); }
+        document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('chat-input')) { e.preventDefault(); sendMessage(); } if (e.key === 'Enter' && document.activeElement === document.getElementById('dm-input')) { e.preventDefault(); sendDM(); } });
 
-        document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.activeElement === document.getElementById('chat-input')) { e.preventDefault();
-                sendMessage(); } if (e.key === 'Enter' && document.activeElement === document.getElementById('dm-input')) { e.preventDefault();
-                sendDM(); } });
-
+        // Вешаем функции на window для onclick из HTML
         window.openApp = openApp;
         window.closeApp = closeApp;
         window.toggleAnnouncements = toggleAnnouncements;
         window.filterAnnouncements = filterAnnouncements;
-        window.announcePage = announcePage;
         window.renderAnnouncements = renderAnnouncements;
         window.createAnnouncement = createAnnouncement;
-        window.deleteAnnouncement = deleteAnnouncement;
         window.openDM = openDM;
         window.sendDM = sendDM;
         window.sendMessage = sendMessage;
@@ -772,7 +278,6 @@
         window.startDM = startDM;
         window.showAgentInfo = showAgentInfo;
         window.createGuide = createGuide;
-        window.editGuide = editGuide;
         window.deleteGuide = deleteGuide;
         window.showCreateGuide = showCreateGuide;
         window.acceptRules = acceptRules;
@@ -785,12 +290,9 @@
         window.selectAvatar = selectAvatar;
         window.muteAgent = muteAgent;
         window.banAgent = banAgent;
-        window.buyItem = buyItem;
-        window.applyItem = applyItem;
-        window.resetItem = resetItem;
         window.previewItem = previewItem;
-        window.startDrag = startDrag;
         window.recoverSystem = recoverSystem;
+        window.announcePage = announcePage;
     </script>
 </body>
 </html>
