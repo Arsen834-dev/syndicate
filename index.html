@@ -160,7 +160,7 @@ function renderClanMessages() {
     }
     c.innerHTML = msgs.map(m => renderMsgHTML(m, 'clan')).join('');
     c.scrollTop = c.scrollHeight;
-}+be+'<span class="chat-time">'+(m.time||'')+'</span></div><div class="chat-text '+fc+'">'+(m.text||'')+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="'+type+'" data-msgid="'+m.id+'">+</span></div></div></div>';
+'+be+'<span class="chat-time">'+(m.time||'')+'</span></div><div class="chat-text '+fc+'">'+(m.text||'')+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="'+type+'" data-msgid="'+m.id+'">+</span></div></div></div>';
 document.addEventListener('click',function(e){var el=e.target.closest('[data-reaction]');if(el){var t=el.dataset.reaction,mid=el.dataset.msgid,emoji=el.dataset.emoji;if(t==='clan'){addClanReaction(mid,emoji)}else{addReaction(mid,emoji)}return}var pk=e.target.closest('[data-reaction-picker]');if(pk){var tp=pk.dataset.reactionpicker,mid2=pk.dataset.msgid;var fn=tp==='clan'?addClanReaction:addReaction;showReactionPickerUniversal(mid2,pk,fn)}});
 async function addClanReaction(msgId, emoji) {
     if (!currentClanId) return;
