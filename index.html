@@ -30,7 +30,10 @@
         .icon-badge{position:absolute;top:-8px;right:-8px;background:#ff0000;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:bold;z-index:5;animation:badgePulse 1s infinite}@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
         .desktop-statusbar{border-top:2px solid #ff1744;padding:8px 15px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,0.9);height:48px;font-size:1rem;white-space:nowrap;overflow:hidden}
         .status-avatar-frame,.chat-avatar-frame{display:inline-block;padding:2px;border:2px solid #ff1744;flex-shrink:0;position:relative;overflow:visible}
-        .f-default{border:2px solid #ff1744}.f-gold{border:2px solid #ffd700;box-shadow:0 0 8px #ffd700}.f-silver{border:2px solid #cfd8dc;box-shadow:0 0 8px #cfd8dc}.f-fire{border:2px solid #ff3d00;box-shadow:0 0 10px #ff3d00}.f-ice{border:2px solid #80deea;box-shadow:0 0 10px #80deea}.f-neon{border:2px solid #76ff03;box-shadow:0 0 12px #76ff03}.f-shadow{border:2px solid #212121;animation:shadow-pulse-dark 2s infinite}.f-spike{border:3px solid transparent!important;border-image:repeating-linear-gradient(45deg,#ff1744,#ff1744 8px,transparent 8px,transparent 14px) 3!important;box-shadow:none!important}.f-cyber{border:2px solid #00e5ff;box-shadow:0 0 10px #00e5ff,inset 0 0 5px #00e5ff}.f-blood{border:2px solid #d50000;position:relative;overflow:visible}.f-blood::before{content:'🩸';position:absolute;top:-8px;left:5px;font-size:0.55rem;animation:blood-spot-1 2s infinite}.f-blood::after{content:'🩸';position:absolute;bottom:-6px;right:8px;font-size:0.5rem;animation:blood-spot-2 2.5s infinite}.f-royal{border:2px solid #b388ff;position:relative;overflow:visible;box-shadow:0 0 10px #b388ff}.f-royal::before{content:'👑';position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:0.8rem}.f-techno{border:2px solid #ff9100;box-shadow:0 0 10px #ff9100}.f-skull{border:2px solid #ffffff;box-shadow:0 0 8px #ffffff;position:relative;overflow:visible}.f-skull::before{content:'💀';position:absolute;top:-9px;left:30%;font-size:0.6rem;animation:skull-float-1 3s infinite}.f-skull::after{content:'💀';position:absolute;bottom:-8px;right:25%;font-size:0.55rem;animation:skull-float-2 2.7s infinite}.f-iridescent{animation:rainbow-border 3s linear infinite}
+        .f-default{border:2px solid #ff1744}.f-gold{border:2px solid #ffd700;box-shadow:0 0 8px #ffd700}.f-silver{border:2px solid #cfd8dc;box-shadow:0 0 8px #cfd8dc}.f-fire{border:2px solid #ff3d00;box-shadow:0 0 10px #ff3d00}.f-ice{border:2px solid #80deea;box-shadow:0 0 10px #80deea}.f-neon{border:2px solid #76ff03;box-shadow:0 0 12px #76ff03}.f-shadow{border:2px solid #212121;animation:shadow-pulse-dark 2s infinite}.f-spike{border:3px solid transparent!important;border-image:repeating-linear-gradient(45deg,#ff1744,#ff1744 8px,transparent 8px,transparent 14px) 3!important;box-shadow:none!important}.f-cyber{border:2px solid #00e5ff;box-shadow:0 0 10px #00e5ff,inset 0 0 5px #00e5ff}.f-blood{border:2px solid #d50000;position:relative;overflow:visible}.f-blood::before{content:'🩸';position:absolute;top:-8px;left:5px;font-size:0.55rem;animation:blood-spot-1 2s infinite}.f-blood::after{content:'🩸';position:absolute;bottom:-6px;right:8px;font-size:0.5rem;animation:blood-spot-2 2.5s infinite}.f-royal{border:2px solid #b388ff;position:relative;overflow:visible;box-shadow:0 0 10px #b388ff}.f-royal::before{content:'👑';position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:0.8rem}.f-techno{border:2px solid #ff9100;box-shadow:0 0 10px #ff9100}.f-skull{border:2px solid #ffffff;box-shadow:0 0 8px #ffffff;position:relative;overflow:visible}.f-skull::before{content:'💀';position:absolute;top:-9px;left:30%;font-size:0.6rem;animation:skull-float-1 3s infinite}.f-skull::after{content:'💀';position:absolute;bottom:-8px;right:25%;font-size:0.55rem;animation:skull-float-2 2.7s infinite}
+        /* ВОТ ИСПРАВЛЕНИЕ ДЛЯ ПЕРЕЛИВАЮЩЕЙСЯ РАМКИ */
+        .f-iridescent{border:2px solid #ff1744; animation: rainbow-border 3s linear infinite; box-shadow: 0 0 10px #ff1744;}
+        
         @keyframes shadow-pulse-dark{0%,100%{box-shadow:0 0 5px #fff,inset 0 0 5px #fff}50%{box-shadow:0 0 15px #fff,inset 0 0 15px #fff}}@keyframes blood-spot-1{0%,100%{opacity:0.8;transform:translate(0,0)}50%{opacity:1;transform:translate(3px,2px)}}@keyframes blood-spot-2{0%,100%{opacity:0.6;transform:translate(0,0)}50%{opacity:1;transform:translate(-3px,2px)}}@keyframes skull-float-1{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(4px,-3px) rotate(5deg)}}@keyframes skull-float-2{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(-4px,2px) rotate(-5deg)}}
         .status-avatar{font-size:1.1rem}.status-name{font-weight:bold;font-size:1.1rem;flex-shrink:0;max-width:80px;overflow:hidden;text-overflow:ellipsis}.status-badge{flex-shrink:0;font-size:1rem}.status-rep-bar{height:14px;background:#1a0000;border:1px solid #ff1744;flex:0 1 150px;min-width:60px}.status-rep-fill{height:100%;background:#ff1744;transition:width 0.5s}.status-rep-text{color:#ff1744;font-size:0.9rem;flex-shrink:0;text-align:center}.crystal-red{color:#ff1744}.status-crystals{color:#ff1744;flex-shrink:0;font-size:1rem}.status-achieve{color:#ff1744;flex-shrink:0;font-size:1rem}.status-ticker{flex:1;overflow:hidden;position:relative;height:100%;display:flex;align-items:center}.status-ticker-text{white-space:nowrap;animation:ticker 90s linear infinite;color:#aa0000;font-size:0.85rem}@keyframes ticker{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
         .app-screen{position:fixed;top:45px;left:0;width:100%;height:calc(100% - 93px);z-index:20;display:none;overflow-y:auto;transition:opacity 0.2s ease;opacity:0}.app-screen.show{opacity:1}.app-header{border-bottom:2px solid #ff1744;padding:10px 15px;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.95)}.app-title{color:#ff1744;font-size:1.4rem}.app-close{background:transparent;border:1px solid #ff1744;color:#ff1744;padding:5px 15px;cursor:pointer;font-family:'VT323',monospace;font-size:1rem;transition:0.3s}.app-close:hover{background:#ff1744;color:#000}.app-content{padding:15px}
@@ -115,7 +118,6 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/+esm';
 const SUPABASE_URL='https://qblnleuunawrkyvwekvg.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG5sZXV1bmF3cmt5dndla3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDY3NDYsImV4cCI6MjA5NjY4Mjc0Nn0.3UaltpiiLT7pZyZVegGIUUEq5qDdKf2VOdLkCLmqr0k';
-// Инициализация ОДИН раз с правильными опциями для Accept
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: {
         headers: { 'Accept': 'application/json' }
@@ -156,27 +158,11 @@ async function loadChatMessages(){try{let{data}=await supabase.from('chat_messag
 async function loadMoreChatMessages(){chatPage++;try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).range(chatPage*CHAT_PAGE_SIZE,(chatPage+1)*CHAT_PAGE_SIZE-1);if(data&&data.length>0){chatMessages=[...data.reverse(),...chatMessages];renderChat(!0)}}catch(e){}}
 function subscribeChat(){chatChannel=supabase.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{chatMessages.push(payload.new);if(chatMessages.length>100)chatMessages.shift();checkMentions(payload.new.text);playSound('receive');if(chatTabActive==='general')renderChat()}).subscribe()}
 async function sendMessage(){var inp=document.getElementById('chat-input');var msg=inp?.value?.trim();if(!msg||!CA)return;if(CA.muted)return notif('🔇 ВЫ ЗАМУЧЕНЫ');var md={author:CA.name,avatar:CA.avatar||'🕶️',role:CA.role||'agent',text:msg,time:new Date().toLocaleTimeString(),reactions:{}};if(replyTo){md.reply_to=replyTo.msgId;md.reply_author=replyTo.author;md.reply_text=replyTo.text}try{await supabase.from('chat_messages').insert(md)}catch(e){}CA.chatCount=(CA.chatCount||0)+1;CA.crystals=(CA.crystals||0)+3;if(CA.chatCount>=10)unlockAch('socializer');playSound('send');inp.value='';replyTo=null;cancelReply();updateStatusBar();saveAgent()}
-function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));var at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');var cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='block';currentClanId=null;renderChat()}else if(tab==='clan'){cm.style.display='none';cir.style.display='none';if(ph)ph.style.display='none';renderClanList()}}
+function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));var at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');var cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='block';currentClanId=null;renderChat()}else if(tab==='clan'){cm.style.display='block';cir.style.display='none';if(ph)ph.style.display='none';renderClanList()}}
 function renderClanList(){var c=document.getElementById('chat-messages');c.style.display='block';c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ КЛАН</div>';var myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));if(myClan){c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>'}else{c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>'}setTimeout(()=>{document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){openClanChat(parseInt(this.dataset.openClan))}))},10)}
 async function openClanChat(clanId){currentClanId=clanId;await loadClanMessages(clanId);subscribeClanChat(clanId);renderClanMessages();document.getElementById('chat-input-row').style.display='flex';document.getElementById('chat-pinned-header').style.display='none'}
-function renderMsgHTML(m, type) {
-    var isMe = CA && m.author === CA.name;
-    var color = isMe ? getActiveColor() : '#ff1744';
-    var cs = color === 'rainbow' ? 'rainbow-text' : '';
-    var fc = isMe ? getActiveFontClass() : '';
-    var frc = isMe ? getActiveFrameClass() : '';
-    var be = isMe ? getActiveBadgeEmoji() : '';
-    var react = m.reactions || {}, rh = '';
-    Object.keys(react).forEach(key => {
-        if (key.endsWith('_by')) return;
-        var cnt = react[key], ua = react[key + '_by'];
-        var us = Array.isArray(ua) ? ua.join(', ') : '';
-        var ia = Array.isArray(ua) && CA && ua.includes(CA.name);
-        rh += '<span class="chat-reaction ' + (ia ? 'active' : '') + '" data-reaction="' + type + '" data-msgid="' + m.id + '" data-emoji="' + key + '">' + key + ' ' + cnt + '<span class="chat-reaction-tooltip">' + (us || '...') + '</span></span>';
-    });
-    return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame ' + frc + '"><span class="chat-avatar">' + (m.avatar || '🕶️') + '</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author ' + cs + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + (m.author || '???') + '</span>' + be + '<span class="chat-time">' + (m.time || '') + '</span></div><div class="chat-text ' + fc + '">' + (m.text || '') + '</div><div class="chat-reactions">' + rh + '<span class="chat-reaction" data-reaction-picker="' + type + '" data-msgid="' + m.id + '">+</span></div></div></div>';
-}
 
+// НОВАЯ ФУНКЦИЯ РЕНДЕРИНГА КЛАНОВЫХ СООБЩЕНИЙ С МЕНЮ
 function renderClanMessages() {
     var c = document.getElementById('chat-messages');
     if (!c || !currentClanId) return;
@@ -185,9 +171,42 @@ function renderClanMessages() {
         c.innerHTML = '<div style="text-align:center;color:#cc0000;padding:20px;">НЕТ СООБЩЕНИЙ</div>';
         return;
     }
-    c.innerHTML = msgs.map(m => renderMsgHTML(m, 'clan')).join('');
+    var canMod = CA && (CA.role === 'admin' || CA.role === 'moderator');
+    c.innerHTML = msgs.map(m => {
+        var isMe = CA && m.author === CA.name;
+        var color = isMe ? getActiveColor() : '#ff1744';
+        var cs = color === 'rainbow' ? 'rainbow-text' : '';
+        var fc = isMe ? getActiveFontClass() : '';
+        var frc = isMe ? getActiveFrameClass() : '';
+        var be = isMe ? getActiveBadgeEmoji() : '';
+        var react = m.reactions || {}, rh = '';
+        Object.keys(react).forEach(key => {
+            if (key.endsWith('_by')) return;
+            var cnt = react[key], ua = react[key + '_by'];
+            var us = Array.isArray(ua) ? ua.join(', ') : '';
+            var ia = Array.isArray(ua) && CA && ua.includes(CA.name);
+            rh += '<span class="chat-reaction ' + (ia ? 'active' : '') + '" data-reaction="clan" data-msgid="' + m.id + '" data-emoji="' + key + '">' + key + ' ' + cnt + '<span class="chat-reaction-tooltip">' + (us || '...') + '</span></span>';
+        });
+        
+        // МЕНЮ ДЕЙСТВИЙ
+        var menu = '';
+        if (m.id) {
+            menu = '<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="' + m.id + '">⋯</button><div class="chat-menu-dropdown">';
+            menu += '<div class="chat-menu-item" data-reply="' + m.id + '" data-reply-author="' + m.author + '">↩ ОТВЕТИТЬ</div>';
+            if (canMod) {
+                menu += '<div class="chat-menu-item" data-pin="' + m.id + '">' + (m.pinned ? '📌 ОТКРЕПИТЬ' : '📌 ЗАКРЕПИТЬ') + '</div>';
+                menu += '<div class="chat-menu-item" data-mute="' + m.author + '">🔇 МУТ</div>';
+                if (CA && CA.role === 'admin') menu += '<div class="chat-menu-item" data-ban="' + m.author + '">🚫 БАН</div>';
+                menu += '<div class="chat-menu-item" data-delete-msg="' + m.id + '">🗑 УДАЛИТЬ</div>';
+            }
+            menu += '</div></span>';
+        }
+
+        return '<div class="chat-msg' + (m.pinned ? ' pinned' : '') + '" data-msg-id="' + m.id + '"><div class="chat-msg-left"><span class="chat-avatar-frame ' + frc + '"><span class="chat-avatar">' + (m.avatar || '🕶️') + '</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author ' + cs + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + (m.author || '???') + '</span>' + be + '<span class="chat-time">' + (m.time || '') + '</span>' + menu + '</div><div class="chat-text ' + fc + '">' + (m.text || '') + '</div><div class="chat-reactions">' + rh + '<span class="chat-reaction" data-reaction-picker="clan" data-msgid="' + m.id + '">+</span></div></div></div>';
+    }).join('');
     c.scrollTop = c.scrollHeight;
 }
+
 async function addClanReaction(msgId,emoji){if(!currentClanId)return;var msgs=clanChats[currentClanId]||[];var msg=msgs.find(m=>String(m.id)===String(msgId));if(!msg||!CA)return;if(!msg.reactions)msg.reactions={};var key=emoji+'_by';if(!msg.reactions[key])msg.reactions[key]=[];var ui=msg.reactions[key].indexOf(CA.name);if(ui!==-1){msg.reactions[key].splice(ui,1);msg.reactions[emoji]=Math.max(0,(msg.reactions[emoji]||1)-1);if(msg.reactions[emoji]===0){delete msg.reactions[emoji];delete msg.reactions[key]}playSound('click')}else{msg.reactions[key].push(CA.name);msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;playSound('send')}clanChats[currentClanId]=msgs.map(m=>String(m.id)===String(msgId)?{...m,reactions:{...msg.reactions}}:m);try{await supabase.from('clan_messages').update({reactions:msg.reactions}).eq('id',parseInt(msgId))}catch(e){}renderClanMessages()}
 async function sendClanMessage(){var inp=document.getElementById('chat-input');var msg=inp?.value?.trim();if(!msg||!CA||!currentClanId)return;try{await supabase.from('clan_messages').insert({clan_id:currentClanId,author:CA.name,avatar:CA.avatar||'🕶️',text:msg,time:new Date().toLocaleTimeString()});playSound('send')}catch(e){}inp.value=''}
 function checkMentions(text){if(!CA||!text)return;var mm=text.match(/@(\S+)/g);if(mm){mm.forEach(function(m){if(m.substring(1)===CA.name){notif('📢 ВАС УПОМЯНУЛИ');unreadMentions.chat++;updateBadgeIcons()}})}}
