@@ -682,7 +682,30 @@
         async function changePassword(){ var op=document.getElementById('old-pass')?.value;var np=document.getElementById('new-pass')?.value;if(!op||!np||!CA)return;var ph=await hash(op);var ag=await loadAgent(CA.name);if(!ag||ag.pass_hash!==ph)return notif('⛔ НЕВЕРНЫЙ');CA.passHash=await hash(np);await saveAgent();closeModal('modal-password');notif('✅ ПАРОЛЬ ИЗМЕНЁН'); }
         function showChangeName(){ document.getElementById('new-name').value=CA?.name||'';var el=document.getElementById('modal-name');el.style.display='flex';el.classList.add('show'); }
         function showChangePassword(){ document.getElementById('old-pass').value='';document.getElementById('new-pass').value='';var el=document.getElementById('modal-password');el.style.display='flex';el.classList.add('show'); }
-        function showChangeAvatar(){ var grid=document.getElementById('emoji-grid');var avatars=['😀','😎','🤖','👻','💀','👑','🕶','🐺','🐉','💣','🔥','💎','⚡','🌟'];grid.innerHTML=avatars.map(e=>'<span class="emoji-cell '+(CA?.avatar===e?'selected':'')+'" onclick="window.selectAvatar(\''+e+'\')">'+e+'</span>').join('');var el=document.getElementById('modal-avatar');el.style.display='flex';el.classList.add('show'); }
+        function showChangeAvatar(){ var grid=document.getElementById('emoji-grid');var avatars=[
+    // 😀 Смайлы и эмоции
+    '😀','😂','🤣','😎','🤩','🥳','😇','🤠','👻','💀','🤡','👽','🤖','👾',
+    // 👑 Персонажи и роли
+    '👑','👸','🤴','🦸','🦹','🧙‍♂️','🧛','🧝','🧟','👼','😈','👹','👺',
+    // 🎭 Стиль и аксессуары
+    '🕶️','🎩','👒','🎓','⛑️','💂','👮','🕵️','🥷','🤵','👰','🎭','🎪',
+    // 💼 Профессии и хакеры
+    '👨‍💻','👩‍💻','🧑‍🔬','👨‍🚀','👩‍✈️','🧑‍🏭','👨‍🎤','👩‍🎨',
+    // 🎨 Искусство и музыка
+    '🎸','🎹','🎺','🥁','🎻','🎤','🎧','📸','🎥','🎬','🎮','🕹️',
+    // 💰 Символы
+    '💰','💎','👑','⭐','🔥','⚡','💣','🗝️','🔑','💉','🧬','🧪','🧲','🛡️',
+    // ⚔️ Оружие и броня
+    '⚔️','🗡️','🏹','🔫','💣','🧨','🪓','🔧','🔨','⛏️','⚒️','🛡️','🗡️',
+    // 🦊 Животные
+    '🦊','🐺','🐉','🐲','🦅','🦉','🦇','🐍','🦎','🐙','🦑','🦈','🦂','🕷️',
+    // 🌑 Мистика
+    '🌑','🌕','🌙','⭐','🌟','✨','💫','☄️','🌌','🪐','🔮','🧿','🕯️','📿',
+    // 💀 Киберпанк и постапокалипсис
+    '💀','☠️','🤖','👁️','🧠','🦾','🦿','🩸','💊','🧬','⚙️','⛓️','📡','🖥️',
+    // 🎴 Карты, кубики, символы
+    '🎲','🎯','🎰','♠️','♦️','♣️','🃏','🀄','🎴','🪙','🏆','🥇'
+];grid.innerHTML=avatars.map(e=>'<span class="emoji-cell '+(CA?.avatar===e?'selected':'')+'" onclick="window.selectAvatar(\''+e+'\')">'+e+'</span>').join('');var el=document.getElementById('modal-avatar');el.style.display='flex';el.classList.add('show'); }
         async function selectAvatar(emoji){ if(!CA)return;CA.avatar=emoji;updateStatusBar();await saveAgent();closeModal('modal-avatar');notif('✅ АВАТАР ОБНОВЛЁН'); }
 
         document.addEventListener('keydown',function(e){
