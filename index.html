@@ -150,6 +150,24 @@ async function sendMessage(){var inp=document.getElementById('chat-input');var m
 function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));var at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');var cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='block';currentClanId=null;renderChat()}else if(tab==='clan'){cm.style.display='none';cir.style.display='none';if(ph)ph.style.display='none';renderClanList()}}
 function renderClanList(){var c=document.getElementById('chat-messages');c.style.display='block';c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ КЛАН</div>';var myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));if(myClan){c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>'}else{c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>'}setTimeout(()=>{document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){openClanChat(parseInt(this.dataset.openClan))}))},10)}
 async function openClanChat(clanId){currentClanId=clanId;await loadClanMessages(clanId);subscribeClanChat(clanId);renderClanMessages();document.getElementById('chat-input-row').style.display='flex';document.getElementById('chat-pinned-header').style.display='none'}
+function renderMsgHTML(m, type) {
+    var isMe = CA && m.author === CA.name;
+    var color = isMe ? getActiveColor() : '#ff1744';
+    var cs = color === 'rainbow' ? 'rainbow-text' : '';
+    var fc = isMe ? getActiveFontClass() : '';
+    var frc = isMe ? getActiveFrameClass() : '';
+    var be = isMe ? getActiveBadgeEmoji() : '';
+    var react = m.reactions || {}, rh = '';
+    Object.keys(react).forEach(key => {
+        if (key.endsWith('_by')) return;
+        var cnt = react[key], ua = react[key + '_by'];
+        var us = Array.isArray(ua) ? ua.join(', ') : '';
+        var ia = Array.isArray(ua) && CA && ua.includes(CA.name);
+        rh += '<span class="chat-reaction ' + (ia ? 'active' : '') + '" data-reaction="' + type + '" data-msgid="' + m.id + '" data-emoji="' + key + '">' + key + ' ' + cnt + '<span class="chat-reaction-tooltip">' + (us || '...') + '</span></span>';
+    });
+    return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame ' + frc + '"><span class="chat-avatar">' + (m.avatar || '🕶️') + '</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author ' + cs + '" style="color:' + (color !== 'rainbow' ? color : '') + ';">' + (m.author || '???') + '</span>' + be + '<span class="chat-time">' + (m.time || '') + '</span></div><div class="chat-text ' + fc + '">' + (m.text || '') + '</div><div class="chat-reactions">' + rh + '<span class="chat-reaction" data-reaction-picker="' + type + '" data-msgid="' + m.id + '">+</span></div></div></div>';
+}
+
 function renderClanMessages() {
     var c = document.getElementById('chat-messages');
     if (!c || !currentClanId) return;
