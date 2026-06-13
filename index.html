@@ -311,8 +311,20 @@ const tickerTexts=["Слухи: найдена карта старой кана�
 function updateTicker(){document.getElementById('ticker-text').textContent=tickerTexts.join(' | ');document.getElementById('header-ticker').textContent=tickerTexts[Math.floor(Math.random()*tickerTexts.length)]}
 setInterval(()=>{document.getElementById('header-ticker').textContent=tickerTexts[Math.floor(Math.random()*tickerTexts.length)]},30000);
 async function saveAgent(){if(!CA)return;try{await supabase.from('agents').upsert({name:CA.name,pass_hash:CA.passHash,rep:CA.rep||0,crystals:CA.crystals||0,achievements:CA.achievements||[],logins:CA.logins||1,avatar:CA.avatar||'🕶️',chat_count:CA.chatCount||0,role:CA.role||'agent',name_history:CA.nameHistory||[],guides_created:CA.guidesCreated||0,clans_created:CA.clansCreated||0,banned:CA.banned||!1,muted:CA.muted||!1,active_color:activeItems.color,active_frame:activeItems.frame,active_badge:activeItems.badge,active_font:activeItems.font,active_booster:activeBooster,booster_end_time:boosterEndTime})}catch(e){}}
-async function loadAgent(name){try{let{data}=await supabase.from('agents').select('*').eq('name',name).single();return data}catch(e){return null}}
-async function getAgents(){try{let{data}=await supabase.from('agents').select('*');var ag={};if(data)data.forEach(a=>ag[a.name]=a);return ag}catch(e){return{}}}
+async function loadAgent(name){
+    try{
+        let{data,error}=await supabase.from('agents').select('*').eq('name',name).maybeSingle();
+        if(error){console.error('loadAgent error:',error.message);return null}
+        return data;
+    }catch(e){return null}
+}
+async function getAgents(){
+    try{
+        let{data,error}=await supabase.from('agents').select('*');
+        if(error){console.error('getAgents error:',error.message);return{}}
+        var ag={};if(data)data.forEach(a=>ag[a.name]=a);return ag;
+    }catch(e){return{}}
+}
 document.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('login-btn')?.addEventListener('click',login);document.getElementById('register-link')?.addEventListener('click',register);
     document.getElementById('agent-pass')?.addEventListener('keypress',e=>{if(e.key==='Enter')login()});document.getElementById('error-btn')?.addEventListener('click',recoverSystem);
