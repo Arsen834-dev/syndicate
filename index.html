@@ -99,7 +99,9 @@
     <div id="app-guides" class="app-screen"><div class="app-header"><span class="app-title">📚 ГАЙДЫ</span><button class="app-close" data-close="guides">ЗАКРЫТЬ</button></div><div class="app-content"><button class="settings-btn" id="create-guide-btn"><span>✏️</span> СОЗДАТЬ ГАЙД</button><div id="guides-list"></div></div></div>
     <div id="app-admin" class="app-screen"><div class="app-header"><span class="app-title">👑 АДМИН-ПАНЕЛЬ</span><button class="app-close" data-close="admin">ЗАКРЫТЬ</button></div><div class="app-content" id="admin-content"></div></div>
     <div id="app-settings" class="app-screen"><div class="app-header"><span class="app-title">⚙️ НАСТРОЙКИ</span><button class="app-close" data-close="settings">ЗАКРЫТЬ</button></div><div class="app-content"><button class="settings-btn" id="change-name-btn"><span>📝</span> СМЕНИТЬ ИМЯ</button><button class="settings-btn" id="change-pass-btn"><span>🔑</span> СМЕНИТЬ ПАРОЛЬ</button><button class="settings-btn" id="change-avatar-btn"><span>😀</span> СМЕНИТЬ АВАТАР</button><button class="settings-btn" id="toggle-sound-btn"><span>🔊</span> ЗВУК: ВКЛ/ВЫКЛ</button></div></div>
-    <div id="app-dm" class="app-screen"><div class="app-header"><span class="app-title">📁 ЛИЧНЫЕ СООБЩЕНИЯ</span><button class="app-close" data-close="dm">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;gap:15px;height:100%;"><div style="width:200px;border-right:1px solid #ff1744;padding-right:10px;overflow-y:auto;" id="dm-list"></div><div style="flex:1;display:flex;flex-direction:column;"><div class="chat-messages" id="dm-messages" style="flex:1;"></div><div class="chat-input-row"><input type="text" class="chat-input" id="dm-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-dm-btn" style="margin:0;">▶</button></div></div></div></div>
+    <div id="app-dm" class="app-screen"><div class="app-header"><span class="app-title">📁 ЛИЧНЫЕ СООБЩЕНИЯ</span><button class="app-close" data-close="dm">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;gap:15px;height:100%;"><div style="width:200px;border-right:1px solid #ff1744;padding-right:10px;overflow-y:auto;" id="dm-list"></div><div style="flex:1;display:flex;flex-direction:column;"><div class="chat-messages" id="dm-messages" style="flex:1;"></div>
+<div id="dm-reply-indicator" class="reply-indicator" style="display:none;"></div>
+<div class="chat-input-row"><input type="text" class="chat-input" id="dm-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-dm-btn" style="margin:0;">▶</button></div></div></div></div>
     <div id="app-logs" class="app-screen"><div class="app-header"><span class="app-title">📜 ЛОГИ</span><button class="app-close" data-close="logs">ЗАКРЫТЬ</button></div><div class="app-content" id="logs-content"></div></div>
     <div id="app-shop" class="app-screen"><div class="app-header"><span class="app-title">🛒 МАГАЗИН</span><button class="app-close" data-close="shop">ЗАКРЫТЬ</button></div><div class="app-content" id="shop-content"><div id="discount-container" style="display:none;"></div></div></div>
     <div id="app-inventory" class="app-screen"><div class="app-header"><span class="app-title">🎒 ИНВЕНТАРЬ</span><button class="app-close" data-close="inventory">ЗАКРЫТЬ</button></div><div class="app-content" id="inventory-content"></div></div>
@@ -188,14 +190,14 @@ document.addEventListener('click',function(e){
     var replyClanBtn=e.target.closest('[data-reply-clan]');
     if(replyClanBtn){replyToClanMessage(replyClanBtn.dataset.replyClan,replyClanBtn.dataset.replyAuthor);document.querySelectorAll('.chat-menu-dropdown.open').forEach(d=>d.classList.remove('open'));return}
     var replyDmBtn=e.target.closest('[data-reply-dm]');
-    if(replyDmBtn){
-        var inp=document.getElementById('dm-input');
-        if(inp){inp.value='@'+replyDmBtn.dataset.replyAuthor+' ';inp.focus()}
-        var ri=document.getElementById('reply-indicator');
-        if(ri){ri.innerHTML='<span>↩ Ответ для <b>'+replyDmBtn.dataset.replyAuthor+'</b></span><span style="cursor:pointer;" onclick="window.cancelReply()">✕</span>';ri.style.display='flex';}
-        document.querySelectorAll('.chat-menu-dropdown.open').forEach(d=>d.classList.remove('open'));
-        return;
-    }
+if(replyDmBtn){
+    var inp=document.getElementById('dm-input');
+    if(inp){inp.value='@'+replyDmBtn.dataset.replyAuthor+' ';inp.focus()}
+    var ri=document.getElementById('dm-reply-indicator');
+    if(ri){ri.innerHTML='<span>↩ Ответ для <b>'+replyDmBtn.dataset.replyAuthor+'</b></span><span style="cursor:pointer;" onclick="window.cancelReply()">✕</span>';ri.style.display='flex';}
+    document.querySelectorAll('.chat-menu-dropdown.open').forEach(d=>d.classList.remove('open'));
+    return;
+}
     var pinBtn=e.target.closest('[data-pin]');
     if(pinBtn){pinChatMessage(pinBtn.dataset.pin);document.querySelectorAll('.chat-menu-dropdown.open').forEach(d=>d.classList.remove('open'));return}
     var muteBtn=e.target.closest('[data-mute]');
@@ -216,7 +218,24 @@ async function deleteAgent(name){if(!CA||CA.role!=='admin'||name==='admin')retur
 async function changeAgentRole(name,newRole){if(!CA||CA.role!=='admin')return;try{await supabase.from('agents').update({role:newRole}).eq('name',name);addLog(CA.name,'role_change',name+' → '+newRole);notif('👑 '+name+' теперь '+newRole);renderAdmin()}catch(e){}}
 let currentDM=null,dmMessagesAll=[],dmChannel=null;
 async function loadDMMessages(){if(!CA)return;try{let{data}=await supabase.from('dm_messages').select('*').or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name).order('id',{ascending:!0});if(data){dmMessagesAll=data;renderDMList()}}catch(e){}}
-function subscribeDM(){dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{var msg=payload.new;if(msg.to_agent===CA?.name||msg.from_agent===CA?.name){dmMessagesAll.push(msg);if(msg.to_agent===CA?.name&&msg.from_agent!==CA?.name&&msg.text&&msg.text.includes('@'+CA.name)){notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');}playSound('receive');renderDMList();if(currentDM===msg.from_agent||currentDM===msg.to_agent)renderDMMessages();}}).subscribe();}
+function subscribeDM(){
+    dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{
+        var msg=payload.new;
+        if(msg.to_agent===CA?.name||msg.from_agent===CA?.name){
+            dmMessagesAll.push(msg);
+            // Пинг — если мы получатель, не отправитель, и в тексте есть @имя_текущего_агента
+            if(msg.to_agent===CA?.name && msg.from_agent!==CA?.name && msg.text){
+                var mentioned=msg.text.match(/@(\S+)/g);
+                if(mentioned&&mentioned.some(m=>m.substring(1)===CA.name)){
+                    notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');
+                }
+            }
+            playSound('receive');
+            renderDMList();
+            if(currentDM===msg.from_agent||currentDM===msg.to_agent)renderDMMessages();
+        }
+    }).subscribe();
+}
 function renderDMList(){var list=document.getElementById('dm-list');if(!CA||!list)return;var agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent)});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'" data-open-dm="'+a+'"><span>'+a+'</span></div>'});setTimeout(()=>{document.querySelectorAll('[data-open-dm]').forEach(b=>b.addEventListener('click',function(){openDM(this.dataset.openDm)}))},10)}
 function openDM(agent){currentDM=agent;renderDMList();renderDMMessages()}
 function renderDMMessages(){var c=document.getElementById('dm-messages');if(!currentDM||!CA){if(c)c.innerHTML='<div style="text-align:center;color:#cc0000;">ВЫБЕРИТЕ ДИАЛОГ</div>';return}var msgs=dmMessagesAll.filter(m=>(m.from_agent===CA.name&&m.to_agent===currentDM)||(m.from_agent===currentDM&&m.to_agent===CA.name));if(msgs.length===0){c.innerHTML='<div style="text-align:center;color:#cc0000;">НЕТ СООБЩЕНИЙ</div>';return}c.innerHTML=msgs.map(m=>{var isMe=m.from_agent===CA.name;var colClass=(m.author_color?getActiveColorClassForId(m.author_color):'');var cs=colClass==='rainbow-text'?'rainbow-text':colClass;var fc=(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'}[m.author_font]||'':'');var frc=(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');var be=(m.author_badge?shopItems.badges.find(b=>b.id===m.author_badge)?.emoji||'':'');var react=m.reactions||{},rh='';Object.keys(react).forEach(key=>{if(key.endsWith('_by'))return;var cnt=react[key],ua=react[key+'_by'];var us=Array.isArray(ua)?ua.join(', '):'';var ia=Array.isArray(ua)&&CA&&ua.includes(CA.name);rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="dm" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>'});var menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="dm'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-dm="'+m.id+'" data-reply-author="'+m.from_agent+'">↩ ОТВЕТИТЬ</div></div></span>';var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+m.from_agent+'</span>'+be+'<span class="chat-time">'+m.time+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="dm" data-msgid="'+m.id+'">+</span></div></div></div>'}).join('');c.scrollTop=c.scrollHeight}
@@ -269,7 +288,18 @@ async function donateToClan(clanId){if(!CA||(CA.crystals||0)<1)return notif('⛔
 function openWarTargetModal(clanId){var myClan=clans.find(c=>c.id==clanId);if(!myClan||myClan.leader!==CA.name)return;if((myClan.treasury||0)<500)return notif('⚠ У ВАШЕГО КЛАНА НЕТ 500 ТК В КАЗНЕ!');var targets=clans.filter(c=>c.id!==clanId&&Math.abs((c.members?.length||0)-(myClan.members?.length||0))<=2&&(c.treasury||0)>=500&&!clanWars.some(w=>!w.resolved&&((w.attacker_tag===myClan.tag&&w.defender_tag===c.tag)||(w.attacker_tag===c.tag&&w.defender_tag===myClan.tag))));var listDiv=document.getElementById('war-target-list');if(!listDiv)return;if(targets.length===0){listDiv.innerHTML='<div style="color:#cc0000;padding:20px;text-align:center;">⚠ НЕТ ДОСТУПНЫХ ЦЕЛЕЙ<br><small>Разница ≤2 участников, казна ≥500 ТК, нет активной войны</small></div>'}else{listDiv.innerHTML=targets.map(c=>'<div class="admin-row"><span>'+c.emoji+' '+c.name+' ['+c.tag+'] ('+c.members?.length+' уч., '+c.treasury+' ТК)</span><button class="modal-btn" data-attack-target="'+c.id+'">⚔️ НАПАСТЬ</button></div>').join('');setTimeout(()=>{document.querySelectorAll('[data-attack-target]').forEach(btn=>{btn.addEventListener('click',function(e){e.stopPropagation();var targetClanId=parseInt(this.dataset.attackTarget);confirmWarDirect(clanId,targetClanId)})})},10)}var modal=document.getElementById('modal-war-target');modal.style.display='flex';modal.classList.add('show')}
 async function confirmWarDirect(attackerClanId,targetClanId){var attacker=clans.find(c=>c.id==attackerClanId);var defender=clans.find(c=>c.id==targetClanId);if(!attacker||!defender)return;if((attacker.treasury||0)<500)return notif('⚠ У ВАШЕГО КЛАНА НЕТ 500 ТК В КАЗНЕ!');if((defender.treasury||0)<500)return notif('⚠ У КЛАНА-ЦЕЛИ НЕТ 500 ТК В КАЗНЕ!');attacker.treasury=(attacker.treasury||0)-500;defender.treasury=(defender.treasury||0)-500;var war={attacker_tag:attacker.tag,defender_tag:defender.tag,end_time:new Date(Date.now()+86400000).toISOString(),pot:1000,resolved:false};clanWars.push(war);await saveClanWar(war);await supabase.from('clans').update({treasury:attacker.treasury}).eq('id',attacker.id);await supabase.from('clans').update({treasury:defender.treasury}).eq('id',defender.id);closeModal('modal-war-target');notif('⚔️ '+attacker.tag+' ОБЪЯВИЛ ВОЙНУ '+defender.tag+'! БАНК 1000 ТК ⚔️');renderClans();playSound('click');}
 async function loadFriends(){if(!CA)return;try{let{data}=await supabase.from('friends').select('*').or('agent.eq.'+CA.name+',friend.eq.'+CA.name);if(data)friends=data}catch(e){}}
-async function sendFriendRequest(name){if(!CA||name===CA.name)return;if(friends.find(f=>(f.agent===CA.name&&f.friend===name)||(f.agent===name&&f.friend===CA.name)))return notif('⚠ УЖЕ ЕСТЬ');try{await supabase.from('friends').insert({agent:CA.name,friend:name,status:'pending'});notif('🤝 ЗАПРОС ОТПРАВЛЕН');loadFriends().then(()=>renderFriends())}catch(e){}}
+async function sendFriendRequest(name){
+    if(!CA||name===CA.name)return;
+    if(friends.find(f=>(f.agent===CA.name&&f.friend===name)||(f.agent===name&&f.friend===CA.name)))return notif('⚠ УЖЕ ЕСТЬ');
+    // Проверяем, существует ли агент
+    var agent=await loadAgent(name);
+    if(!agent)return notif('⛔ АГЕНТ НЕ НАЙДЕН');
+    try{
+        await supabase.from('friends').insert({agent:CA.name,friend:name,status:'pending'});
+        notif('🤝 ЗАПРОС ОТПРАВЛЕН');
+        loadFriends().then(()=>renderFriends());
+    }catch(e){}
+}
 async function acceptFriend(id){try{await supabase.from('friends').update({status:'accepted'}).eq('id',id);notif('✅ ДРУГ ДОБАВЛЕН');loadFriends().then(()=>renderFriends())}catch(e){}}
 async function removeFriend(id){try{await supabase.from('friends').delete().eq('id',id);notif('🗑 УДАЛЁН');loadFriends().then(()=>renderFriends())}catch(e){}}
 async function blockAgent(name){if(!CA||name===CA.name)return;try{await supabase.from('friends').upsert({agent:CA.name,friend:name,status:'blocked'});notif('🚫 '+name+' ЗАБЛОКИРОВАН');loadFriends().then(()=>renderFriends())}catch(e){}}
