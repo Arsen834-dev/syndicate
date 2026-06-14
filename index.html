@@ -188,7 +188,20 @@ async function deleteAgent(name){if(!CA||CA.role!=='admin'||name==='admin')retur
 async function changeAgentRole(name,newRole){if(!CA||CA.role!=='admin')return;try{await supabase.from('agents').update({role:newRole}).eq('name',name);addLog(CA.name,'role_change',name+' → '+newRole);notif('👑 '+name+' теперь '+newRole);renderAdmin()}catch(e){}}
 let currentDM=null,dmMessagesAll=[],dmChannel=null;
 async function loadDMMessages(){if(!CA)return;try{let{data}=await supabase.from('dm_messages').select('*').or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name).order('id',{ascending:!0});if(data){dmMessagesAll=data;renderDMList()}}catch(e){}}
-function subscribeDM(){dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{if(payload.new.to_agent===CA?.name||payload.new.from_agent===CA?.name){dmMessagesAll.push(payload.new);playSound('receive');renderDMList();if(currentDM===payload.new.from_agent||currentDM===payload.new.to_agent)renderDMMessages()}}).subscribe()}
+function subscribeDM(){
+    dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{
+        if(payload.new.to_agent===CA?.name||payload.new.from_agent===CA?.name){
+            dmMessagesAll.push(payload.new);
+            // Проверка пинга для получателя
+            if(payload.new.to_agent===CA?.name&&payload.new.text&&payload.new.text.includes('@'+CA.name)){
+                notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');
+            }
+            playSound('receive');
+            renderDMList();
+            if(currentDM===payload.new.from_agent||currentDM===payload.new.to_agent)renderDMMessages();
+        }
+    }).subscribe();
+}
 function renderDMList(){var list=document.getElementById('dm-list');if(!CA||!list)return;var agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent)});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'" data-open-dm="'+a+'"><span>'+a+'</span></div>'});setTimeout(()=>{document.querySelectorAll('[data-open-dm]').forEach(b=>b.addEventListener('click',function(){openDM(this.dataset.openDm)}))},10)}
 function openDM(agent){currentDM=agent;renderDMList();renderDMMessages()}
 function renderDMMessages(){
@@ -243,7 +256,7 @@ async function sendDM(){
         });
         playSound('send');
     }catch(e){console.error(e)}
-    // Пинг в личке
+    // Пинг в личке — проверяем @имя
     if(msg.includes('@'+currentDM)){
         notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');
     }
