@@ -161,7 +161,47 @@ function getActiveColorClassForId(id){var map={'c_red':'color-red','c_blue':'col
 function getActiveFrameClass(){var f=shopItems.frames.find(i=>i.id===activeItems.frame);return f?f.cssClass:'f-default'}
 function getActiveFontClass(){var m={fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'};return m[activeItems.font]||''}
 function getActiveBadgeEmoji(){var b=shopItems.badges.find(i=>i.id===activeItems.badge);return b&&b.emoji?b.emoji:''}
-function renderClanMessages(){var c=document.getElementById('chat-messages');if(!c||!currentClanId)return;c.style.display='block';var msgs=clanChats[currentClanId]||[];if(msgs.length===0){c.innerHTML='<div style="text-align:center;color:#cc0000;padding:20px;">НЕТ СООБЩЕНИЙ</div>';return}var canMod=CA&&(CA.role==='admin'||CA.role==='moderator');c.innerHTML=msgs.map(m=>{var isMe=CA&&m.author===CA.name;var colClass=isMe?getActiveColorClass():(m.author_color?getActiveColorClassForId(m.author_color):'');var cs=colClass==='rainbow-text'?'rainbow-text':colClass;var fc=isMe?getActiveFontClass():(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'}[m.author_font]||''):'';var frc=isMe?getActiveFrameClass():(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');var be=isMe?getActiveBadgeEmoji():(m.author_badge?shopItems.badges.find(b=>b.id===m.author_badge)?.emoji||'':'');var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});var react=m.reactions||{},rh='';Object.keys(react).forEach(key=>{if(key.endsWith('_by'))return;var cnt=react[key],ua=react[key+'_by'];var us=Array.isArray(ua)?ua.join(', '):'';var ia=Array.isArray(ua)&&CA&&ua.includes(CA.name);rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="clan" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>'});var menu='';if(m.id){menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-clan="'+m.id+'" data-reply-author="'+m.author+'">↩ ОТВЕТИТЬ</div>';if(canMod){menu+='<div class="chat-menu-item" data-mute="'+m.author+'">🔇 МУТ</div>';if(CA&&CA.role==='admin')menu+='<div class="chat-menu-item" data-ban="'+m.author+'">🚫 БАН</div>';menu+='<div class="chat-menu-item" data-delete-msg="'+m.id+'" data-chat-type="clan">🗑 УДАЛИТЬ</div>'}menu+='</div></span>'}return '<div class="chat-msg" data-msg-id="'+m.id+'"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+(m.author||'???')+'</span>'+be+'<span class="chat-time">'+(m.time||'')+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="clan" data-msgid="'+m.id+'">+</span></div></div></div>'}).join('');c.scrollTop=c.scrollHeight}
+function renderClanMessages(){
+    var c=document.getElementById('chat-messages');
+    if(!c||!currentClanId)return;
+    c.style.display='block';
+    var msgs=clanChats[currentClanId]||[];
+    if(msgs.length===0){
+        c.innerHTML='<div style="text-align:center;color:#cc0000;padding:20px;">НЕТ СООБЩЕНИЙ</div>';
+        return;
+    }
+    var canMod=CA&&(CA.role==='admin'||CA.role==='moderator');
+    c.innerHTML=msgs.map(m=>{
+        var isMe=CA&&m.author===CA.name;
+        var colClass=isMe?getActiveColorClass():(m.author_color?getActiveColorClassForId(m.author_color):'');
+        var cs=colClass==='rainbow-text'?'rainbow-text':colClass;
+        var fc=isMe?getActiveFontClass():(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'}[m.author_font]||''):'';
+        var frc=isMe?getActiveFrameClass():(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');
+        var be=isMe?getActiveBadgeEmoji():(m.author_badge?shopItems.badges.find(b=>b.id===m.author_badge)?.emoji||'':'');
+        var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});
+        var react=m.reactions||{},rh='';
+        Object.keys(react).forEach(key=>{
+            if(key.endsWith('_by'))return;
+            var cnt=react[key],ua=react[key+'_by'];
+            var us=Array.isArray(ua)?ua.join(', '):'';
+            var ia=Array.isArray(ua)&&CA&&ua.includes(CA.name);
+            rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="clan" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>';
+        });
+        var menu='';
+        if(m.id){
+            menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-clan="'+m.id+'" data-reply-author="'+m.author+'">↩ ОТВЕТИТЬ</div>';
+            if(canMod){
+                menu+='<div class="chat-menu-item" data-mute="'+m.author+'">🔇 МУТ</div>';
+                if(CA&&CA.role==='admin')menu+='<div class="chat-menu-item" data-ban="'+m.author+'">🚫 БАН</div>';
+                menu+='<div class="chat-menu-item" data-delete-msg="'+m.id+'" data-chat-type="clan">🗑 УДАЛИТЬ</div>';
+            }
+            menu+='</div></span>';
+        }
+        return '<div class="chat-msg" data-msg-id="'+m.id+'"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+(m.author||'???')+'</span>'+be+'<span class="chat-time">'+(m.time||'')+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="clan" data-msgid="'+m.id+'">+</span></div></div></div>';
+    }).join('');
+    c.scrollTop=c.scrollHeight;
+}
 async function addClanReaction(msgId,emoji){if(!currentClanId)return;var msgs=clanChats[currentClanId]||[];var msg=msgs.find(m=>String(m.id)===String(msgId));if(!msg||!CA)return;if(!msg.reactions)msg.reactions={};var key=emoji+'_by';if(!msg.reactions[key])msg.reactions[key]=[];var ui=msg.reactions[key].indexOf(CA.name);if(ui!==-1){msg.reactions[key].splice(ui,1);msg.reactions[emoji]=Math.max(0,(msg.reactions[emoji]||1)-1);if(msg.reactions[emoji]===0){delete msg.reactions[emoji];delete msg.reactions[key]}playSound('click')}else{msg.reactions[key].push(CA.name);msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;playSound('send')}clanChats[currentClanId]=msgs.map(m=>String(m.id)===String(msgId)?{...m,reactions:{...msg.reactions}}:m);try{await supabase.from('clan_messages').update({reactions:msg.reactions}).eq('id',parseInt(msgId))}catch(e){}renderClanMessages()}
 async function deleteClanMessage(msgId){if(!currentClanId)return;try{await supabase.from('clan_messages').delete().eq('id',parseInt(msgId));if(clanChats[currentClanId]){clanChats[currentClanId]=clanChats[currentClanId].filter(m=>String(m.id)!==String(msgId))}renderClanMessages();notif('🗑 УДАЛЁНО')}catch(e){}}
 async function sendClanMessage(){var inp=document.getElementById('chat-input');var msg=inp?.value?.trim();if(!msg||!CA||!currentClanId)return;if(CA.muted)return notif('🔇 ВЫ ЗАМУЧЕНЫ');var md={clan_id:currentClanId,author:CA.name,avatar:CA.avatar||'🕶️',text:msg,time:new Date().toLocaleTimeString(),author_color:activeItems.color,author_frame:activeItems.frame,author_badge:activeItems.badge,author_font:activeItems.font};if(replyTo){md.reply_to=replyTo.msgId;md.reply_author=replyTo.author;md.reply_text=replyTo.text}try{await supabase.from('clan_messages').insert(md);playSound('send');addClanActivityRating(currentClanId)}catch(e){}CA.chatCount=(CA.chatCount||0)+1;CA.crystals=(CA.crystals||0)+3;if(CA.chatCount>=10)unlockAch('socializer');if(msg.includes('@'+CA.name)){unreadMentions.clan++;updateBadgeIcons();notif('📢 ВАС УПОМЯНУЛИ В КЛАНЕ')}inp.value='';replyTo=null;cancelReply();updateStatusBar();saveAgent()}
