@@ -294,7 +294,7 @@ async function sendDM(){
         });
         playSound('send');
     }catch(e){console.error(e)}
-    inp.value=''}
+    inp.value='';
 }
 async function addDMReaction(msgId,emoji){var msg=dmMessagesAll.find(m=>m.id==msgId);if(!msg||!CA)return;if(!msg.reactions)msg.reactions={};var key=emoji+'_by';if(!msg.reactions[key])msg.reactions[key]=[];var ui=msg.reactions[key].indexOf(CA.name);if(ui!==-1){msg.reactions[key].splice(ui,1);msg.reactions[emoji]=Math.max(0,(msg.reactions[emoji]||1)-1);if(msg.reactions[emoji]===0){delete msg.reactions[emoji];delete msg.reactions[key]}playSound('click')}else{msg.reactions[key].push(CA.name);msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;playSound('send')}try{await supabase.from('dm_messages').update({reactions:msg.reactions}).eq('id',parseInt(msgId));dmMessagesAll=dmMessagesAll.map(m=>m.id==msgId?{...m,reactions:msg.reactions}:m);renderDMMessages()}catch(e){}}
 let discountedItems={};let discountEndTime=0;
