@@ -151,8 +151,52 @@ function acceptRules(){closeModal('modal-rules');document.getElementById('guide-
 function showCreateGuide(){var el=document.getElementById('modal-rules');if(el){el.style.display='flex';el.classList.add('show')}}
 function tgEmoji(id){var ta=document.getElementById(id);if(ta)showEmojiPicker(ta)}
 let chatMessages=[],chatChannel=null;
-async function loadChatMessages(){try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data){chatMessages=data.reverse();renderChat()}}catch(e){}}
-async function loadMoreChatMessages(){chatPage++;try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).range(chatPage*CHAT_PAGE_SIZE,(chatPage+1)*CHAT_PAGE_SIZE-1);if(data&&data.length>0){chatMessages=[...data.reverse(),...chatMessages];renderChat(!0)}else{notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');chatPage--}}catch(e){chatPage--}}
+async function loadMoreChatMessages(){
+    chatPage++;
+    // Берём самый старый id из уже загруженных
+    var oldestId=chatMessages.length>0?chatMessages[0].id:null;
+    if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return}
+    try{
+        let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);
+        if(data&&data.length>0){
+            // Добавляем старые сообщения в начало массива
+            chatMessages=[...data.reverse(),...chatMessages];
+            renderChat(!0);
+        }else{
+            notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');
+            chatPage--;
+        }
+    }catch(e){
+        chatPage--;
+    }
+}
+async function loadChatMessages(){
+    try{
+        let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);
+        if(data){
+            chatMessages=data.reverse();
+            renderChat();
+        }
+    }catch(e){}
+}
+
+async function loadMoreChatMessages(){
+    chatPage++;
+    var oldestId=chatMessages.length>0?chatMessages[0].id:null;
+    if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return}
+    try{
+        let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);
+        if(data&&data.length>0){
+            chatMessages=[...data.reverse(),...chatMessages];
+            renderChat(!0);
+        }else{
+            notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');
+            chatPage--;
+        }
+    }catch(e){
+        chatPage--;
+    }
+}
 function subscribeChat(){chatChannel=supabase.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{chatMessages.push(payload.new);if(chatMessages.length>100)chatMessages.shift();checkMentions(payload.new.text);playSound('receive');if(chatTabActive==='general')renderChat()}).subscribe();pinnedChatSubscription=supabase.channel('pinned-updates').on('postgres_changes',{event:'UPDATE',schema:'public',table:'chat_messages'},payload=>{var existing=chatMessages.find(m=>m.id===payload.new.id);if(existing){Object.assign(existing,payload.new)}else{chatMessages.push(payload.new)}renderChat()}).subscribe()}
 async function sendMessage(){var inp=document.getElementById('chat-input');var msg=inp?.value?.trim();if(!msg||!CA)return;if(CA.muted)return notif('🔇 ВЫ ЗАМУЧЕНЫ');var md={author:CA.name,avatar:CA.avatar||'🕶️',role:CA.role||'agent',text:msg,time:new Date().toLocaleTimeString(),reactions:{},author_color:activeItems.color,author_frame:activeItems.frame,author_badge:activeItems.badge,author_font:activeItems.font};if(replyTo){md.reply_to=replyTo.msgId;md.reply_author=replyTo.author;md.reply_text=replyTo.text}try{await supabase.from('chat_messages').insert(md)}catch(e){}CA.chatCount=(CA.chatCount||0)+1;CA.crystals=(CA.crystals||0)+3;if(CA.chatCount>=10)unlockAch('socializer');playSound('send');inp.value='';replyTo=null;cancelReply();updateStatusBar();saveAgent()}
 function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));var at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');var cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';currentClanId=null;renderChat();if(ph){var pinned=chatMessages.filter(m=>m.pinned);ph.style.display=pinned.length>0?'block':'none'}}else if(tab==='clan'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='none';renderClanList()}}
