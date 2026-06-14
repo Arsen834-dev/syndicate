@@ -274,7 +274,7 @@ function renderDMMessages(){
         var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});
         return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+m.from_agent+'</span>'+be+'<span class="chat-time">'+m.time+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="dm" data-msgid="'+m.id+'">+</span></div></div></div>';
-    }).join('');
+    }).join('')}
     c.scrollTop=c.scrollHeight;
 }
 async function sendDM(){
@@ -295,7 +295,7 @@ async function sendDM(){
         });
         playSound('send');
     }catch(e){console.error(e)}
-    inp.value='';
+    inp.value=''}
 }
 async function addDMReaction(msgId,emoji){var msg=dmMessagesAll.find(m=>m.id==msgId);if(!msg||!CA)return;if(!msg.reactions)msg.reactions={};var key=emoji+'_by';if(!msg.reactions[key])msg.reactions[key]=[];var ui=msg.reactions[key].indexOf(CA.name);if(ui!==-1){msg.reactions[key].splice(ui,1);msg.reactions[emoji]=Math.max(0,(msg.reactions[emoji]||1)-1);if(msg.reactions[emoji]===0){delete msg.reactions[emoji];delete msg.reactions[key]}playSound('click')}else{msg.reactions[key].push(CA.name);msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;playSound('send')}try{await supabase.from('dm_messages').update({reactions:msg.reactions}).eq('id',parseInt(msgId));dmMessagesAll=dmMessagesAll.map(m=>m.id==msgId?{...m,reactions:msg.reactions}:m);renderDMMessages()}catch(e){}}
 let discountedItems={};let discountEndTime=0;
