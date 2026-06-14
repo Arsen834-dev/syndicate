@@ -270,11 +270,10 @@ function renderDMMessages(){
             rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="dm" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>';
         });
         var menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="dm'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-dm="'+m.id+'" data-reply-author="'+m.from_agent+'">↩ ОТВЕТИТЬ</div></div></span>';
-        // Вот здесь обработка текста с пингами
         var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
         txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});
         return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+m.from_agent+'</span>'+be+'<span class="chat-time">'+m.time+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="dm" data-msgid="'+m.id+'">+</span></div></div></div>';
-    }).join('')}
+    }).join('');
     c.scrollTop=c.scrollHeight;
 }
 async function sendDM(){
