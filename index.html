@@ -151,25 +151,6 @@ function acceptRules(){closeModal('modal-rules');document.getElementById('guide-
 function showCreateGuide(){var el=document.getElementById('modal-rules');if(el){el.style.display='flex';el.classList.add('show')}}
 function tgEmoji(id){var ta=document.getElementById(id);if(ta)showEmojiPicker(ta)}
 let chatMessages=[],chatChannel=null;
-async function loadMoreChatMessages(){
-    chatPage++;
-    // Берём самый старый id из уже загруженных
-    var oldestId=chatMessages.length>0?chatMessages[0].id:null;
-    if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return}
-    try{
-        let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);
-        if(data&&data.length>0){
-            // Добавляем старые сообщения в начало массива
-            chatMessages=[...data.reverse(),...chatMessages];
-            renderChat(!0);
-        }else{
-            notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');
-            chatPage--;
-        }
-    }catch(e){
-        chatPage--;
-    }
-}
 async function loadChatMessages(){
     try{
         let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);
