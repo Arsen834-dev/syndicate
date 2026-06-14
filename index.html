@@ -191,8 +191,64 @@ async function loadDMMessages(){if(!CA)return;try{let{data}=await supabase.from(
 function subscribeDM(){dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{if(payload.new.to_agent===CA?.name||payload.new.from_agent===CA?.name){dmMessagesAll.push(payload.new);playSound('receive');renderDMList();if(currentDM===payload.new.from_agent||currentDM===payload.new.to_agent)renderDMMessages()}}).subscribe()}
 function renderDMList(){var list=document.getElementById('dm-list');if(!CA||!list)return;var agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent)});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'" data-open-dm="'+a+'"><span>'+a+'</span></div>'});setTimeout(()=>{document.querySelectorAll('[data-open-dm]').forEach(b=>b.addEventListener('click',function(){openDM(this.dataset.openDm)}))},10)}
 function openDM(agent){currentDM=agent;renderDMList();renderDMMessages()}
-function renderDMMessages(){var c=document.getElementById('dm-messages');if(!currentDM||!CA){if(c)c.innerHTML='<div style="text-align:center;color:#cc0000;">ВЫБЕРИТЕ ДИАЛОГ</div>';return}var msgs=dmMessagesAll.filter(m=>(m.from_agent===CA.name&&m.to_agent===currentDM)||(m.from_agent===currentDM&&m.to_agent===CA.name));if(msgs.length===0){c.innerHTML='<div style="text-align:center;color:#cc0000;">НЕТ СООБЩЕНИЙ</div>';return}c.innerHTML=msgs.map(m=>{var isMe=m.from_agent===CA.name;var colClass=(m.author_color?getActiveColorClassForId(m.author_color):'');var cs=colClass==='rainbow-text'?'rainbow-text':colClass;var fc=(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'}[m.author_font]||'':'');var frc=(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');var be=(m.author_badge?shopItems.badges.find(b=>b.id===m.author_badge)?.emoji||'':'');var react=m.reactions||{},rh='';Object.keys(react).forEach(key=>{if(key.endsWith('_by'))return;var cnt=react[key],ua=react[key+'_by'];var us=Array.isArray(ua)?ua.join(', '):'';var ia=Array.isArray(ua)&&CA&&ua.includes(CA.name);rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="dm" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>'});var menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="dm'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-dm="'+m.id+'" data-reply-author="'+m.from_agent+'">↩ ОТВЕТИТЬ</div></div></span>';return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+m.from_agent+'</span>'+be+'<span class="chat-time">'+m.time+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+m.text+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="dm" data-msgid="'+m.id+'">+</span></div></div></div>'}).join('');c.scrollTop=c.scrollHeight}
-async function sendDM(){var inp=document.getElementById('dm-input');var msg=inp?.value?.trim();if(!msg||!CA||!currentDM)return;try{await supabase.from('dm_messages').insert({from_agent:CA.name,to_agent:currentDM,avatar:CA.avatar||'🕶️',text:msg,time:new Date().toLocaleTimeString(),author_color:activeItems.color,author_frame:activeItems.frame,author_badge:activeItems.badge,author_font:activeItems.font});playSound('send')}catch(e){console.error(e)}inp.value=''}
+function renderDMMessages(){
+    var c=document.getElementById('dm-messages');
+    if(!currentDM||!CA){
+        if(c)c.innerHTML='<div style="text-align:center;color:#cc0000;">ВЫБЕРИТЕ ДИАЛОГ</div>';
+        return;
+    }
+    var msgs=dmMessagesAll.filter(m=>(m.from_agent===CA.name&&m.to_agent===currentDM)||(m.from_agent===currentDM&&m.to_agent===CA.name));
+    if(msgs.length===0){
+        c.innerHTML='<div style="text-align:center;color:#cc0000;">НЕТ СООБЩЕНИЙ</div>';
+        return;
+    }
+    c.innerHTML=msgs.map(m=>{
+        var isMe=m.from_agent===CA.name;
+        var colClass=(m.author_color?getActiveColorClassForId(m.author_color):'');
+        var cs=colClass==='rainbow-text'?'rainbow-text':colClass;
+        var fc=(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel'}[m.author_font]||'':'');
+        var frc=(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');
+        var be=(m.author_badge?shopItems.badges.find(b=>b.id===m.author_badge)?.emoji||'':'');
+        var react=m.reactions||{},rh='';
+        Object.keys(react).forEach(key=>{
+            if(key.endsWith('_by'))return;
+            var cnt=react[key],ua=react[key+'_by'];
+            var us=Array.isArray(ua)?ua.join(', '):'';
+            var ia=Array.isArray(ua)&&CA&&ua.includes(CA.name);
+            rh+='<span class="chat-reaction '+(ia?'active':'')+'" data-reaction="dm" data-msgid="'+m.id+'" data-emoji="'+key+'">'+key+' '+cnt+'<span class="chat-reaction-tooltip">'+(us||'...')+'</span></span>';
+        });
+        var menu='<span class="chat-menu-wrap"><button class="chat-menu-btn" data-menu-btn="dm'+m.id+'">⋯</button><div class="chat-menu-dropdown"><div class="chat-menu-item" data-reply-dm="'+m.id+'" data-reply-author="'+m.from_agent+'">↩ ОТВЕТИТЬ</div></div></span>';
+        // Вот здесь обработка текста с пингами
+        var txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+        txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>'});
+        return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+m.from_agent+'</span>'+be+'<span class="chat-time">'+m.time+'</span>'+menu+'</div><div class="chat-text '+fc+'">'+txt+'</div><div class="chat-reactions">'+rh+'<span class="chat-reaction" data-reaction-picker="dm" data-msgid="'+m.id+'">+</span></div></div></div>';
+    }).join('');
+    c.scrollTop=c.scrollHeight;
+}
+async function sendDM(){
+    var inp=document.getElementById('dm-input');
+    var msg=inp?.value?.trim();
+    if(!msg||!CA||!currentDM)return;
+    try{
+        await supabase.from('dm_messages').insert({
+            from_agent:CA.name,
+            to_agent:currentDM,
+            avatar:CA.avatar||'🕶️',
+            text:msg,
+            time:new Date().toLocaleTimeString(),
+            author_color:activeItems.color,
+            author_frame:activeItems.frame,
+            author_badge:activeItems.badge,
+            author_font:activeItems.font
+        });
+        playSound('send');
+    }catch(e){console.error(e)}
+    // Пинг в личке
+    if(msg.includes('@'+currentDM)){
+        notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');
+    }
+    inp.value='';
+}
 async function addDMReaction(msgId,emoji){var msg=dmMessagesAll.find(m=>m.id==msgId);if(!msg||!CA)return;if(!msg.reactions)msg.reactions={};var key=emoji+'_by';if(!msg.reactions[key])msg.reactions[key]=[];var ui=msg.reactions[key].indexOf(CA.name);if(ui!==-1){msg.reactions[key].splice(ui,1);msg.reactions[emoji]=Math.max(0,(msg.reactions[emoji]||1)-1);if(msg.reactions[emoji]===0){delete msg.reactions[emoji];delete msg.reactions[key]}playSound('click')}else{msg.reactions[key].push(CA.name);msg.reactions[emoji]=(msg.reactions[emoji]||0)+1;playSound('send')}try{await supabase.from('dm_messages').update({reactions:msg.reactions}).eq('id',parseInt(msgId));dmMessagesAll=dmMessagesAll.map(m=>m.id==msgId?{...m,reactions:msg.reactions}:m);renderDMMessages()}catch(e){}}
 let discountedItems={};let discountEndTime=0;
 function loadDiscount(){var saved=JSON.parse(localStorage.getItem('syndicate_discount')||'null');if(saved&&Date.now()<saved.endTime){discountedItems=saved.items||{};discountEndTime=saved.endTime}else{generateNewDiscount()}}
