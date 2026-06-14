@@ -219,12 +219,13 @@ async function loadDMMessages(){if(!CA)return;try{let{data}=await supabase.from(
 function subscribeDM(){
     dmChannel=supabase.channel('dm-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages'},payload=>{
         let msg=payload.new;
+        console.log('DM received:', msg); // ДОБАВЬ ЭТУ СТРОКУ
         if(msg.to_agent===CA?.name||msg.from_agent===CA?.name){
             dmMessagesAll.push(msg);
-            // Пинг — если мы получатель И в тексте есть @имя
             if(msg.to_agent===CA?.name && msg.from_agent!==CA?.name && msg.text){
-                // Проверяем что в тексте есть @имя получателя
+                console.log('Checking ping for:', CA.name, 'in:', msg.text); // И ЭТУ
                 if(msg.text.includes('@'+CA.name)){
+                    console.log('PING!'); // И ЭТУ
                     notif('📩 ВАС УПОМЯНУЛИ В ЛИЧКЕ');
                 }
             }
@@ -233,6 +234,7 @@ function subscribeDM(){
             if(currentDM===msg.from_agent||currentDM===msg.to_agent)renderDMMessages();
         }
     }).subscribe();
+    console.log('DM channel subscribed'); // И ЭТУ
 }
 function renderDMList(){let list=document.getElementById('dm-list');if(!CA||!list)return;let agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent)});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'" data-open-dm="'+a+'"><span>'+a+'</span></div>'});setTimeout(()=>{document.querySelectorAll('[data-open-dm]').forEach(b=>b.addEventListener('click',function(){openDM(this.dataset.openDm)}))},10)}
 function openDM(agent){currentDM=agent;renderDMList();renderDMMessages()}
