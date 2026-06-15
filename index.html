@@ -142,15 +142,17 @@ for(let i=0;i<500;i++)parts.push(new P());(function a(){pctx.clearRect(0,0,pW,pH
 let soundEnabled=true;let bgMusic=null;let bgPlaylist=[];let bgTrackIndex=0;const sounds={};function preloadSound(n,f){sounds[n]=new Audio(f);sounds[n].volume=0.3}
 function startBgMusic(){
     if(!soundEnabled)return;
-    bgPlaylist=[
-        new Audio('bg_music_1.mp3'),
-        new Audio('bg_music_2.mp3'),
-        new Audio('bg_music_3.mp3'),
-        new Audio('bg_music_4.mp3'),
-        new Audio('bg_music_5.mp3'),
-        new Audio('bg_music_6.mp3')
-    ];
-    bgPlaylist.forEach(a=>{a.volume=0.05});
+    if(bgPlaylist.length===0){
+        bgPlaylist=[
+            new Audio('bg_music_1.mp3'),
+            new Audio('bg_music_2.mp3'),
+            new Audio('bg_music_3.mp3'),
+            new Audio('bg_music_4.mp3'),
+            new Audio('bg_music_5.mp3'),
+            new Audio('bg_music_6.mp3')
+        ];
+        bgPlaylist.forEach(a=>{a.volume=0.05});
+    }
     playNextBgTrack();
 }
 function playNextBgTrack(){
@@ -162,11 +164,16 @@ function playNextBgTrack(){
         bgTrackIndex=(bgTrackIndex+1)%bgPlaylist.length;
         playNextBgTrack();
     };
-    bgMusic.play().catch(()=>{});
-}
-function stopBgMusic(){
-    if(bgMusic){bgMusic.pause();bgMusic=null;}
-    bgPlaylist=[];
+    let playPromise=bgMusic.play();
+    if(playPromise!==undefined){
+        playPromise.catch(()=>{
+            // Автовоспроизведение заблокировано, ждём клика
+            document.addEventListener('click',function resumeBg(){
+                bgMusic.play().catch(()=>{});
+                document.removeEventListener('click',resumeBg);
+            },{once:true});
+        });
+    }
 }
 function playSound(n){if(!soundEnabled||!sounds[n])return;let s=sounds[n].cloneNode();s.volume=0.3;if(n==='receive'){let activeApp=document.querySelector('.app-screen.show');if(activeApp){let aid=activeApp.id;if(aid==='app-chat'&&chatTabActive==='general')s.play().catch(()=>{});else if(aid==='app-chat'&&chatTabActive==='clan')s.play().catch(()=>{});else if(aid==='app-dm')s.play().catch(()=>{})}}else{s.play().catch(()=>{})}}
 function toggleSound(){soundEnabled=!soundEnabled;notif(soundEnabled?'🔊 ЗВУК ВКЛ':'🔇 ЗВУК ВЫКЛ');localStorage.setItem('syndicate_sound',soundEnabled)}soundEnabled=localStorage.getItem('syndicate_sound')!=='false';
