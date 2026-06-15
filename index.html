@@ -141,8 +141,10 @@ class P{constructor(){this.reset()}reset(){this.x=Math.random()*pW;this.y=Math.r
 for(let i=0;i<500;i++)parts.push(new P());(function a(){pctx.clearRect(0,0,pW,pH);parts.forEach(p=>{p.update();p.draw()});requestAnimationFrame(a)})();
 let soundEnabled=true;window.soundEnabled=true;let bgMusic=null;window.bgMusic=null;let bgPlaylist=[];let bgTrackIndex=0;const sounds={};function preloadSound(n,f){sounds[n]=new Audio(f);sounds[n].volume=0.3}
 function startBgMusic(){
-    if(!soundEnabled)return;
+    console.log('startBgMusic вызвана');
+    if(!soundEnabled){console.log('soundEnabled false');return;}
     if(bgPlaylist.length===0){
+        console.log('Создаю плейлист');
         bgPlaylist=[
             new Audio('bg_music_1.mp3'),
             new Audio('bg_music_2.mp3'),
@@ -153,7 +155,8 @@ function startBgMusic(){
         ];
         bgPlaylist.forEach(a=>{a.volume=0.03});
     }
-    tryPlayBg();
+    console.log('Плейлист готов, запускаю');
+    playNextBgTrack();
     document.body.addEventListener('click',tryPlayBg,{once:false});
 }
 function tryPlayBg(){
@@ -163,9 +166,11 @@ function tryPlayBg(){
     }).catch(()=>{});
 }
 function playNextBgTrack(){
-    if(!soundEnabled||bgPlaylist.length===0)return;
+    console.log('playNextBgTrack вызвана, трек:',bgTrackIndex);
+    if(!soundEnabled||bgPlaylist.length===0){console.log('стоп');return;}
     if(bgMusic){bgMusic.pause();bgMusic=null;}
-    bgMusic=bgPlaylist[bgTrackIndex];window.bgMusic=bgMusic;
+    bgMusic=bgPlaylist[bgTrackIndex];
+    console.log('Загружен трек:',bgMusic.src);
     bgMusic.currentTime=0;
     bgMusic.onended=function(){
         bgTrackIndex=(bgTrackIndex+1)%bgPlaylist.length;
