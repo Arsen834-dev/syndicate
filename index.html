@@ -139,7 +139,7 @@ function drawMatrix(){mctx.fillStyle='rgba(0,0,0,0.01)';mctx.fillRect(0,0,mc.wid
 setInterval(drawMatrix,50);addEventListener('resize',()=>{mc.width=innerWidth;mc.height=innerHeight});const pctx=pc.getContext('2d');let pW,pH,parts=[];function rp(){pW=pc.width=innerWidth;pH=pc.height=innerHeight}addEventListener('resize',rp);rp();
 class P{constructor(){this.reset()}reset(){this.x=Math.random()*pW;this.y=Math.random()*pH;this.s=Math.random()*6+1;this.sx=(Math.random()-0.5)*0.7;this.sy=(Math.random()-0.5)*0.7;this.o=Math.random()*1+0.6}update(){this.x+=this.sx;this.y+=this.sy;if(this.x<0||this.x>pW||this.y<0||this.y>pH)this.reset()}draw(){pctx.fillStyle='rgba(255,23,68,'+(this.o+0.5)+')';pctx.shadowColor='#ff1744';pctx.shadowBlur=10;pctx.beginPath();pctx.arc(this.x,this.y,this.s,0,Math.PI*2);pctx.fill();pctx.shadowBlur=0}}
 for(let i=0;i<500;i++)parts.push(new P());(function a(){pctx.clearRect(0,0,pW,pH);parts.forEach(p=>{p.update();p.draw()});requestAnimationFrame(a)})();
-let soundEnabled=true;window.soundEnabled=true;let bgMusic=null;let bgPlaylist=[];let bgTrackIndex=0;const sounds={};function preloadSound(n,f){sounds[n]=new Audio(f);sounds[n].volume=0.3}
+let soundEnabled=true;window.soundEnabled=true;let bgMusic=null;window.bgMusic=null;let bgPlaylist=[];let bgTrackIndex=0;const sounds={};function preloadSound(n,f){sounds[n]=new Audio(f);sounds[n].volume=0.3}
 function startBgMusic(){
     if(!soundEnabled)return;
     if(bgPlaylist.length===0){
@@ -165,7 +165,7 @@ function tryPlayBg(){
 function playNextBgTrack(){
     if(!soundEnabled||bgPlaylist.length===0)return;
     if(bgMusic){bgMusic.pause();bgMusic=null;}
-    bgMusic=bgPlaylist[bgTrackIndex];
+    bgMusic=bgPlaylist[bgTrackIndex];window.bgMusic=bgMusic;
     bgMusic.currentTime=0;
     bgMusic.onended=function(){
         bgTrackIndex=(bgTrackIndex+1)%bgPlaylist.length;
