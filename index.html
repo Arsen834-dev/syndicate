@@ -417,7 +417,7 @@ document.addEventListener('click',function(e){
     if(!e.target.closest('#mention-suggestions')&&!e.target.closest('.chat-input')){hideMentionSuggestions();}
 });
 document.addEventListener('input',function(e){
-    if(e.target.id==='chat-input'){supabase.from('typing_events').insert({author:CA?.name,chat:'general'});showMentionSuggestions('chat-input');}
+    if(e.target.id==='chat-input'){showTyping(CA?.name);supabase.from('typing_events').insert({author:CA?.name,chat:'general'});showMentionSuggestions('chat-input');}
     if(e.target.id==='dm-input'){showMentionSuggestions('dm-input');}
 });
 // ПОДСВЕТКА НОВЫХ СОБЫТИЙ
