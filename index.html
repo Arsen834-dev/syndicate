@@ -585,48 +585,8 @@ document.addEventListener('click',function(e){
 initDMPanel();
 });
 // ВХОД И РЕГИСТРАЦИЯ
-async function login(){
-    S.click();
-    let n=document.getElementById('agent-name')?.value?.trim();
-    let p=document.getElementById('agent-pass')?.value;
-    if(!n||!p)return showErr('ВСЕ ПОЛЯ');
-    let email=n.toLowerCase().replace(/[^a-z0-9]/g,'')+'@syndicate.term';
-    let{data,error}=await supabase.auth.signInWithPassword({email,password:p});
-    if(error)return showErr('НЕВЕРНЫЕ ДАННЫЕ');
-    let ag=await loadAgent(n);
-    if(!ag)return showErr('АГЕНТ НЕ НАЙДЕН');
-    if(ag.banned)return showErr('⛔ ВЫ ЗАБАНЕНЫ');
-    CA=ag;
-    CA.passHash=ag.pass_hash||'';
-    CA.rep=Math.min(100,CA.rep||0);
-    CA.crystals=CA.crystals||0;
-    CA.achievements=CA.achievements||[];
-    CA.logins=(CA.logins||0)+1;
-    CA.avatar=CA.avatar||'🕶️';
-    CA.role=CA.role||'agent';
-    CA.chatCount=CA.chatCount||0;
-    CA.nameHistory=CA.nameHistory||[];
-    CA.guidesCreated=CA.guidesCreated||0;
-    CA.clansCreated=CA.clansCreated||0;
-    CA.banned=CA.banned||!1;
-    CA.muted=CA.muted||!1;
-    if(!CA.achievements.includes('first_login')){CA.achievements.push('first_login');notif('🏆 🔓 ПЕРВЫЙ ВХОД');}
-    if(!inventory.find(i=>i.id==='c_red'))inventory.push({category:'color',id:'c_red',name:'Красный',price:0});
-    if(!inventory.find(i=>i.id==='f_default'))inventory.push({category:'frame',id:'f_default',name:'Без рамки',price:0});
-    if(!inventory.find(i=>i.id==='b_none'))inventory.push({category:'badge',id:'b_none',name:'Без бейджика',price:0});
-    if(!inventory.find(i=>i.id==='fnt_default'))inventory.push({category:'font',id:'fnt_default',name:'Стандартный',price:0});
-    saveInventory();
-    S.login();showWelc(n);
-    await saveAgent();loadInventory();
-    await loadChatMessages();subscribeChat();subscribeTyping();
-    await loadDMMessages();subscribeDM();
-    await loadGuides();loadMemes();
-    await loadAnnouncements();await loadClans();await loadFriends();
-    await loadAdminMessages();subscribeAdminChat();
-    await loadMentionAgents();initTicker();startRepTimer();startTKTimer();
-    if(CA.role==='admin'||CA.role==='moderator'){let ab=document.getElementById('admin-tab-btn');if(ab)ab.style.display='block';}
-        setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);
-}
+async function login(){S.click();let n=document.getElementById('agent-name')?.value?.trim();let p=document.getElementById('agent-pass')?.value;if(!n||!p)return showErr('ВСЕ ПОЛЯ');let email=n.toLowerCase().replace(/[^a-z0-9]/g,'')+'@syndicate.term';let{data,error}=await supabase.auth.signInWithPassword({email,password:p});if(error)return showErr('НЕВЕРНЫЕ ДАННЫЕ');let ag=await loadAgent(n);if(!ag)return showErr('АГЕНТ НЕ НАЙДЕН');if(ag.banned)return showErr('⛔ ВЫ ЗАБАНЕНЫ');CA=ag;CA.passHash=ag.pass_hash||'';CA.rep=Math.min(100,CA.rep||0);CA.crystals=CA.crystals||0;CA.achievements=CA.achievements||[];CA.logins=(CA.logins||0)+1;CA.avatar=CA.avatar||'🕶️';CA.role=CA.role||'agent';CA.chatCount=CA.chatCount||0;CA.nameHistory=CA.nameHistory||[];CA.guidesCreated=CA.guidesCreated||0;CA.clansCreated=CA.clansCreated||0;CA.banned=CA.banned||!1;CA.muted=CA.muted||!1;if(!CA.achievements.includes('first_login')){CA.achievements.push('first_login');notif('🏆 🔓 ПЕРВЫЙ ВХОД');}if(!inventory.find(i=>i.id==='c_red'))inventory.push({category:'color',id:'c_red',name:'Красный',price:0});if(!inventory.find(i=>i.id==='f_default'))inventory.push({category:'frame',id:'f_default',name:'Без рамки',price:0});if(!inventory.find(i=>i.id==='b_none'))inventory.push({category:'badge',id:'b_none',name:'Без бейджика',price:0});if(!inventory.find(i=>i.id==='fnt_default'))inventory.push({category:'font',id:'fnt_default',name:'Стандартный',price:0});saveInventory();S.login();showWelc(n);await saveAgent();loadInventory();await loadChatMessages();subscribeChat();subscribeTyping();await loadDMMessages();subscribeDM();await loadAdminMessages();subscribeAdminChat();await loadGuides();loadMemes();await loadAnnouncements();await loadClans();await loadFriends();await loadMentionAgents();initTicker();startRepTimer();startTKTimer();if(CA.role==='admin'||CA.role==='moderator'){let ab=document.getElementById('admin-tab-btn');if(ab)ab.style.display='block';}setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);}
+async function register(){
 await loadMentionAgents();initTicker();startRepTimer();startTKTimer();if(CA.role==='admin'||CA.role==='moderator'){let ab=document.getElementById('admin-tab-btn');if(ab)ab.style.display='block';}setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);}else showErr('НЕВЕРНЫЕ ДАННЫЕ');}
 async function register(){
     S.click();
