@@ -628,7 +628,7 @@ async function login(){
     setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);
 }
 console.log('typingChannel создан:',typingChannel);await loadDMMessages();subscribeDM();await loadAdminMessages();subscribeAdminChat();await loadGuides();await loadMemes();await loadAnnouncements();await loadClans();await loadFriends();
-console.log('Друзья загружены:',friends.length,friends);await loadMentionAgents();initTicker();startRepTimer();startTKTimer();if(CA.role==='admin'||CA.role==='moderator'){let ab=document.getElementById('admin-tab-btn');if(ab)ab.style.display='block';}setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);}else showErr('НЕВЕРНЫЕ ДАННЫЕ');}
+await loadMentionAgents();initTicker();startRepTimer();startTKTimer();if(CA.role==='admin'||CA.role==='moderator'){let ab=document.getElementById('admin-tab-btn');if(ab)ab.style.display='block';}setTimeout(()=>{document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();},2500);}else showErr('НЕВЕРНЫЕ ДАННЫЕ');}
 async function register(){
     S.click();
     let n=document.getElementById('agent-name')?.value?.trim();
