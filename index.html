@@ -209,7 +209,7 @@
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/+esm';
 const SUPABASE_URL='https://qblnleuunawrkyvwekvg.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFibG5sZXV1bmF3cmt5dndla3ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMDY3NDYsImV4cCI6MjA5NjY4Mjc0Nn0.3UaltpiiLT7pZyZVegGIUUEq5qDdKf2VOdLkCLmqr0k';
-const supabase=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const supabase=createClient(SUPABASE_URL,SUPABASE_ANON_KEY);window.supabase=supabase;
 const mc=document.getElementById('matrix-bg'),pc=document.getElementById('particles-canvas');mc.style.opacity='0';pc.style.opacity='0';setTimeout(()=>{mc.style.opacity='1';pc.style.opacity='1'},2600);
 const mctx=mc.getContext('2d');mc.width=innerWidth;mc.height=innerHeight;const chars='アイウエオカキクケコサシスセソタチツテト01',mdrops=Array(Math.floor(mc.width/20)).fill(1);
 function drawMatrix(){mctx.fillStyle='rgba(0,0,0,0.01)';mctx.fillRect(0,0,mc.width,mc.height);mctx.fillStyle='#ff1744';mctx.font='16px monospace';mctx.shadowColor='#ff1744';mctx.shadowBlur=14;mdrops.forEach((y,i)=>{mctx.fillText(chars[Math.floor(Math.random()*chars.length)],i*20,y*20);if(y*20>mc.height&&Math.random()>0.975)mdrops[i]=0;mdrops[i]++});mctx.shadowBlur=0}
