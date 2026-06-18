@@ -560,8 +560,8 @@ async function register(){S.click();let n=document.getElementById('agent-name')?
 function showErr(m){let e=document.getElementById('login-error');if(e){e.textContent=m;setTimeout(()=>e.textContent='',3000);}}
 function showWelc(n){let o=document.createElement('div');o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:30;background:rgba(0,0,0,0.95);';o.innerHTML='<div style="font-size:3rem;text-align:center;text-shadow:0 0 30px #ff1744;">ДОБРО ПОЖАЛОВАТЬ<br>В ТЕРМИНАЛ СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ '+n.toUpperCase()+'</span></div>';document.body.appendChild(o);setTimeout(()=>o.remove(),2500);}
 let repInterval=null,tkInterval=null;
-function startRepTimer(){if(repInterval)clearInterval(repInterval);repInterval=setInterval(()=>{if(CA&&CA.rep<100){CA.rep=Math.min(100,(CA.rep||0)+1);updateStatusBar();saveAgent();}},1800000);}
-function startTKTimer(){if(tkInterval)clearInterval(tkInterval);tkInterval=setInterval(()=>{if(CA){let rate=CA.role==='admin'?100:CA.role==='moderator'?70:50;CA.crystals=(CA.crystals||0)+rate;updateStatusBar();saveAgent();}},1800000);}
+function startRepTimer(){if(repInterval)clearInterval(repInterval);repInterval=setInterval(()=>{if(CA&&CA.rep<100&&document.visibilityState==='visible'){CA.rep=Math.min(100,(CA.rep||0)+1);updateStatusBar();saveAgent();}},1800000);}
+function startTKTimer(){if(tkInterval)clearInterval(tkInterval);tkInterval=setInterval(()=>{if(CA){let online=document.visibilityState==='visible';if(online){let rate=CA.role==='admin'?100:CA.role==='moderator'?70:50;CA.crystals=(CA.crystals||0)+rate;}updateStatusBar();saveAgent();}},1800000);}
 function uploadFileAndInsert(event,inputId){
     let file=event.target.files[0];
     if(!file)return;
