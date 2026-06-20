@@ -837,14 +837,19 @@ async function joinPongRoom(){
 let rid=document.getElementById('pong-room-input').value.trim().toUpperCase();
 if(!rid)return;
 let{data}=await supabase.from('pong_signals').select('*').eq('id',rid).maybeSingle();
-if(!data||!data.offer||data.offer===''){document.getElementById('pong-status').textContent='Комната не найдена';return;}
+if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-status').textContent='Комната не найдена';return;}
 pongRoomId=rid;pongPlayer=2;
+document.getElementById('pong-status').textContent='Подключаюсь...';
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{startPongGame();};pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.opponent_y=d.y;}};};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);}};
-await pongPC.setRemoteDescription(new RTCSessionDescription(JSON.parse(data.offer)));
+try{
+let offer=JSON.parse(data.offer);
+if(typeof offer==='string')offer=JSON.parse(offer);
+await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
 let answer=await pongPC.createAnswer();
 await pongPC.setLocalDescription(answer);
+}catch(e){console.log('Join error:',e);document.getElementById('pong-status').textContent='Ошибка: '+e.message;}
 }
 
 function startPongGame(){
