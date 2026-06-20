@@ -803,9 +803,9 @@ document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){
   let canvas=document.getElementById('web-canvas');
-  if(!canvas||!CA||!CA.name)return;
   let container=document.getElementById('web-container');
-  if(!container||container.offsetParent===null)return;
+  if(!canvas||!container)return;
+  if(!CA||!CA.name)return;
   let ctx=canvas.getContext('2d');
   canvas.width=container.offsetWidth;
   canvas.height=container.offsetHeight;
