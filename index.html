@@ -292,7 +292,23 @@
 <input type="password" id="agent-pass" class="dossier-input" placeholder="КЛЮЧ ВЕРИФИКАЦИИ" autocomplete="new-password"><button class="dossier-btn" id="login-btn">ПОДТВЕРДИТЬ ЛИЧНОСТЬ</button><div class="dossier-error" id="login-error"></div></div><div class="dossier-footer" id="register-link">⬡ ЗАПРОСИТЬ НОВОЕ ДОСЬЕ ⬡</div></div></div>
     <button class="announce-toggle-btn" id="announce-toggle-btn" title="Объявления">📢</button>
 	<div id="desktop"><div class="desktop-header"><span class="desktop-title">ТЕРМИНАЛ СИНДИКАТА</span><div class="header-ticker-wrap"><span class="header-ticker-text" id="header-ticker"></span></div><span class="desktop-agent" id="desktop-agent-name">АГЕНТ</span></div><div class="desktop-area" id="desktop-icons"></div><div class="desktop-statusbar"><span class="status-avatar-frame f-default" id="s-avatar-frame"><span class="status-avatar" id="s-avatar">🕶️</span></span><span class="status-name" id="s-name">---</span><span class="status-badge" id="s-badge"></span><div class="status-rep-bar"><div class="status-rep-fill" id="s-rep-fill" style="width:0%"></div></div><span class="status-rep-text" id="s-rep-text">0/100</span><span class="status-crystals"><span class="crystal-red">♦</span> <span id="s-crystals">0</span></span><span class="status-achieve" id="s-achieve">🏆 0/7</span><span class="booster-timer" id="s-booster"></span><div class="status-ticker"><span class="status-ticker-text" id="ticker-text"></span></div></div></div>
-    <div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close mobile-only" onclick="document.getElementById('announcements-wall').style.display='none';if(window.innerWidth<=768)document.getElementById('announce-toggle-btn').style.display='block'" style="font-size:0.8rem;padding:3px 10px;">ЗАКРЫТЬ</button><div class="announce-filters"><button class="announce-filter-btn active" data-filter="all">ВСЕ</button><button class="announce-filter-btn" data-filter="news">📰 НОВОСТИ</button><button class="announce-filter-btn" data-filter="event">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" data-filter="auction">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" data-filter="update">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" data-filter="wanted">🔍 РОЗЫСК</button></div></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
+    <div id="app-pong" class="app-screen">
+<div class="app-header"><span class="app-title">🎮 KING PONG</span><button class="app-close" data-close="pong">ЗАКРЫТЬ</button></div>
+<div class="app-content" style="text-align:center;padding:10px;" id="pong-content">
+<div id="pong-menu" style="color:#ff1744;font-size:1.2rem;">
+<p>🏓 KING PONG - МУЛЬТИПЛЕЕР</p>
+<p style="color:#cc0000;">Создай комнату или подключись к другу</p>
+<button class="modal-btn" id="pong-create-btn" style="margin:10px;">СОЗДАТЬ КОМНАТУ</button><br>
+<input type="text" class="chat-input" id="pong-room-input" placeholder="КОД КОМНАТЫ" style="width:200px;text-align:center;">
+<button class="modal-btn" id="pong-join-btn">ПОДКЛЮЧИТЬСЯ</button>
+<p id="pong-status" style="color:#ffd700;margin-top:10px;"></p>
+<p style="color:#cc0000;font-size:0.9rem;">Красный: W/S | Синий: ↑/↓ | ПРОБЕЛ: Парирование</p>
+</div>
+<canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;"></canvas>
+<p id="pong-score" style="color:#ff1744;font-size:1.5rem;display:none;"></p>
+<p id="pong-winner" style="color:#ffd700;font-size:1.5rem;display:none;"></p>
+</div></div>
+<div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close mobile-only" onclick="document.getElementById('announcements-wall').style.display='none';if(window.innerWidth<=768)document.getElementById('announce-toggle-btn').style.display='block'" style="font-size:0.8rem;padding:3px 10px;">ЗАКРЫТЬ</button><div class="announce-filters"><button class="announce-filter-btn active" data-filter="all">ВСЕ</button><button class="announce-filter-btn" data-filter="news">📰 НОВОСТИ</button><button class="announce-filter-btn" data-filter="event">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" data-filter="auction">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" data-filter="update">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" data-filter="wanted">🔍 РОЗЫСК</button></div></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
     <div id="app-chat" class="app-screen"><div class="app-header"><span class="app-title">💬 ЧАТ</span><button class="app-close" data-close="chat">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;flex-direction:column;height:calc(100% - 50px);"><div class="chat-tabs" id="chat-tabs"><button class="chat-tab active" data-tab="general">💬 ОБЩИЙ</button><button class="chat-tab" data-tab="clan">⚔️ ОТРЯД</button><button class="chat-tab" data-tab="admin" style="display:none" id="admin-tab-btn">🛡 АДМИН</button></div><div class="pinned-header" id="chat-pinned-header"></div><div class="chat-messages" id="chat-messages"></div><div id="reply-indicator" class="reply-indicator" style="display:none;"></div><div id="typing-indicator" style="color:#cc0000;font-size:0.8rem;padding:2px 10px;display:none;min-height:20px;"></div><div class="chat-input-row" id="chat-input-row"><button class="emoji-btn" id="chat-emoji-btn">😊</button><input type="file" id="chat-file-input" accept="image/*" style="display:none"><button class="emoji-btn" id="chat-file-btn">📎</button><input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-msg-btn" style="margin:0;">▶</button></div></div></div>
     <div id="app-contacts" class="app-screen"><div class="app-header"><span class="app-title">🌐 СЕТЬ АГЕНТОВ</span><button class="app-close" data-close="contacts">ЗАКРЫТЬ</button></div><div class="app-content"><div id="agents-list"></div><div style="text-align:center;" id="agents-total"></div></div></div>
     <div id="app-achievements" class="app-screen"><div class="app-header"><span class="app-title">🏆 ДОСТИЖЕНИЯ</span><button class="app-close" data-close="achievements">ЗАКРЫТЬ</button></div><div class="app-content" id="achievements-list"></div></div>
@@ -741,15 +757,15 @@ initDMPanel();
 let iconPositions=JSON.parse(localStorage.getItem('syndicate_icon_positions')||'{}');if(!iconPositions['settings']){iconPositions['settings']={x:20,y:380};localStorage.setItem('syndicate_icon_positions',JSON.stringify(iconPositions));}
 let draggedIcon=null,dragOffX=0,dragOffY=0,wasDragged=!1;
 function openDesktop(){let d=document.getElementById('desktop');if(d)d.style.display='flex';document.getElementById('desktop-agent-name').textContent=CA?.name||'АГЕНТ';let ab=document.getElementById('announce-toggle-btn');if(ab&&window.innerWidth<=768)ab.style.display='block';buildDesktopIcons();updateStatusBar();loadDiscount();let announceWall=document.getElementById('announcements-wall');if(window.innerWidth>768&&announceWall){announceWall.style.display='block';renderAnnouncements();}if(window.innerWidth<=768){setTimeout(()=>{loadMentionAgents();},10);}checkCompletedWars();dailyClanRewards();autoDistributeAllClanTreasuries();loadLastVisit();checkNewContent();}
-function buildDesktopIcons(){let area=document.getElementById('desktop-icons');if(!area)return;let icons=[{id:'chat',emoji:'💬',label:'ЧАТ'},{id:'contacts',emoji:'🌐',label:'СЕТЬ'},{id:'achievements',emoji:'🏆',label:'ДОСТИЖЕНИЯ'},{id:'guides',emoji:'📚',label:'ГАЙДЫ'},{id:'memes',emoji:'😂',label:'МЕМЫ'},{id:'dm',emoji:'📁',label:'ЛИЧКА'},{id:'clans',emoji:'⚔️',label:'ОТРЯДЫ'},{id:'friends',emoji:'🤝',label:'ДРУЗЬЯ'},{id:'shop',emoji:'🛒',label:'МАГАЗИН'},{id:'inventory',emoji:'🎒',label:'ИНВЕНТАРЬ'},{id:'announce',emoji:'📢',label:'ОБЪЯВЛЕНИЯ'},{id:'logs',emoji:'📜',label:'ЛОГИ'},{id:'admin',emoji:'👑',label:'АДМИН'},{id:'settings',emoji:'⚙️',label:'НАСТРОЙКИ'},{id:'logout',emoji:'🚪',label:'ВЫХОД'}];if(window.innerWidth<=768){area.style.position='relative';area.style.minHeight='400px';let cx=area.offsetWidth/2;let cy=area.offsetHeight/2;let radius=Math.min(cx,cy)*0.7;let angleStep=(2*Math.PI)/icons.length;area.innerHTML=icons.map((icon,i)=>{let angle=i*angleStep-Math.PI/2;let x=cx+Math.cos(angle)*radius-30;let y=cy+Math.sin(angle)*radius-30;return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+x+'px;top:'+y+'px;width:60px;height:60px;" data-app="'+icon.id+'"><span class="icon-emoji" style="font-size:1.5rem;">'+icon.emoji+'</span><span class="icon-label" style="font-size:0.55rem;">'+icon.label+'</span></div>';}).join('');}else{let adminIcons=['admin','logs','announce'];let filtered=icons.filter(i=>i.active!==!1||adminIcons.includes(i.id));area.style.minHeight='';area.innerHTML=filtered.map((icon,i)=>{let pos=iconPositions[icon.id]||{x:(i%4)*120+20,y:Math.floor(i/4)*120+20};return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+pos.x+'px;top:'+pos.y+'px;" data-app="'+icon.id+'"><span class="icon-emoji">'+icon.emoji+'</span><span class="icon-label">'+icon.label+'</span></div>';}).join('');}document.querySelectorAll('.desktop-icon').forEach(icon=>{icon.addEventListener('mousedown',function(e){startDrag(e,icon.dataset.app);});icon.addEventListener('touchstart',function(e){startDrag(e.touches[0],icon.dataset.app);},{passive:false});icon.addEventListener('click',function(e){if(!wasDragged)openApp(icon.dataset.app);});});updateBadgeIcons();}
+function buildDesktopIcons(){let area=document.getElementById('desktop-icons');if(!area)return;let icons=[{id:'chat',emoji:'💬',label:'ЧАТ'},{id:'pong',emoji:'🎮',label:'KING PONG'},{id:'contacts',emoji:'🌐',label:'СЕТЬ'},{id:'achievements',emoji:'🏆',label:'ДОСТИЖЕНИЯ'},{id:'guides',emoji:'📚',label:'ГАЙДЫ'},{id:'memes',emoji:'😂',label:'МЕМЫ'},{id:'dm',emoji:'📁',label:'ЛИЧКА'},{id:'clans',emoji:'⚔️',label:'ОТРЯДЫ'},{id:'friends',emoji:'🤝',label:'ДРУЗЬЯ'},{id:'shop',emoji:'🛒',label:'МАГАЗИН'},{id:'inventory',emoji:'🎒',label:'ИНВЕНТАРЬ'},{id:'announce',emoji:'📢',label:'ОБЪЯВЛЕНИЯ'},{id:'logs',emoji:'📜',label:'ЛОГИ'},{id:'admin',emoji:'👑',label:'АДМИН'},{id:'settings',emoji:'⚙️',label:'НАСТРОЙКИ'},{id:'logout',emoji:'🚪',label:'ВЫХОД'}];if(window.innerWidth<=768){area.style.position='relative';area.style.minHeight='400px';let cx=area.offsetWidth/2;let cy=area.offsetHeight/2;let radius=Math.min(cx,cy)*0.7;let angleStep=(2*Math.PI)/icons.length;area.innerHTML=icons.map((icon,i)=>{let angle=i*angleStep-Math.PI/2;let x=cx+Math.cos(angle)*radius-30;let y=cy+Math.sin(angle)*radius-30;return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+x+'px;top:'+y+'px;width:60px;height:60px;" data-app="'+icon.id+'"><span class="icon-emoji" style="font-size:1.5rem;">'+icon.emoji+'</span><span class="icon-label" style="font-size:0.55rem;">'+icon.label+'</span></div>';}).join('');}else{let adminIcons=['admin','logs','announce'];let filtered=icons.filter(i=>i.active!==!1||adminIcons.includes(i.id));area.style.minHeight='';area.innerHTML=filtered.map((icon,i)=>{let pos=iconPositions[icon.id]||{x:(i%4)*120+20,y:Math.floor(i/4)*120+20};return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+pos.x+'px;top:'+pos.y+'px;" data-app="'+icon.id+'"><span class="icon-emoji">'+icon.emoji+'</span><span class="icon-label">'+icon.label+'</span></div>';}).join('');}document.querySelectorAll('.desktop-icon').forEach(icon=>{icon.addEventListener('mousedown',function(e){startDrag(e,icon.dataset.app);});icon.addEventListener('touchstart',function(e){startDrag(e.touches[0],icon.dataset.app);},{passive:false});icon.addEventListener('click',function(e){if(!wasDragged)openApp(icon.dataset.app);});});updateBadgeIcons();}
 function startDrag(e,id){if(e&&e.preventDefault)e.preventDefault();wasDragged=!1;draggedIcon=document.getElementById('icon-'+id);if(!draggedIcon)return;let cx=e.clientX||(e.touches&&e.touches[0].clientX)||0;let cy=e.clientY||(e.touches&&e.touches[0].clientY)||0;let rect=draggedIcon.getBoundingClientRect();dragOffX=cx-rect.left;dragOffY=cy-rect.top;draggedIcon.style.zIndex='50';}
 document.addEventListener('mousemove',function(e){if(!draggedIcon)return;wasDragged=!0;let area=document.getElementById('desktop-icons');let rect=area.getBoundingClientRect();let nx=e.clientX-dragOffX,ny=e.clientY-dragOffY;let maxX=window.innerWidth>768?rect.width*0.65-100:rect.width-100;nx=Math.max(0,Math.min(nx,maxX));ny=Math.max(0,Math.min(ny,rect.height-100));draggedIcon.style.left=nx+'px';draggedIcon.style.top=ny+'px';});
 document.addEventListener('touchmove',function(e){if(!draggedIcon)return;wasDragged=true;let area=document.getElementById('desktop-icons');let rect=area.getBoundingClientRect();let nx=e.touches[0].clientX-dragOffX,ny=e.touches[0].clientY-dragOffY;let maxX=window.innerWidth>768?rect.width*0.65-60:rect.width-60;nx=Math.max(0,Math.min(nx,maxX));ny=Math.max(0,Math.min(ny,rect.height-60));draggedIcon.style.left=nx+'px';draggedIcon.style.top=ny+'px';e.preventDefault();},{passive:false});
 document.addEventListener('mouseup',function(){if(!draggedIcon)return;draggedIcon.style.zIndex='';let id=draggedIcon.id.replace('icon-','');iconPositions[id]={x:parseInt(draggedIcon.style.left),y:parseInt(draggedIcon.style.top)};localStorage.setItem('syndicate_icon_positions',JSON.stringify(iconPositions));draggedIcon=null;});
 document.addEventListener('touchend',function(){if(!draggedIcon)return;draggedIcon.style.zIndex='';let id=draggedIcon.id.replace('icon-','');iconPositions[id]={x:parseInt(draggedIcon.style.left),y:parseInt(draggedIcon.style.top)};localStorage.setItem('syndicate_icon_positions',JSON.stringify(iconPositions));draggedIcon=null;});
 function updateStatusBar(){if(!CA)return;document.getElementById('s-avatar').textContent=CA.avatar||'🕶️';let nm=document.getElementById('s-name');nm.textContent=CA.name;let colClass=getActiveColorClass();nm.className='status-name '+colClass;document.getElementById('s-badge').innerHTML=getActiveBadgeEmoji();let fe=document.getElementById('s-avatar-frame');fe.className='status-avatar-frame '+getActiveFrameClass();document.getElementById('s-crystals').textContent=CA.crystals||0;document.getElementById('s-rep-fill').style.width=(CA.rep||0)+'%';document.getElementById('s-rep-text').textContent=(CA.rep||0)+'/100';document.getElementById('s-achieve').textContent='🏆 '+(CA.achievements?.length||0)+'/'+achievements.length;if(CA.rep>=100)unlockAch('reputation');if(CA.crystals>=1000)unlockAch('rich');}
-function openApp(id){playSound('click');let ab=document.getElementById('announce-toggle-btn');if(ab&&window.innerWidth<=768)ab.style.display='none';let announceWall=document.getElementById('announcements-wall');if(announceWall)announceWall.style.display='none';if(id==='logout'){logout();return;}let map={chat:'app-chat',contacts:'app-contacts',achievements:'app-achievements',guides:'app-guides',memes:'app-memes',dm:'app-dm',admin:'app-admin',logs:'app-logs',shop:'app-shop',inventory:'app-inventory',clans:'app-clans',friends:'app-friends',announce:'app-announce',settings:'app-settings'};let el=document.getElementById(map[id]);if(el){el.style.display='block';setTimeout(()=>el.classList.add('show'),10);playSound('open');if(id==='chat'){unreadMentions.chat=0;unreadMentions.clan=0;updateBadgeIcons();switchChatTab('general');stopGlowIcon('icon-chat');loadChatMessages().then(()=>{renderChat();});}if(id==='dm'){unreadMentions.dm=0;updateBadgeIcons();stopGlowIcon('icon-dm');loadDMMessages().then(()=>{renderDMList();if(currentDM)renderDMMessages();});}if(id==='contacts')renderAgentList();if(id==='achievements')renderAchievements();if(id==='guides'){stopGlowIcon('icon-guides');loadGuides().then(()=>renderGuides());}if(id==='admin'){renderAdmin();}if(id==='logs')renderLogs();if(id==='shop')renderShop();if(id==='inventory')renderInventory();if(id==='clans'){loadClans().then(()=>{loadClanWars().then(()=>renderClans());});}if(id==='friends'){stopGlowIcon('icon-friends');loadFriends().then(()=>renderFriends());}if(id==='announce'){stopGlowIcon('icon-announce');if(window.innerWidth<=768){let w=document.getElementById('announcements-wall');if(w)w.style.display='none';}loadAnnouncements().then(()=>renderAnnounceApp());}if(id==='memes'){stopGlowIcon('icon-memes');loadMemes().then(()=>renderMemes());}}if(id!=='logout'&&CA){CA.crystals=(CA.crystals||0)+2;updateStatusBar();saveAgent();saveLastVisit();}}
-function closeApp(id){playSound('close');let map={chat:'app-chat',contacts:'app-contacts',achievements:'app-achievements',guides:'app-guides',memes:'app-memes',dm:'app-dm',admin:'app-admin',logs:'app-logs',shop:'app-shop',inventory:'app-inventory',clans:'app-clans',friends:'app-friends',announce:'app-announce',settings:'app-settings'};let el=document.getElementById(map[id]);if(el){el.classList.remove('show');setTimeout(()=>el.style.display='none',200);}if(window.innerWidth<=768){setTimeout(function(){let ab=document.getElementById('announce-toggle-btn');if(ab)ab.style.display='block';},300);}if(window.innerWidth>768){let announceWall=document.getElementById('announcements-wall');if(announceWall)announceWall.style.display='block';}}
+function openApp(id){playSound('click');let ab=document.getElementById('announce-toggle-btn');if(ab&&window.innerWidth<=768)ab.style.display='none';let announceWall=document.getElementById('announcements-wall');if(announceWall)announceWall.style.display='none';if(id==='logout'){logout();return;}let map={chat:'app-chat',contacts:'app-contacts',achievements:'app-achievements',guides:'app-guides',memes:'app-memes',dm:'app-dm',admin:'app-admin',logs:'app-logs',shop:'app-shop',inventory:'app-inventory',clans:'app-clans',friends:'app-friends',announce:'app-announce',settings:'app-settings'};let el=document.getElementById(map[id]);if(el){el.style.display='block';setTimeout(()=>el.classList.add('show'),10);playSound('open');if(id==='chat'){unreadMentions.chat=0;unreadMentions.clan=0;updateBadgeIcons();switchChatTab('general');stopGlowIcon('icon-chat');loadChatMessages().then(()=>{renderChat();});}if(id==='dm'){unreadMentions.dm=0;updateBadgeIcons();stopGlowIcon('icon-dm');loadDMMessages().then(()=>{renderDMList();if(currentDM)renderDMMessages();});}if(id==='contacts')renderAgentList();if(id==='achievements')renderAchievements();if(id==='guides'){stopGlowIcon('icon-guides');loadGuides().then(()=>renderGuides());}if(id==='admin'){renderAdmin();}if(id==='logs')renderLogs();if(id==='shop')renderShop();if(id==='inventory')renderInventory();if(id==='clans'){loadClans().then(()=>{loadClanWars().then(()=>renderClans());});}if(id==='friends'){stopGlowIcon('icon-friends');loadFriends().then(()=>renderFriends());}if(id==='announce'){stopGlowIcon('icon-announce');if(window.innerWidth<=768){let w=document.getElementById('announcements-wall');if(w)w.style.display='none';}loadAnnouncements().then(()=>renderAnnounceApp());}if(id==='memes'){stopGlowIcon('icon-memes');loadMemes().then(()=>renderMemes());}if(id==='pong'){initPong();}}if(id!=='logout'&&CA){CA.crystals=(CA.crystals||0)+2;updateStatusBar();saveAgent();saveLastVisit();}}
+function closeApp(id){playSound('close');let map={pong:'app-pong',chat:'app-chat',contacts:'app-contacts',achievements:'app-achievements',guides:'app-guides',memes:'app-memes',dm:'app-dm',admin:'app-admin',logs:'app-logs',shop:'app-shop',inventory:'app-inventory',clans:'app-clans',friends:'app-friends',announce:'app-announce',settings:'app-settings',pong:'app-pong'};let el=document.getElementById(map[id]);if(el){el.classList.remove('show');setTimeout(()=>el.style.display='none',200);}if(window.innerWidth<=768){setTimeout(function(){let ab=document.getElementById('announce-toggle-btn');if(ab)ab.style.display='block';},300);}if(window.innerWidth>768){let announceWall=document.getElementById('announcements-wall');if(announceWall)announceWall.style.display='block';}}
 function logout(){if(repInterval)clearInterval(repInterval);if(tkInterval)clearInterval(tkInterval);if(chatChannel)supabase.removeChannel(chatChannel);if(typingChannel)supabase.removeChannel(typingChannel);
 if(adminChannel)supabase.removeChannel(adminChannel);if(dmChannel)supabase.removeChannel(dmChannel);if(clanChannel)supabase.removeChannel(clanChannel);if(pinnedChatSubscription)supabase.removeChannel(pinnedChatSubscription);if(adminChannel)supabase.removeChannel(adminChannel);saveLastVisit();stopBgMusic();activeItems.style='';
 activeItems.sound='';CA=null;document.getElementById('desktop').style.display='none';document.querySelectorAll('.app-screen').forEach(el=>el.style.display='none');let aw=document.getElementById('announcements-wall');if(aw)aw.style.display='none';let ab=document.getElementById('announce-toggle-btn');if(ab)ab.style.display='none';document.getElementById('login-screen').style.display='flex';document.getElementById('agent-name').value='';document.getElementById('agent-pass').value='';}
@@ -782,6 +798,106 @@ window.renderInventory=renderInventory;window.renderShopCategories=renderShopCat
 document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(document.hidden){if(bgMusic){bgMusic.pause();}}else{if(soundEnabled&&document.getElementById('desktop').style.display==='flex'){tryPlayBg();}}}});
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)return;let ctx=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx.clearRect(0,0,c.width,c.height);let ns=document.querySelectorAll('.web-node');if(ns.length<2)return;let mx=null,my=null;ns.forEach(function(n){let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();if(n.dataset.agent===CA.name){mx=r.left+r.width/2-cr.left;my=r.top+r.height/2-cr.top;}});if(!mx)return;ns.forEach(function(n){if(n.dataset.agent===CA.name)return;let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(r.left+r.width/2-cr.left,r.top+r.height/2-cr.top);ctx.strokeStyle='rgba(255,23,68,0.6)';ctx.lineWidth=1.5;ctx.stroke();});},100);
+let pongChannel=null,pongRoomId=null,pongPlayer=null,pongAnimationId=null;
+let pongState={ball_x:400,ball_y:250,ball_sx:3,ball_sy:1,score1:0,score2:0,y1:200,y2:200,p1:null,p2:null,game_started:false,game_over:false,parry1:0,parry2:0,crown1:false,crown2:false};
+
+async function initPong(){
+document.getElementById('pong-menu').style.display='block';
+document.getElementById('pong-canvas').style.display='none';
+document.getElementById('pong-score').style.display='none';
+document.getElementById('pong-winner').style.display='none';
+document.getElementById('pong-status').textContent='';
+pongRoomId=null;pongPlayer=null;
+if(pongChannel)supabase.removeChannel(pongChannel);
+if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
+pongState={ball_x:400,ball_y:250,ball_sx:3,ball_sy:1,score1:0,score2:0,y1:200,y2:200,p1:null,p2:null,game_started:false,game_over:false,parry1:0,parry2:0,crown1:false,crown2:false};
+document.getElementById('pong-create-btn').onclick=createPongRoom;
+document.getElementById('pong-join-btn').onclick=joinPongRoom;
+}
+
+async function createPongRoom(){
+let rid=Math.random().toString(36).substring(2,8).toUpperCase();
+let{error}=await supabase.from('pong_rooms').insert({id:rid,player1:CA.name,ball_x:400,ball_y:250,score1:0,score2:0,game_started:false,game_over:false});
+if(error){document.getElementById('pong-status').textContent='Ошибка создания комнаты';return;}
+pongRoomId=rid;pongPlayer=1;
+document.getElementById('pong-status').textContent='Код комнаты: '+rid+' | Ожидание игрока...';
+subscribePongRoom();
+}
+
+async function joinPongRoom(){
+let rid=document.getElementById('pong-room-input').value.trim().toUpperCase();
+if(!rid){document.getElementById('pong-status').textContent='Введи код комнаты';return;}
+let{data}=await supabase.from('pong_rooms').select('*').eq('id',rid).maybeSingle();
+if(!data){document.getElementById('pong-status').textContent='Комната не найдена';return;}
+if(data.player2){document.getElementById('pong-status').textContent='Комната уже занята';return;}
+await supabase.from('pong_rooms').update({player2:CA.name,game_started:true,ball_sx:3,ball_sy:1}).eq('id',rid);
+pongRoomId=rid;pongPlayer=2;
+document.getElementById('pong-status').textContent='Подключён!';
+subscribePongRoom();
+}
+
+function subscribePongRoom(){
+if(pongChannel)supabase.removeChannel(pongChannel);
+pongChannel=supabase.channel('pong-'+pongRoomId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_rooms',filter:'id=eq.'+pongRoomId},payload=>{
+let d=payload.new;
+if(d.game_started&&!pongState.game_started){startPongGame();}
+pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;
+pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;
+pongState.p1=d.player1;pongState.p2=d.player2;
+if(pongPlayer===1&&d.game_started&&!pongState.game_over)updateBall();
+}).subscribe();
+}
+
+async function updateBall(){
+let b=pongState;
+b.ball_x+=b.ball_sx;b.ball_y+=b.ball_sy;
+if(b.ball_y<=10||b.ball_y>=490){b.ball_sy*=-1;}
+if(b.ball_x<=60&&b.ball_y>=b.y1&&b.ball_y<=b.y1+150){b.ball_sx*=-1;b.ball_sx+=1;b.ball_sy+=(Math.random()-0.5)*4;b.parry2=0;}
+if(b.ball_x>=740&&b.ball_y>=b.y2&&b.ball_y<=b.y2+150){b.ball_sx*=-1;b.ball_sx-=1;b.ball_sy+=(Math.random()-0.5)*4;b.parry1=0;}
+if(b.ball_x<30){b.score2++;b.ball_x=400;b.ball_y=250;b.ball_sx=3;b.ball_sy=1;}
+if(b.ball_x>770){b.score1++;b.ball_x=400;b.ball_y=250;b.ball_sx=-3;b.ball_sy=1;}
+if(b.score1>=15||b.score2>=15)b.game_over=true;
+if(b.score1>=5&&b.score1>b.score2)b.crown1=true;else b.crown1=false;
+if(b.score2>=5&&b.score2>b.score1)b.crown2=true;else b.crown2=false;
+await supabase.from('pong_rooms').update({ball_x:b.ball_x,ball_y:b.ball_y,ball_sx:b.ball_sx,ball_sy:b.ball_sy,score1:b.score1,score2:b.score2,game_over:b.game_over}).eq('id',pongRoomId);
+}
+
+function startPongGame(){
+document.getElementById('pong-menu').style.display='none';
+document.getElementById('pong-canvas').style.display='block';
+document.getElementById('pong-score').style.display='block';
+let c=document.getElementById('pong-canvas');
+c.focus();
+document.addEventListener('keydown',pongKeyDown);
+document.addEventListener('keyup',pongKeyUp);
+pongState.game_started=true;
+pongLoop();
+}
+
+let pongKeys={};
+function pongKeyDown(e){pongKeys[e.key]=true;
+if(pongPlayer===1&&pongKeys[' ']){supabase.from('pong_rooms').update({ball_sx:Math.abs(pongState.ball_sx)+6,ball_sy:(Math.random()-0.5)*8}).eq('id',pongRoomId);}
+if(pongPlayer===2&&pongKeys['Enter']){supabase.from('pong_rooms').update({ball_sx:-Math.abs(pongState.ball_sx)-6,ball_sy:(Math.random()-0.5)*8}).eq('id',pongRoomId);}
+if(e.key==='e'&&pongState.game_over){supabase.from('pong_rooms').update({score1:0,score2:0,ball_x:400,ball_y:250,ball_sx:3,ball_sy:1,game_over:false}).eq('id',pongRoomId);pongState.game_over=false;}
+}
+function pongKeyUp(e){pongKeys[e.key]=false;}
+
+function pongLoop(){
+if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=15?'👑 КРАСНЫЙ ПОБЕДИЛ!':'👑 СИНИЙ ПОБЕДИЛ!';}
+let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
+if(pongPlayer===1){if(pongKeys['w']&&pongState.y1>0)pongState.y1-=8;if(pongKeys['s']&&pongState.y1<350)pongState.y1+=8;}
+if(pongPlayer===2){if(pongKeys['ArrowUp']&&pongState.y2>0)pongState.y2-=8;if(pongKeys['ArrowDown']&&pongState.y2<350)pongState.y2+=8;}
+ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
+ctx.strokeStyle='#ff1744';ctx.setLineDash([10,10]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#448aff';ctx.fillRect(50,pongState.y1,20,150);
+ctx.fillStyle='#ff4444';ctx.fillRect(730,pongState.y2,20,150);
+ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,10,0,Math.PI*2);
+ctx.fillStyle='#fff';ctx.fill();
+if(pongState.crown1){ctx.fillStyle='#ffd700';ctx.font='20px VT323';ctx.fillText('👑',30,pongState.y1-10);}
+if(pongState.crown2){ctx.fillStyle='#ffd700';ctx.font='20px VT323';ctx.fillText('👑',760,pongState.y2-10);}
+document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">СИНИЙ: '+pongState.score1+'</span> | <span style="color:#ff4444;">КРАСНЫЙ: '+pongState.score2+'</span>';
+pongAnimationId=requestAnimationFrame(pongLoop);
+}
 </script>
 </body>
 </html>
