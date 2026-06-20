@@ -826,7 +826,7 @@ document.getElementById('pong-status').textContent='Код: '+pongRoomId+' | О�
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
 pongDC.onopen=()=>{startPongGame();};
-pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.opponent_y=d.y;}};
+pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.opponent_y=d.y;}};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({offer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
@@ -841,7 +841,7 @@ if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementBy
 pongRoomId=rid;pongPlayer=2;
 document.getElementById('pong-status').textContent='Подключаюсь...';
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{startPongGame();};pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.opponent_y=d.y;}};};
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{startPongGame();};pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.opponent_y=d.y;}};};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);}};
 try{
 let offer=JSON.parse(data.offer);
@@ -895,7 +895,7 @@ if(pongPlayer===1){if(pongKeys['w']&&pongState.y1>0)pongState.y1-=8;if(pongKeys[
 if(pongPlayer===2){if(pongKeys['ArrowUp']&&pongState.y2>0)pongState.y2-=8;if(pongKeys['ArrowDown']&&pongState.y2<350)pongState.y2+=8;}
 if(pongState.started&&!pongState.game_over){
 pongState.ball_x+=pongState.ball_sx;pongState.ball_y+=pongState.ball_sy;
-if(pongState.ball_y<=10||pongState.ball_y>=490)pongState.ball_sy*=-1;
+if(pongState.ball_y<=10||pongState.ball_y>=490){pongState.ball_sy*=-1;}
 let opY=pongState.opponent_y;
 if(pongState.ball_x<=60&&pongState.ball_y>=pongState.y1&&pongState.ball_y<=pongState.y1+150){pongState.ball_sx=Math.abs(pongState.ball_sx)+1;pongState.ball_sy+=(Math.random()-0.5)*3;}
 if(pongState.ball_x>=740&&pongState.ball_y>=opY&&pongState.ball_y<=opY+150){pongState.ball_sx=-Math.abs(pongState.ball_sx)-1;pongState.ball_sy+=(Math.random()-0.5)*3;}
@@ -904,7 +904,6 @@ if(pongState.ball_x>780){pongState.score1++;pongState.ball_x=400;pongState.ball_
 if(pongState.score1>=15||pongState.score2>=15)pongState.game_over=true;
 pongState.crown1=pongState.score1>=5&&pongState.score1>pongState.score2;
 pongState.crown2=pongState.score2>=5&&pongState.score2>pongState.score1;
-if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,score1:pongState.score1,score2:pongState.score2,game_over:pongState.game_over}));
 }
 if(pongDC&&pongDC.readyState==='open'){
 pongDC.send(JSON.stringify({type:'move',y:pongPlayer===1?pongState.y1:pongState.y2}));
