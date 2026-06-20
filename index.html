@@ -818,6 +818,14 @@ document.getElementById('pong-create-btn').onclick=createPongRoom;
 document.getElementById('pong-join-btn').onclick=joinPongRoom;
 }
 
+async function createPongRoom(){
+pongRoomId=Math.random().toString(36).substring(2,8).toUpperCase();
+pongPlayer=1;
+await supabase.from('pong_signals').insert({id:pongRoomId,offer:'',answer:''});
+document.getElementById('pong-status').textContent='Код: '+pongRoomId+' | Ожидание...';
+await startPongHost();
+}
+
 async function startPongHost(){
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
