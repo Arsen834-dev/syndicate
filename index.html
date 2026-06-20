@@ -818,15 +818,6 @@ document.getElementById('pong-create-btn').onclick=createPongRoom;
 document.getElementById('pong-join-btn').onclick=joinPongRoom;
 }
 
-async function createPongRoom(){
-pongRoomId=Math.random().toString(36).substring(2,8).toUpperCase();
-pongPlayer=1;
-await supabase.from('pong_signals').insert({id:pongRoomId,offer:'',answer:''});
-document.getElementById('pong-status').textContent='Код: '+pongRoomId+' | Ожидание...';
-pongChannel=supabase.channel('sig-'+pongRoomId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongRoomId},async payload=>{if(payload.new.answer&&payload.new.answer!==''){await pongPC.setRemoteDescription({type:'answer',sdp:payload.new.answer});}}).subscribe();
-await startPongHost();
-}
-
 async function startPongHost(){
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
@@ -834,7 +825,19 @@ setupDataChannel();
 pongPC.onicecandidate=e=>{if(e.candidate)console.log('ICE candidate:',e.candidate);};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
-await supabase.from('pong_signals').update({offer:JSON.stringify(offer)}).eq('id',pongRoomId);
+await supabase.from('pong_signals').update({offer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);
+}
+
+async function startPongHost(){
+pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+pongDC=pongPC.createDataChannel('pong');
+setupDataChannel();
+pongPC.onicecandidate=e=>{if(e.candidate)console.log('ICE candidate:',e.candidate);};
+pongPC.onnegotiationneeded=async()=>{
+let offer=await pongPC.createOffer();
+await pongPC.setLocalDescription(offer);
+await supabase.from('pong_signals').update({offer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);
+};
 }
 
 async function joinPongRoom(){
@@ -847,7 +850,7 @@ document.getElementById('pong-status').textContent='Подключаюсь...';
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongPC.ondatachannel=e=>{pongDC=e.channel;setupDataChannel();};
 pongPC.onicecandidate=async e=>{if(e.candidate)console.log('ICE candidate:',e.candidate);};
-await pongPC.setRemoteDescription({type:'offer',sdp:JSON.parse(data.offer).sdp});
+await pongPC.setRemoteDescription(JSON.parse(data.offer));
 let answer=await pongPC.createAnswer();
 await pongPC.setLocalDescription(answer);
 await supabase.from('pong_signals').update({answer:JSON.stringify(answer)}).eq('id',pongRoomId);
