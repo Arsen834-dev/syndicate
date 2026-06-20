@@ -830,9 +830,8 @@ pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.bal
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({offer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
-pongChannel=supabase.channel('sig-'+pongRoomId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongRoomId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC){try{await pongPC.setRemoteDescription(JSON.parse(payload.new.answer));}catch(e){console.log('RTC error:',e);}}}).subscribe();
+pongChannel=supabase.channel('sig-'+pongRoomId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongRoomId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){console.log('Set remote error:',e);}}}).subscribe();
 }
-
 async function joinPongRoom(){
 let rid=document.getElementById('pong-room-input').value.trim().toUpperCase();
 if(!rid)return;
@@ -843,9 +842,12 @@ document.getElementById('pong-status').textContent='Подключаюсь...';
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
 pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{document.getElementById('pong-status').textContent='Игра началась!';startPongGame();};pongDC.onmessage=e=>{let d=JSON.parse(e.data);if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;}if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}if(d.type==='move'){pongState.y1=d.y1;}};};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);}};
-await pongPC.setRemoteDescription(JSON.parse(data.offer));
+try{
+let offer=JSON.parse(data.offer);
+await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
 let answer=await pongPC.createAnswer();
 await pongPC.setLocalDescription(answer);
+}catch(e){console.log('Join error:',e);document.getElementById('pong-status').textContent='Ошибка подключения';}
 }
 
 function startPongGame(){
