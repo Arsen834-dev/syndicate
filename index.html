@@ -823,16 +823,6 @@ pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]
 pongDC=pongPC.createDataChannel('pong');
 setupDataChannel();
 pongPC.onicecandidate=e=>{if(e.candidate)console.log('ICE candidate:',e.candidate);};
-let offer=await pongPC.createOffer();
-await pongPC.setLocalDescription(offer);
-await supabase.from('pong_signals').update({offer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);
-}
-
-async function startPongHost(){
-pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-pongDC=pongPC.createDataChannel('pong');
-setupDataChannel();
-pongPC.onicecandidate=e=>{if(e.candidate)console.log('ICE candidate:',e.candidate);};
 pongPC.onnegotiationneeded=async()=>{
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
@@ -853,7 +843,7 @@ pongPC.onicecandidate=async e=>{if(e.candidate)console.log('ICE candidate:',e.ca
 await pongPC.setRemoteDescription(JSON.parse(data.offer));
 let answer=await pongPC.createAnswer();
 await pongPC.setLocalDescription(answer);
-await supabase.from('pong_signals').update({answer:JSON.stringify(answer)}).eq('id',pongRoomId);
+await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongRoomId);
 }
 
 function setupDataChannel(){
