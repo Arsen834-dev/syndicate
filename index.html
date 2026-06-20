@@ -799,7 +799,8 @@ document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)return;let ctx=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx.clearRect(0,0,c.width,c.height);let ns=document.querySelectorAll('.web-node');if(ns.length<2)return;let mx=null,my=null;ns.forEach(function(n){let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();if(n.dataset.agent===CA.name){mx=r.left+r.width/2-cr.left;my=r.top+r.height/2-cr.top;}});if(!mx)return;ns.forEach(function(n){if(n.dataset.agent===CA.name)return;let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(r.left+r.width/2-cr.left,r.top+r.height/2-cr.top);ctx.strokeStyle='rgba(255,23,68,0.6)';ctx.lineWidth=1.5;ctx.stroke();});},100);
 let pongChannel=null,pongRoomId=null,pongPlayer=null,pongAnimationId=null;
-let pongState={ball_x:400,ball_y:250,ball_sx:4,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_started:false,game_over:false,parry1:0,parry2:0,crown1:false,crown2:false};
+let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_started:false,game_over:false,crown1:false,crown2:false};
+let pongLastSent=0;
 
 async function initPong(){
 document.getElementById('pong-menu').style.display='block';
@@ -810,27 +811,27 @@ document.getElementById('pong-status').textContent='';
 pongRoomId=null;pongPlayer=null;
 if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
-pongState={ball_x:400,ball_y:250,ball_sx:4,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_started:false,game_over:false,parry1:0,parry2:0,crown1:false,crown2:false};
+pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_started:false,game_over:false,crown1:false,crown2:false};
 document.getElementById('pong-create-btn').onclick=createPongRoom;
 document.getElementById('pong-join-btn').onclick=joinPongRoom;
 }
 
 async function createPongRoom(){
 let rid=Math.random().toString(36).substring(2,8).toUpperCase();
-let{error}=await supabase.from('pong_rooms').insert({id:rid,player1:CA.name,ball_x:400,ball_y:250,ball_sx:4,ball_sy:2,score1:0,score2:0,game_started:false,game_over:false});
-if(error){document.getElementById('pong-status').textContent='Ошибка создания комнаты';return;}
+let{error}=await supabase.from('pong_rooms').insert({id:rid,player1:CA.name,ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,player1_y:200,player2_y:200,game_started:false,game_over:false});
+if(error){document.getElementById('pong-status').textContent='Ошибка: '+error.message;return;}
 pongRoomId=rid;pongPlayer=1;
-document.getElementById('pong-status').textContent='Код комнаты: '+rid+' | Ожидание игрока...';
+document.getElementById('pong-status').textContent='Код: '+rid+' | Ожидание...';
 subscribePongRoom();
 }
 
 async function joinPongRoom(){
 let rid=document.getElementById('pong-room-input').value.trim().toUpperCase();
-if(!rid){document.getElementById('pong-status').textContent='Введи код комнаты';return;}
+if(!rid)return;
 let{data}=await supabase.from('pong_rooms').select('*').eq('id',rid).maybeSingle();
-if(!data){document.getElementById('pong-status').textContent='Комната не найдена';return;}
-if(data.player2){document.getElementById('pong-status').textContent='Комната занята';return;}
-await supabase.from('pong_rooms').update({player2:CA.name,game_started:true,ball_sx:4,ball_sy:2}).eq('id',rid);
+if(!data){document.getElementById('pong-status').textContent='Не найдена';return;}
+if(data.player2){document.getElementById('pong-status').textContent='Занята';return;}
+await supabase.from('pong_rooms').update({player2:CA.name,game_started:true,ball_sx:5,ball_sy:2}).eq('id',rid);
 pongRoomId=rid;pongPlayer=2;
 document.getElementById('pong-status').textContent='Подключён!';
 subscribePongRoom();
@@ -840,30 +841,27 @@ function subscribePongRoom(){
 if(pongChannel)supabase.removeChannel(pongChannel);
 pongChannel=supabase.channel('pong-'+pongRoomId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_rooms',filter:'id=eq.'+pongRoomId},payload=>{
 let d=payload.new;
-if(d.game_started&&!pongState.game_started){startPongGame();}
+if(d.game_started&&!pongState.game_started)startPongGame();
 pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;
 pongState.score1=d.score1;pongState.score2=d.score2;pongState.game_over=d.game_over;
-pongState.y2=d.player2_y||pongState.y2;pongState.y1=d.player1_y||pongState.y1;
-if(pongPlayer===1&&d.game_started&&!pongState.game_over)updateBall();
+if(pongPlayer===1)pongState.y2=d.player2_y||200;
+if(pongPlayer===2)pongState.y1=d.player1_y||200;
+if(pongPlayer===1&&d.game_started&&!d.game_over)updateBall();
 }).subscribe();
 }
 
 async function updateBall(){
 let b=pongState;
 b.ball_x+=b.ball_sx;b.ball_y+=b.ball_sy;
-if(b.ball_y<=10||b.ball_y>=490){b.ball_sy*=-1;playPongSound('bounce');}
-if(b.ball_x<=70&&b.ball_x>=50&&b.ball_y>=b.y1&&b.ball_y<=b.y1+150){b.ball_sx=Math.abs(b.ball_sx)+1;b.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce');}
-if(b.ball_x>=730&&b.ball_x<=750&&b.ball_y>=b.y2&&b.ball_y<=b.y2+150){b.ball_sx=-Math.abs(b.ball_sx)-1;b.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce');}
-if(b.ball_x<20){b.score2++;b.ball_x=400;b.ball_y=250;b.ball_sx=4;b.ball_sy=2;}
-if(b.ball_x>780){b.score1++;b.ball_x=400;b.ball_y=250;b.ball_sx=-4;b.ball_sy=2;}
+if(b.ball_y<=10||b.ball_y>=490)b.ball_sy*=-1;
+if(b.ball_x<=70&&b.ball_y>=b.y1&&b.ball_y<=b.y1+150){b.ball_sx=Math.abs(b.ball_sx)+1;b.ball_sy+=(Math.random()-0.5)*3;}
+if(b.ball_x>=730&&b.ball_y>=b.y2&&b.ball_y<=b.y2+150){b.ball_sx=-Math.abs(b.ball_sx)-1;b.ball_sy+=(Math.random()-0.5)*3;}
+if(b.ball_x<20){b.score2++;b.ball_x=400;b.ball_y=250;b.ball_sx=5;b.ball_sy=2;}
+if(b.ball_x>780){b.score1++;b.ball_x=400;b.ball_y=250;b.ball_sx=-5;b.ball_sy=2;}
 if(b.score1>=15||b.score2>=15)b.game_over=true;
-if(b.score1>=5&&b.score1>b.score2)b.crown1=true;else b.crown1=false;
-if(b.score2>=5&&b.score2>b.score1)b.crown2=true;else b.crown2=false;
+b.crown1=b.score1>=5&&b.score1>b.score2;
+b.crown2=b.score2>=5&&b.score2>b.score1;
 await supabase.from('pong_rooms').update({ball_x:b.ball_x,ball_y:b.ball_y,ball_sx:b.ball_sx,ball_sy:b.ball_sy,score1:b.score1,score2:b.score2,game_over:b.game_over,player1_y:b.y1,player2_y:b.y2}).eq('id',pongRoomId);
-}
-
-function playPongSound(type){
-try{let s=new Audio(type==='bounce'?'bounce1.mp3':'parry-ultrakill.mp3');s.volume=0.3;s.play().catch(()=>{});}catch(e){}
 }
 
 function startPongGame(){
@@ -877,36 +875,31 @@ pongLoop();
 }
 
 let pongKeys={};
-let pongSendTimer=null;
 function pongKeyDown(e){
 pongKeys[e.key]=true;
-if(e.key===' '&&pongPlayer===1){pongState.ball_sx=Math.abs(pongState.ball_sx)+6;pongState.ball_sy=(Math.random()-0.5)*6;playPongSound('parry');supabase.from('pong_rooms').update({ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy}).eq('id',pongRoomId);}
-if(e.key==='Enter'&&pongPlayer===2){pongState.ball_sx=-Math.abs(pongState.ball_sx)-6;pongState.ball_sy=(Math.random()-0.5)*6;playPongSound('parry');supabase.from('pong_rooms').update({ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy}).eq('id',pongRoomId);}
-if(e.key==='e'&&pongState.game_over){supabase.from('pong_rooms').update({score1:0,score2:0,ball_x:400,ball_y:250,ball_sx:4,ball_sy:2,game_over:false,player1_y:200,player2_y:200}).eq('id',pongRoomId);pongState.game_over=false;document.getElementById('pong-winner').style.display='none';}
+if(e.key===' '&&pongPlayer===1){pongState.ball_sx=Math.abs(pongState.ball_sx)+8;supabase.from('pong_rooms').update({ball_sx:pongState.ball_sx,ball_sy:(Math.random()-0.5)*6}).eq('id',pongRoomId);}
+if(e.key==='Enter'&&pongPlayer===2){pongState.ball_sx=-Math.abs(pongState.ball_sx)-8;supabase.from('pong_rooms').update({ball_sx:pongState.ball_sx,ball_sy:(Math.random()-0.5)*6}).eq('id',pongRoomId);}
+if(e.key==='e'&&pongState.game_over){supabase.from('pong_rooms').update({score1:0,score2:0,ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,game_over:false,player1_y:200,player2_y:200}).eq('id',pongRoomId);pongState.game_over=false;document.getElementById('pong-winner').style.display='none';}
 }
 function pongKeyUp(e){pongKeys[e.key]=false;}
 
-async function sendPaddlePosition(){
-if(!pongRoomId||!pongPlayer)return;
-if(pongPlayer===1)await supabase.from('pong_rooms').update({player1_y:pongState.y1}).eq('id',pongRoomId);
-if(pongPlayer===2)await supabase.from('pong_rooms').update({player2_y:pongState.y2}).eq('id',pongRoomId);
-}
-
 function pongLoop(){
-if(pongPlayer===1){if(pongKeys['w']&&pongState.y1>0)pongState.y1-=8;if(pongKeys['s']&&pongState.y1<350)pongState.y1+=8;}
-if(pongPlayer===2){if(pongKeys['ArrowUp']&&pongState.y2>0)pongState.y2-=8;if(pongKeys['ArrowDown']&&pongState.y2<350)pongState.y2+=8;}
-if(!pongSendTimer||Date.now()-pongSendTimer>100){sendPaddlePosition();pongSendTimer=Date.now();}
+if(pongPlayer===1){if(pongKeys['w']&&pongState.y1>0)pongState.y1-=10;if(pongKeys['s']&&pongState.y1<350)pongState.y1+=10;}
+if(pongPlayer===2){if(pongKeys['ArrowUp']&&pongState.y2>0)pongState.y2-=10;if(pongKeys['ArrowDown']&&pongState.y2<350)pongState.y2+=10;}
+let now=Date.now();
+if(now-pongLastSent>50){let data=pongPlayer===1?{player1_y:pongState.y1}:{player2_y:pongState.y2};supabase.from('pong_rooms').update(data).eq('id',pongRoomId);pongLastSent=now;}
 let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
+c.width=800;c.height=500;
 ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
-ctx.strokeStyle='#ff1744';ctx.setLineDash([10,10]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
-ctx.fillStyle='#448aff';ctx.fillRect(50,pongState.y1,20,150);
-ctx.fillStyle='#ff4444';ctx.fillRect(730,pongState.y2,20,150);
-ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,10,0,Math.PI*2);
+ctx.strokeStyle='#333';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#448aff';ctx.fillRect(40,pongState.y1,20,150);
+ctx.fillStyle='#ff4444';ctx.fillRect(740,pongState.y2,20,150);
+ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,12,0,Math.PI*2);
 ctx.fillStyle='#fff';ctx.fill();
-if(pongState.crown1){ctx.fillStyle='#ffd700';ctx.font='20px VT323';ctx.fillText('👑',30,pongState.y1-10);}
-if(pongState.crown2){ctx.fillStyle='#ffd700';ctx.font='20px VT323';ctx.fillText('👑',760,pongState.y2-10);}
-document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">СИНИЙ: '+pongState.score1+'</span> | <span style="color:#ff4444;">КРАСНЫЙ: '+pongState.score2+'</span>';
-if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=15?'👑 СИНИЙ ПОБЕДИЛ!':'👑 КРАСНЫЙ ПОБЕДИЛ!';}
+if(pongState.crown1){ctx.font='24px serif';ctx.fillText('👑',15,pongState.y1-10);}
+if(pongState.crown2){ctx.font='24px serif';ctx.fillText('👑',745,pongState.y2-10);}
+document.getElementById('pong-score').innerHTML='<span style="color:#448aff;font-size:1.5rem;">'+pongState.score1+'</span> <span style="color:#fff;">-</span> <span style="color:#ff4444;font-size:1.5rem;">'+pongState.score2+'</span>';
+if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=15?'👑 СИНИЙ ПОБЕДИЛ! (E - рестарт)':'👑 КРАСНЫЙ ПОБЕДИЛ! (E - рестарт)';}
 pongAnimationId=requestAnimationFrame(pongLoop);
 }
 </script>
