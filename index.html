@@ -272,6 +272,10 @@
 .f-spike{border:3px solid #ff1744!important;display:inline-block!important}
 }
 @keyframes rainbow-border-mobile{0%{box-shadow:0 0 0 2px #ff1744,0 0 15px #ff1744}16%{box-shadow:0 0 0 2px #ffd700,0 0 15px #ffd700}33%{box-shadow:0 0 0 2px #00ff41,0 0 15px #00ff41}50%{box-shadow:0 0 0 2px #448aff,0 0 15px #448aff}66%{box-shadow:0 0 0 2px #b388ff,0 0 15px #b388ff}83%{box-shadow:0 0 0 2px #ff80ab,0 0 15px #ff80ab}100%{box-shadow:0 0 0 2px #ff1744,0 0 15px #ff1744}}
+@media(max-width:768px){
+#app-pong .app-content{padding:0!important}
+#pong-canvas{width:100%!important;height:auto!important;max-width:100%!important}
+}
     </style>
 </head>
 <body>
@@ -307,6 +311,7 @@
 <canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;"></canvas>
 <p id="pong-score" style="color:#ff1744;font-size:1.5rem;display:none;"></p>
 <p id="pong-winner" style="color:#ffd700;font-size:1.5rem;display:none;"></p>
+<button id="pong-restart-btn" class="modal-btn" style="display:none;margin:10px auto;" onclick="pongRestart()">🔄 РЕСТАРТ</button>
 </div></div>
 <div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close mobile-only" onclick="document.getElementById('announcements-wall').style.display='none';if(window.innerWidth<=768)document.getElementById('announce-toggle-btn').style.display='block'" style="font-size:0.8rem;padding:3px 10px;">ЗАКРЫТЬ</button><div class="announce-filters"><button class="announce-filter-btn active" data-filter="all">ВСЕ</button><button class="announce-filter-btn" data-filter="news">📰 НОВОСТИ</button><button class="announce-filter-btn" data-filter="event">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" data-filter="auction">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" data-filter="update">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" data-filter="wanted">🔍 РОЗЫСК</button></div></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
     <div id="app-chat" class="app-screen"><div class="app-header"><span class="app-title">💬 ЧАТ</span><button class="app-close" data-close="chat">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;flex-direction:column;height:calc(100% - 50px);"><div class="chat-tabs" id="chat-tabs"><button class="chat-tab active" data-tab="general">💬 ОБЩИЙ</button><button class="chat-tab" data-tab="clan">⚔️ ОТРЯД</button><button class="chat-tab" data-tab="admin" style="display:none" id="admin-tab-btn">🛡 АДМИН</button></div><div class="pinned-header" id="chat-pinned-header"></div><div class="chat-messages" id="chat-messages"></div><div id="reply-indicator" class="reply-indicator" style="display:none;"></div><div id="typing-indicator" style="color:#cc0000;font-size:0.8rem;padding:2px 10px;display:none;min-height:20px;"></div><div class="chat-input-row" id="chat-input-row"><button class="emoji-btn" id="chat-emoji-btn">😊</button><input type="file" id="chat-file-input" accept="image/*" style="display:none"><button class="emoji-btn" id="chat-file-btn">📎</button><input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-msg-btn" style="margin:0;">▶</button></div></div></div>
@@ -869,6 +874,9 @@ c.addEventListener('touchstart',pongTouchStart);
 pongState.started=true;
 pongLoop();
 }
+if(window.innerWidth<=768){
+screen.orientation.lock('landscape').catch(()=>{});
+}
 
 let pongTouchY=null;
 function pongTouchStart(e){pongTouchY=e.touches[0].clientY;}
@@ -918,6 +926,15 @@ ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,12,0,Math.PI*2);ctx.fi
 document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">'+pongState.score1+'</span> - <span style="color:#ff4444;">'+pongState.score2+'</span>';
 if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=15?'👑 СИНИЙ ПОБЕДИЛ! (E - рестарт)':'👑 КРАСНЫЙ ПОБЕДИЛ! (E - рестарт)';}
 pongAnimationId=requestAnimationFrame(pongLoop);
+}
+if(pongState.game_over){
+document.getElementById('pong-winner').style.display='block';
+document.getElementById('pong-restart-btn').style.display='block';
+}
+function pongRestart(){
+pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,opponent_y:200,game_over:false,crown1:false,crown2:false,started:true};
+document.getElementById('pong-winner').style.display='none';
+document.getElementById('pong-restart-btn').style.display='none';
 }
 </script>
 </body>
