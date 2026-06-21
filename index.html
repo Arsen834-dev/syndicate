@@ -913,6 +913,9 @@ pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'U
 }
 
 function onOpponentConnected(){}
+function onOpponentConnected(){
+if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));
+}
 function handleOpponentDisconnect(){
 document.getElementById('pong-player2-name').textContent='Ошибка';
 document.getElementById('pong-player2-status').textContent='Сигнал потерян';
