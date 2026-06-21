@@ -820,6 +820,8 @@ let pongState = {ball_x:400, ball_y:250, ball_sx:5, ball_sy:2, score1:0, score2:
 let pongKeys = {}, pongOpponentName = '', pongMyName = '', pongTouchY = null, pongTouchActive = false;
 let pongBg = new Image(); pongBg.src = 'background.png';
 let pongSounds = {};
+let pongLastBroadcast = 0;
+let pongLastMoveBroadcast = 0;
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s => {
     pongSounds[s] = new Audio(s + '.mp3');
     pongSounds[s].volume = 0.3;
@@ -1231,8 +1233,15 @@ function leaveLobby() {
     initPong();
 }
 
+let pongLastBroadcast = 0;
+let pongLastMoveBroadcast = 0;
+const PONG_BROADCAST_INTERVAL = 50; // 20 раз в секунду для состояния
+const PONG_MOVE_INTERVAL = 33; // 30 раз в секунду для движения
+
 function pongLoop() {
-    // Управление
+    const now = Date.now();
+    
+    // Управление (отправляем движение отдельно, реже)
     if (pongPlayer === 1) {
         if (pongKeys['w'] || pongKeys['W'] || pongKeys['KeyW'] || pongKeys['ц'] || pongKeys['Ц']) {
             if (pongState.y1 > 0) pongState.y1 -= 8;
@@ -1240,7 +1249,10 @@ function pongLoop() {
         if (pongKeys['s'] || pongKeys['S'] || pongKeys['KeyS'] || pongKeys['ы'] || pongKeys['Ы']) {
             if (pongState.y1 < 350) pongState.y1 += 8;
         }
-        broadcastGame({ type: 'move', y: pongState.y1 });
+        if (now - pongLastMoveBroadcast > PONG_MOVE_INTERVAL) {
+            broadcastGame({ type: 'move', y: pongState.y1 });
+            pongLastMoveBroadcast = now;
+        }
     }
     if (pongPlayer === 2) {
         if (pongKeys['ArrowUp'] || pongKeys['Up']) {
@@ -1249,7 +1261,10 @@ function pongLoop() {
         if (pongKeys['ArrowDown'] || pongKeys['Down']) {
             if (pongState.y2 < 350) pongState.y2 += 8;
         }
-        broadcastGame({ type: 'move', y: pongState.y2 });
+        if (now - pongLastMoveBroadcast > PONG_MOVE_INTERVAL) {
+            broadcastGame({ type: 'move', y: pongState.y2 });
+            pongLastMoveBroadcast = now;
+        }
     }
     
     // Физика (только хост)
@@ -1259,7 +1274,6 @@ function pongLoop() {
         
         if (pongState.ball_y <= 10 || pongState.ball_y >= 490) {
             pongState.ball_sy *= -1;
-            playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
         let leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
@@ -1291,19 +1305,23 @@ function pongLoop() {
             supabase.from('pong_lobbies').delete().eq('id', pongLobbyId);
         }
         
-        broadcastGame({
-            type: 'state',
-            ball_x: pongState.ball_x,
-            ball_y: pongState.ball_y,
-            ball_sx: pongState.ball_sx,
-            ball_sy: pongState.ball_sy,
-            score1: pongState.score1,
-            score2: pongState.score2,
-            game_over: pongState.game_over
-        });
+        // Отправляем состояние игры не каждый кадр
+        if (now - pongLastBroadcast > PONG_BROADCAST_INTERVAL) {
+            broadcastGame({
+                type: 'state',
+                ball_x: Math.round(pongState.ball_x),
+                ball_y: Math.round(pongState.ball_y),
+                ball_sx: parseFloat(pongState.ball_sx.toFixed(1)),
+                ball_sy: parseFloat(pongState.ball_sy.toFixed(1)),
+                score1: pongState.score1,
+                score2: pongState.score2,
+                game_over: pongState.game_over
+            });
+            pongLastBroadcast = now;
+        }
     }
     
-    // Отрисовка
+    // Отрисовка (без изменений)
     let c = document.getElementById('pong-canvas');
     if (!c) return;
     let ctx = c.getContext('2d');
@@ -1358,7 +1376,6 @@ function pongLoop() {
     
     if (!pongState.game_over) pongAnimationId = requestAnimationFrame(pongLoop);
 }
-
 function resetBall() {
     pongState.ball_x = 400;
     pongState.ball_y = 250;
