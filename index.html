@@ -1042,6 +1042,7 @@ if(pongState.ball_x>780){pongState.score1++;pongState.ball_x=400;pongState.ball_
 if(pongState.score1>=10||pongState.score2>=10){pongState.game_over=true;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
 }
 if(pongDC&&pongDC.readyState==='open'){
+if(pongPlayer===1)pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));
 if(pongPlayer===1)pongDC.send(JSON.stringify({type:'move',y:pongState.y1}));
 if(pongPlayer===2)pongDC.send(JSON.stringify({type:'move',y:pongState.y2}));
 }
