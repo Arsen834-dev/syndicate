@@ -174,7 +174,9 @@
 
 .profile-rainbow{animation:rainbowShift 4s linear infinite!important;border:2px solid!important}
 @keyframes rainbowShift{0%{background:rgba(255,23,68,0.3);border-color:#ff1744;box-shadow:0 0 50px rgba(255,23,68,0.4)}16%{background:rgba(255,215,0,0.3);border-color:#ffd700;box-shadow:0 0 50px rgba(255,215,0,0.4)}33%{background:rgba(0,255,65,0.3);border-color:#00ff41;box-shadow:0 0 50px rgba(0,255,65,0.4)}50%{background:rgba(68,138,255,0.3);border-color:#448aff;box-shadow:0 0 50px rgba(68,138,255,0.4)}66%{background:rgba(179,136,255,0.3);border-color:#b388ff;box-shadow:0 0 50px rgba(179,136,255,0.4)}83%{background:rgba(255,128,171,0.3);border-color:#ff80ab;box-shadow:0 0 50px rgba(255,128,171,0.4)}100%{background:rgba(255,23,68,0.3);border-color:#ff1744;box-shadow:0 0 50px rgba(255,23,68,0.4)}}
-	/* Стили мемов */
+#pong-score{background:rgba(0,0,0,0.8);padding:5px 15px;border:1px solid #ff1744;border-radius:4px;display:inline-block;margin:5px auto}
+#pong-winner{background:rgba(0,0,0,0.9);padding:15px 30px;border:2px solid #ffd700;font-size:1.5rem;animation:glowPulse 1s infinite}	
+/* Стили мемов */
         .meme-card{border:2px solid #ff1744;padding:15px;margin:10px 0;background:rgba(0,0,0,0.8);transition:0.2s}
         .meme-card:hover{background:rgba(255,23,68,0.05);box-shadow:0 0 15px rgba(255,23,68,0.15)}
         .meme-image{max-width:100%;max-height:400px;border:1px solid #ff1744;margin:10px 0;display:block}
@@ -817,8 +819,6 @@ let pongBg=new Image();pongBg.src='background.png';
 let pongSounds={};
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
 
-function pongClick(){try{let s=new Audio('click.mp3');s.volume=0.3;s.play().catch(()=>{});}catch(e){}}
-
 function initPong(){
 if(pongPC){pongPC.close();pongPC=null;}
 if(pongDC){pongDC.close();pongDC=null;}
@@ -882,56 +882,51 @@ resetPongUI();
 document.getElementById('pong-lobby-room').style.display='block';
 document.getElementById('pong-lobby-name-display').textContent='🏓 '+name;
 document.getElementById('pong-lobby-code').textContent=code?'Код: '+code:'';
-document.getElementById('pong-player1-name').textContent=pongMyName+' (Синий)';
-document.getElementById('pong-player1-status').textContent=pongReady?'Готов':'Не готов';
-document.getElementById('pong-player2-name').textContent=pongOpponentName?pongOpponentName+' (Красный)':'Ожидание...';
-document.getElementById('pong-player2-status').textContent=pongOpponentReady?'Готов':(pongOpponentName?'Не готов':'');
-document.getElementById('pong-ready-btn').style.display='block';
-document.getElementById('pong-ready-btn').textContent=pongReady?'✓ ГОТОВ':'ГОТОВ';
-document.getElementById('pong-ready-btn').disabled=pongReady;
-document.getElementById('pong-ready-btn').onclick=()=>{pongClick();pongSetReady();};
-document.getElementById('pong-start-btn').style.display=(pongReady&&pongOpponentReady&&pongIsAdmin)?'block':'none';
-document.getElementById('pong-start-btn').onclick=()=>{pongClick();startCountdown();};
-if(pongIsAdmin){document.getElementById('pong-leave-btn').style.display='block';document.getElementById('pong-leave-btn').onclick=()=>{pongClick();leaveLobby();};}
+refreshLobbyUI();
+if(pongIsAdmin){document.getElementById('pong-leave-btn').style.display='block';document.getElementById('pong-leave-btn').onclick=()=>{leaveLobby();};}
 document.getElementById('pong-rules').style.display='block';
 }
 
-function updateReadyUI(){
+function refreshLobbyUI(){
+let p1name=pongPlayer===1?pongMyName:pongOpponentName;
+let p2name=pongPlayer===1?pongOpponentName:pongMyName;
+document.getElementById('pong-player1-name').textContent=(p1name||'???')+' (Синий)';
 document.getElementById('pong-player1-status').textContent=pongReady?'Готов':'Не готов';
-document.getElementById('pong-player2-status').textContent=pongOpponentReady?'Готов':(pongOpponentName?'Не готов':'');
+document.getElementById('pong-player2-name').textContent=p2name?(p2name+' (Красный)'):'Ожидание...';
+document.getElementById('pong-player2-status').textContent=pongOpponentReady?'Готов':(p2name?'Не готов':'');
 document.getElementById('pong-ready-btn').textContent=pongReady?'✓ ГОТОВ':'ГОТОВ';
-document.getElementById('pong-ready-btn').disabled=pongReady;
+document.getElementById('pong-ready-btn').onclick=()=>{pongSetReady();};
 document.getElementById('pong-start-btn').style.display=(pongReady&&pongOpponentReady&&pongIsAdmin)?'block':'none';
+document.getElementById('pong-start-btn').onclick=()=>{startCountdown();};
 }
 
 async function startPongHost(){
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
+pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};
 pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
 pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
-pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));onOpponentConnected();}catch(e){}}}).subscribe();
+pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
 }
 
-function onOpponentConnected(){
-if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'ready',name:pongMyName,ready:pongReady}));
+function onOpponentConnected(){}
+function handleOpponentDisconnect(){
+document.getElementById('pong-player2-name').textContent='Ошибка';
+document.getElementById('pong-player2-status').textContent='Сигнал потерян';
 }
 
 function pongSetReady(){
 pongReady=!pongReady;
-if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'ready',name:pongMyName,ready:pongReady}));
-updateReadyUI();
+if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'ready',ready:pongReady}));
+refreshLobbyUI();
 }
 
 function handlePongMessage(d){
-if(d.type==='ready'){
-pongOpponentReady=d.ready;
-if(d.name)pongOpponentName=d.name;
-document.getElementById('pong-player2-name').textContent=(pongOpponentName||'Соперник')+' (Красный)';
-updateReadyUI();
-}
+if(d.type==='sync'){pongOpponentName=d.name;pongOpponentReady=d.ready;refreshLobbyUI();}
+if(d.type==='ready'){pongOpponentReady=d.ready;refreshLobbyUI();}
 if(d.type==='start_countdown'){startCountdown();}
 if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}
 if(d.type==='move'){pongState.opponent_y=d.y;}
@@ -1028,6 +1023,9 @@ if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'move',y:
 let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
 c.width=800;c.height=500;
 ctx.drawImage(pongBg,0,0,800,500);
+ctx.fillStyle='rgba(0,0,0,0.4)';ctx.fillRect(0,0,800,30);
+ctx.fillStyle='#448aff';ctx.font='16px VT323';ctx.fillText(pongPlayer===1?pongMyName:pongOpponentName,10,22);
+ctx.fillStyle='#ff4444';let rn=pongPlayer===1?pongOpponentName:pongMyName;ctx.fillText(rn,790-ctx.measureText(rn).width,22);
 ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
 ctx.fillStyle='#448aff';ctx.fillRect(40,pongPlayer===1?pongState.y1:pongState.opponent_y,20,150);
 ctx.fillStyle='#ff4444';ctx.fillRect(740,pongPlayer===1?pongState.opponent_y:pongState.y2,20,150);
@@ -1039,7 +1037,11 @@ ctx.fill();
 if(pongState.score1>pongState.score2){ctx.fillStyle='#448aff';ctx.font='24px serif';ctx.fillText('👑',pongState.ball_x-15,pongState.ball_y-20);}
 if(pongState.score2>pongState.score1){ctx.fillStyle='#ff4444';ctx.font='24px serif';ctx.fillText('👑',pongState.ball_x-15,pongState.ball_y-20);}
 document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">'+pongState.score1+'</span> - <span style="color:#ff4444;">'+pongState.score2+'</span>';
-if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=10?'👑 СИНИЙ ПОБЕДИЛ!':'👑 КРАСНЫЙ ПОБЕДИЛ!';}
+if(pongState.game_over){
+let winnerName=pongState.score1>=10?(pongPlayer===1?pongMyName:pongOpponentName):(pongPlayer===1?pongOpponentName:pongMyName);
+document.getElementById('pong-winner').style.display='block';
+document.getElementById('pong-winner').textContent='👑 '+winnerName+' ПОБЕДИЛ!';
+}
 pongAnimationId=requestAnimationFrame(pongLoop);
 }
 
@@ -1054,14 +1056,10 @@ list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px so
 async function joinLobbyByCode(code){
 let{data}=await supabase.from('pong_lobbies').select('*').or('code.eq.'+code+',id.eq.'+code).maybeSingle();
 if(!data||data.status!=='waiting'){alert('Лобби не найдено или занято');return initPong();}
-pongLobbyId=data.id;pongPlayer=2;
+pongLobbyId=data.id;pongPlayer=2;pongIsAdmin=false;
+pongMyName=CA.name;pongOpponentName=data.player1;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',pongLobbyId);
-pongMyName=CA.name;
-pongOpponentName=data.player1;
 showLobbyRoom(data.name,data.code);
-document.getElementById('pong-leave-btn').style.display='none';
-document.getElementById('pong-player1-name').textContent=data.player1+' (Синий)';
-document.getElementById('pong-player2-name').textContent=pongMyName+' (Красный)';
 joinPongWebRTC();
 }
 
@@ -1069,14 +1067,10 @@ async function joinLobbyById(id){
 document.querySelector('.modal-overlay')?.remove();
 let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
 if(!data||data.status!=='waiting'){initPong();return;}
-pongLobbyId=id;pongPlayer=2;
+pongLobbyId=id;pongPlayer=2;pongIsAdmin=false;
+pongMyName=CA.name;pongOpponentName=data.player1;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
-pongMyName=CA.name;
-pongOpponentName=data.player1;
 showLobbyRoom(data.name,data.code);
-document.getElementById('pong-leave-btn').style.display='none';
-document.getElementById('pong-player1-name').textContent=data.player1+' (Синий)';
-document.getElementById('pong-player2-name').textContent=pongMyName+' (Красный)';
 joinPongWebRTC();
 }
 
@@ -1084,7 +1078,7 @@ async function joinPongWebRTC(){
 let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
 if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-player2-status').textContent='Ошибка сигнала';return;}
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};onOpponentConnected();};
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
 let offer=JSON.parse(data.offer);
 if(typeof offer==='string')offer=JSON.parse(offer);
