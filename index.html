@@ -814,7 +814,7 @@ setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)re
 let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null;
 let pongReady=false,pongOpponentReady=false,pongGameStarted=false,pongIsAdmin=false;
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-let pongKeys={},pongOpponentName='',pongMyName='';
+let pongKeys={},pongOpponentName='',pongMyName='',pongTouchY=null;
 let pongBg=new Image();pongBg.src='background.png';
 let pongSounds={};
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
@@ -826,7 +826,7 @@ if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
 pongReady=false;pongOpponentReady=false;pongGameStarted=false;pongIsAdmin=false;pongOpponentName='';pongMyName=CA?CA.name:'';
 pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-pongKeys={};
+pongKeys={};pongTouchY=null;
 resetPongUI();
 showPongModal();
 }
@@ -892,7 +892,7 @@ let p1name=pongPlayer===1?pongMyName:pongOpponentName;
 let p2name=pongPlayer===1?pongOpponentName:pongMyName;
 document.getElementById('pong-player1-name').textContent=(p1name||'???')+' (Синий)';
 document.getElementById('pong-player1-status').textContent=pongReady?'Готов':'Не готов';
-document.getElementById('pong-player2-name').textContent=p2name?(p2name+' (Красный)'):'Ожидание...';
+document.getElementById('pong-player2-name').textContent=p2name?(p2name+' (Красный)'):(pongOpponentName?'Подключение...':'Ожидание...');
 document.getElementById('pong-player2-status').textContent=pongOpponentReady?'Готов':(p2name?'Не готов':'');
 document.getElementById('pong-ready-btn').textContent=pongReady?'✓ ГОТОВ':'ГОТОВ';
 document.getElementById('pong-ready-btn').onclick=()=>{pongSetReady();};
@@ -910,11 +910,14 @@ pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signa
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
 pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
+supabase.channel('lobby-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_lobbies',filter:'id=eq.'+pongLobbyId},payload=>{if(payload.new.player2&&!pongOpponentName){pongOpponentName=payload.new.player2;refreshLobbyUI();}}).subscribe();
 }
 
 function onOpponentConnected(){
 if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));
+refreshLobbyUI();
 }
+
 function handleOpponentDisconnect(){
 document.getElementById('pong-player2-name').textContent='Ошибка';
 document.getElementById('pong-player2-status').textContent='Сигнал потерян';
@@ -944,9 +947,10 @@ document.getElementById('pong-score').style.display='block';
 document.addEventListener('keydown',pongKeyDown);
 document.addEventListener('keyup',pongKeyUp);
 if(window.innerWidth<=768){
-document.getElementById('pong-canvas').addEventListener('touchstart',pongTouchStart);
-document.getElementById('pong-canvas').addEventListener('touchmove',pongTouchMove,{passive:false});
-document.getElementById('pong-canvas').addEventListener('touchstart',pongTouchParry);
+let c=document.getElementById('pong-canvas');
+c.addEventListener('touchstart',pongTouchParry);
+c.addEventListener('touchmove',pongTouchMove,{passive:false});
+c.addEventListener('touchend',()=>{pongTouchY=null;});
 }
 pongState.started=true;
 pongLoop();
@@ -971,22 +975,18 @@ drawCD();
 if(pongIsAdmin&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
 
-let pongTouchTime=0;
-function pongTouchParry(e){
-let now=Date.now();
-let pongTouchMoveY=null;
-function pongTouchStart(e){
-pongTouchMoveY=e.touches[0].clientY;
-}
 function pongTouchMove(e){
-if(pongTouchMoveY===null)return;
-let newY=e.touches[0].clientY;
-let diff=newY-pongTouchMoveY;
-pongTouchMoveY=newY;
+if(pongTouchY===null){pongTouchY=e.touches[0].clientY;return;}
+let diff=e.touches[0].clientY-pongTouchY;
+pongTouchY=e.touches[0].clientY;
 if(pongPlayer===1)pongState.y1=Math.max(0,Math.min(350,pongState.y1+diff));
 if(pongPlayer===2)pongState.y2=Math.max(0,Math.min(350,pongState.y2+diff));
 e.preventDefault();
 }
+
+let pongTouchTime=0;
+function pongTouchParry(e){
+let now=Date.now();
 if(now-pongTouchTime<300){pongKeyDown({key:' ',preventDefault:()=>{}});}
 pongTouchTime=now;
 }
@@ -1025,18 +1025,25 @@ initPong();
 }
 
 function pongLoop(){
+if(pongPlayer===1){
 if(pongKeys['w']||pongKeys['W']||pongKeys['KeyW']||pongKeys['ц']||pongKeys['Ц']){if(pongState.y1>0)pongState.y1-=8;}
 if(pongKeys['s']||pongKeys['S']||pongKeys['KeyS']||pongKeys['ы']||pongKeys['Ы']){if(pongState.y1<350)pongState.y1+=8;}
+}
+if(pongPlayer===2){
 if(pongKeys['ArrowUp']||pongKeys['Up']){if(pongState.y2>0)pongState.y2-=8;}
 if(pongKeys['ArrowDown']||pongKeys['Down']){if(pongState.y2<350)pongState.y2+=8;}
-if(pongState.started&&!pongState.game_over){
+}
+if(pongState.started&&!pongState.game_over&&pongPlayer===1){
 pongState.ball_x+=pongState.ball_sx;pongState.ball_y+=pongState.ball_sy;
 if(pongState.ball_y<=10||pongState.ball_y>=490){pongState.ball_sy*=-1;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
-if(pongState.ball_x<20){pongState.score2++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=5;pongState.ball_sy=2;}
-if(pongState.ball_x>780){pongState.score1++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=-5;pongState.ball_sy=2;}
+if(pongState.ball_x<20){pongState.score2++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=5;pongState.ball_sy=2;if(pongDC)pongDC.send(JSON.stringify({type:'state',ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:pongState.score1,score2:pongState.score2}));}
+if(pongState.ball_x>780){pongState.score1++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=-5;pongState.ball_sy=2;if(pongDC)pongDC.send(JSON.stringify({type:'state',ball_x:400,ball_y:250,ball_sx:-5,ball_sy:2,score1:pongState.score1,score2:pongState.score2}));}
 if(pongState.score1>=10||pongState.score2>=10){pongState.game_over=true;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
 }
-if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'move',y:pongPlayer===1?pongState.y1:pongState.y2}));
+if(pongDC&&pongDC.readyState==='open'){
+if(pongPlayer===1)pongDC.send(JSON.stringify({type:'move',y:pongState.y1}));
+if(pongPlayer===2)pongDC.send(JSON.stringify({type:'move',y:pongState.y2}));
+}
 let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
 c.width=800;c.height=500;
 ctx.drawImage(pongBg,0,0,800,500);
@@ -1081,7 +1088,8 @@ joinPongWebRTC();
 }
 
 async function joinLobbyById(id){
-document.querySelector('.modal-overlay')?.remove();
+let modal=document.querySelector('.modal-overlay');
+if(modal)modal.remove();
 let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
 if(!data||data.status!=='waiting'){initPong();return;}
 pongLobbyId=id;pongPlayer=2;pongIsAdmin=false;
@@ -1095,7 +1103,7 @@ async function joinPongWebRTC(){
 let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
 if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-player2-status').textContent='Ошибка сигнала';return;}
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};};
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};onOpponentConnected();};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
 let offer=JSON.parse(data.offer);
 if(typeof offer==='string')offer=JSON.parse(offer);
