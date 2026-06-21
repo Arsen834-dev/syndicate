@@ -845,7 +845,7 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ ЛОББИ" value="Быстрая игра"><div style="margin:10px 0;color:#cc0000;">ТИП ЛОББИ:</div><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest('.modal-overlay').remove();initPong();">НАЗАД</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ ЛОББИ" value="Быстрая игра"><div style="margin:10px 0;color:#cc0000;">ТИП ЛОББИ:</div><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();initPong();">НАЗАД</button></div>';
 document.body.appendChild(modal);
 document.getElementById('pong-create-submit').onclick=()=>{
 let name=document.getElementById('pong-lobby-name').value.trim();
