@@ -812,17 +812,21 @@ setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)re
 let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null;
 let pongReady=false,pongOpponentReady=false,pongGameStarted=false,pongIsAdmin=false;
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-let pongKeys={},pongOpponentName='';
+let pongKeys={},pongOpponentName='',pongMyName='';
 let pongBg=new Image();pongBg.src='background.png';
 let pongSounds={};
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
+
+function pongClick(){try{let s=new Audio('click.mp3');s.volume=0.3;s.play().catch(()=>{});}catch(e){}}
 
 function initPong(){
 if(pongPC){pongPC.close();pongPC=null;}
 if(pongDC){pongDC.close();pongDC=null;}
 if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
-pongReady=false;pongOpponentReady=false;pongGameStarted=false;pongIsAdmin=false;pongOpponentName='';
+pongReady=false;pongOpponentReady=false;pongGameStarted=false;pongIsAdmin=false;pongOpponentName='';pongMyName=CA?CA.name:'';
+pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
+pongKeys={};
 resetPongUI();
 showPongModal();
 }
@@ -836,12 +840,12 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">🎮 KING PONG</div><button class="modal-btn" id="pong-create-btn3" style="width:100%;">СОЗДАТЬ ЛОББИ</button><div style="color:#ff1744;margin:10px 0;">ОТКРЫТЫЕ ЛОББИ:</div><div id="pong-modal-lobbies" style="max-height:150px;overflow-y:auto;"></div><button class="modal-btn" id="pong-refresh-btn3" style="width:100%;margin:5px 0;">🔄 ОБНОВИТЬ</button><input type="text" class="chat-input" id="pong-code-input3" placeholder="КОД ЗАКРЫТОГО ЛОББИ" style="width:200px;text-align:center;display:block;margin:5px auto;"><button class="modal-btn" id="pong-join-code-btn3" style="width:100%;">ПОДКЛЮЧИТЬСЯ ПО КОДУ</button><button class="modal-btn" style="width:100%;margin-top:10px;" onclick="this.closest(\'.modal-overlay\').remove()">ЗАКРЫТЬ</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">🎮 KING PONG</div><button class="modal-btn" id="pong-create-btn3" style="width:100%;" onclick="pongClick()">СОЗДАТЬ ЛОББИ</button><div style="color:#ff1744;margin:10px 0;">ОТКРЫТЫЕ ЛОББИ:</div><div id="pong-modal-lobbies" style="max-height:150px;overflow-y:auto;"></div><button class="modal-btn" id="pong-refresh-btn3" style="width:100%;margin:5px 0;" onclick="pongClick()">🔄 ОБНОВИТЬ</button><input type="text" class="chat-input" id="pong-code-input3" placeholder="КОД ЗАКРЫТОГО ЛОББИ" style="width:200px;text-align:center;display:block;margin:5px auto;"><button class="modal-btn" id="pong-join-code-btn3" style="width:100%;" onclick="pongClick()">ПОДКЛЮЧИТЬСЯ ПО КОДУ</button><button class="modal-btn" style="width:100%;margin-top:10px;" onclick="this.closest(\'.modal-overlay\').remove()">ЗАКРЫТЬ</button></div>';
 document.body.appendChild(modal);
 loadPongLobbies();
-document.getElementById('pong-create-btn3').onclick=()=>{modal.remove();showCreateLobbyModal();};
-document.getElementById('pong-refresh-btn3').onclick=loadPongLobbies;
-document.getElementById('pong-join-code-btn3').onclick=()=>{let c=document.getElementById('pong-code-input3').value.trim().toUpperCase();if(c){modal.remove();joinLobbyByCode(c);}};
+document.getElementById('pong-create-btn3').onclick=()=>{pongClick();modal.remove();showCreateLobbyModal();};
+document.getElementById('pong-refresh-btn3').onclick=()=>{pongClick();loadPongLobbies();};
+document.getElementById('pong-join-code-btn3').onclick=()=>{let c=document.getElementById('pong-code-input3').value.trim().toUpperCase();if(c){pongClick();modal.remove();joinLobbyByCode(c);}};
 }
 
 function showCreateLobbyModal(){
@@ -849,12 +853,13 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ" value="Быстрая игра"><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();window.initPong();">НАЗАД</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ" value="Быстрая игра"><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;" onclick="pongClick()">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();window.initPong();">НАЗАД</button></div>';
 document.body.appendChild(modal);
 document.getElementById('pong-create-submit').onclick=()=>{
 let n=document.getElementById('pong-lobby-name').value.trim();
 let t=document.getElementById('pong-lobby-type').value;
 if(!n)return;
+pongClick();
 modal.remove();
 createPongLobby(n,t);
 };
@@ -877,15 +882,16 @@ function showLobbyRoom(name,code){
 document.getElementById('pong-lobby-room').style.display='block';
 document.getElementById('pong-lobby-name-display').textContent='🏓 '+name;
 document.getElementById('pong-lobby-code').textContent=code?'Код: '+code:'';
-document.getElementById('pong-player1-name').textContent=CA.name+' (Синий)';
+document.getElementById('pong-player1-name').textContent=pongMyName+' (Синий)';
 document.getElementById('pong-player1-status').textContent='Не готов';
 document.getElementById('pong-player2-name').textContent='Ожидание...';
 document.getElementById('pong-player2-status').textContent='';
 document.getElementById('pong-ready-btn').style.display='block';
 document.getElementById('pong-ready-btn').textContent='ГОТОВ';
 document.getElementById('pong-ready-btn').disabled=false;
+document.getElementById('pong-ready-btn').onclick=()=>{pongClick();pongSetReady();};
 document.getElementById('pong-start-btn').style.display='none';
-if(pongIsAdmin)document.getElementById('pong-leave-btn').style.display='block';
+if(pongIsAdmin){document.getElementById('pong-leave-btn').style.display='block';document.getElementById('pong-leave-btn').onclick=()=>{pongClick();leaveLobby();};}
 document.getElementById('pong-rules').style.display='block';
 }
 
@@ -916,7 +922,7 @@ document.getElementById('pong-ready-btn').textContent='✓ ГОТОВ';
 document.getElementById('pong-ready-btn').disabled=true;
 document.getElementById('pong-player1-status').textContent='Готов';
 if(pongDC&&pongDC.readyState==='open'){
-pongDC.send(JSON.stringify({type:'ready',name:CA.name}));
+pongDC.send(JSON.stringify({type:'ready',name:pongMyName}));
 if(pongOpponentReady&&pongIsAdmin)document.getElementById('pong-start-btn').style.display='block';
 }
 }
@@ -952,14 +958,20 @@ pongLoop();
 
 function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
-document.getElementById('pong-countdown').style.display='flex';
+document.getElementById('pong-canvas').style.display='block';
+let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
+c.width=800;c.height=500;
+let img=new Image();img.src='Судьба Земли.png';
 let count=5;
-let cd=document.getElementById('pong-countdown-number');
-let img=document.getElementById('pong-countdown-img');
-img.src='Судьба Земли.png';
-function tick(){cd.textContent=count;if(count>0){count--;setTimeout(tick,1000);}else{document.getElementById('pong-countdown').style.display='none';startPongGame();}}
-tick();
-if(pongIsAdmin)pongDC.send(JSON.stringify({type:'start_countdown'}));
+function drawCD(){
+ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
+ctx.drawImage(img,0,0,800,500);
+ctx.fillStyle='#ff1744';ctx.font='80px VT323';
+ctx.fillText(count,370,450);
+if(count>0){count--;setTimeout(drawCD,1000);}else{startPongGame();}
+}
+drawCD();
+if(pongIsAdmin&&pongDC)pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
 
 let pongTouchTime=0;
@@ -972,8 +984,14 @@ pongTouchTime=now;
 function pongKeyDown(e){
 pongKeys[e.key]=true;
 if(e.key===' '&&pongDC&&pongDC.readyState==='open'&&!pongState.game_over){
-let myY=pongPlayer===1?pongState.y1:pongState.opponent_y;
-let ballClose=(pongPlayer===1&&pongState.ball_x<100&&pongState.ball_x>30&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150)||(pongPlayer===2&&pongState.ball_x>700&&pongState.ball_x<770&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150);
+let myY,ballClose;
+if(pongPlayer===1){
+myY=pongState.y1;
+ballClose=pongState.ball_x<100&&pongState.ball_x>30&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150;
+}else{
+myY=pongState.y2;
+ballClose=pongState.ball_x>700&&pongState.ball_x<770&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150;
+}
 if(ballClose){
 pongState.ball_sx=pongPlayer===1?Math.abs(pongState.ball_sx)*2:-Math.abs(pongState.ball_sx)*2;
 pongState.ball_sy=(Math.random()-0.5)*8;
@@ -1046,6 +1064,8 @@ pongLobbyId=data.id;pongPlayer=2;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',pongLobbyId);
 showLobbyRoom(data.name,data.code);
 document.getElementById('pong-leave-btn').style.display='none';
+document.getElementById('pong-player1-name').textContent=data.player1+' (Синий)';
+document.getElementById('pong-player2-name').textContent=CA.name+' (Красный)';
 joinPongWebRTC();
 }
 
@@ -1056,6 +1076,8 @@ pongLobbyId=id;pongPlayer=2;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
 showLobbyRoom(data.name,data.code);
 document.getElementById('pong-leave-btn').style.display='none';
+document.getElementById('pong-player1-name').textContent=data.player1+' (Синий)';
+document.getElementById('pong-player2-name').textContent=CA.name+' (Красный)';
 joinPongWebRTC();
 }
 
