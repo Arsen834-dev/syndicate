@@ -299,15 +299,23 @@
 <div id="app-pong" class="app-screen">
 <div class="app-header"><span class="app-title">🎮 KING PONG</span><button class="app-close" data-close="pong">ЗАКРЫТЬ</button></div>
 <div class="app-content" style="text-align:center;padding:10px;">
-<div id="pong-waiting" style="display:none;">
-  <p id="pong-lobby-name-display" style="color:#ff1744;font-size:1.2rem;"></p>
-  <p id="pong-waiting-status" style="color:#ffd700;"></p>
-  <div id="pong-ready-area" style="display:none;margin-top:15px;">
-    <button class="modal-btn" id="pong-ready-btn">ГОТОВ</button>
-    <p id="pong-opponent-status" style="color:#cc0000;"></p>
+<div id="pong-lobby-room" style="display:none;">
+  <p id="pong-lobby-name-display" style="color:#ff1744;font-size:1.3rem;"></p>
+  <p id="pong-lobby-code" style="color:#ffd700;"></p>
+  <div style="display:flex;justify-content:center;gap:40px;margin:15px 0;">
+    <div style="text-align:center;"><div style="color:#448aff;">СИНИЙ</div><div id="pong-player1-name" style="color:#fff;"></div><div id="pong-player1-status" style="color:#cc0000;"></div></div>
+    <div style="text-align:center;"><div style="color:#ff4444;">КРАСНЫЙ</div><div id="pong-player2-name" style="color:#fff;"></div><div id="pong-player2-status" style="color:#cc0000;"></div></div>
   </div>
+  <button class="modal-btn" id="pong-ready-btn" onclick="pongSetReady()">ГОТОВ</button>
+  <button class="modal-btn" id="pong-start-btn" style="display:none;color:#ffd700;border-color:#ffd700;" onclick="startCountdown()">НАЧАТЬ ИГРУ</button>
+  <button class="modal-btn" id="pong-leave-btn" style="display:none;color:#ff0000;border-color:#ff0000;" onclick="leaveLobby()">ВЫЙТИ ИЗ ЛОББИ</button>
+  <div id="pong-rules" style="display:none;color:#cc0000;margin-top:10px;font-size:0.8rem;">🔵 W/S + ПРОБЕЛ | 🔴 ↑/↓ + ПРОБЕЛ (телефон: двойной тап)<br>👑 До 10 очков | 💥 ПРОБЕЛ = парирование</div>
 </div>
-<canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;"></canvas>
+<div id="pong-countdown" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:100;justify-content:center;align-items:center;flex-direction:column;">
+  <img id="pong-countdown-img" src="" style="max-width:100%;max-height:70vh;">
+  <div id="pong-countdown-number" style="font-size:6rem;color:#ff1744;position:absolute;"></div>
+</div>
+<canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;margin:0 auto;"></canvas>
 <p id="pong-score" style="color:#ff1744;font-size:1.5rem;display:none;"></p>
 <p id="pong-winner" style="color:#ffd700;font-size:1.5rem;display:none;"></p>
 </div></div>
@@ -802,14 +810,13 @@ document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)return;let ctx=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx.clearRect(0,0,c.width,c.height);let ns=document.querySelectorAll('.web-node');if(ns.length<2)return;let mx=null,my=null;ns.forEach(function(n){let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();if(n.dataset.agent===CA.name){mx=r.left+r.width/2-cr.left;my=r.top+r.height/2-cr.top;}});if(!mx)return;ns.forEach(function(n){if(n.dataset.agent===CA.name)return;let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(r.left+r.width/2-cr.left,r.top+r.height/2-cr.top);ctx.strokeStyle='rgba(255,23,68,0.6)';ctx.lineWidth=1.5;ctx.stroke();});},100);
 let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null;
-let pongReady=false,pongOpponentReady=false,pongGameStarted=false;
+let pongReady=false,pongOpponentReady=false,pongGameStarted=false,pongIsAdmin=false;
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
 let pongKeys={};
 let pongBg=new Image();pongBg.src='background.png';
 let pongIntro=new Image();pongIntro.src='Судьба Земли.png';
 let pongCrownBlue=new Image();pongCrownBlue.src='Crownblue.png';
 let pongCrownRed=new Image();pongCrownRed.src='Crownred.png';
-let pongIconImg=new Image();pongIconImg.src='iconpong.png';
 let pongSounds={};
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
 
@@ -818,13 +825,17 @@ if(pongPC){pongPC.close();pongPC=null;}
 if(pongDC){pongDC.close();pongDC=null;}
 if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
-pongReady=false;pongOpponentReady=false;pongGameStarted=false;
-document.getElementById('pong-waiting').style.display='none';
+pongReady=false;pongOpponentReady=false;pongGameStarted=false;pongIsAdmin=false;
+resetPongUI();
+showPongModal();
+}
+
+function resetPongUI(){
+document.getElementById('pong-lobby-room').style.display='none';
 document.getElementById('pong-canvas').style.display='none';
 document.getElementById('pong-score').style.display='none';
 document.getElementById('pong-winner').style.display='none';
-document.getElementById('pong-ready-area').style.display='none';
-showPongModal();
+document.getElementById('pong-countdown').style.display='none';
 }
 
 function showPongModal(){
@@ -832,12 +843,12 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">🎮 KING PONG</div><div style="margin:10px 0;"><button class="modal-btn" id="pong-create-btn2" style="width:100%;">СОЗДАТЬ ЛОББИ</button></div><div style="color:#ff1744;margin:10px 0;">ОТКРЫТЫЕ ЛОББИ:</div><div id="pong-modal-lobbies" style="max-height:150px;overflow-y:auto;"></div><button class="modal-btn" id="pong-refresh-btn2" style="width:100%;margin:5px 0;">🔄 ОБНОВИТЬ</button><div style="margin-top:10px;"><input type="text" class="chat-input" id="pong-code-input2" placeholder="КОД ЗАКРЫТОГО ЛОББИ" style="width:200px;text-align:center;"><br><button class="modal-btn" id="pong-join-code-btn2" style="width:100%;">ПОДКЛЮЧИТЬСЯ ПО КОДУ</button></div><button class="modal-btn" style="width:100%;margin-top:10px;" onclick="this.closest(\'.modal-overlay\').remove()">ЗАКРЫТЬ</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">🎮 KING PONG</div><button class="modal-btn" id="pong-create-btn3" style="width:100%;">СОЗДАТЬ ЛОББИ</button><div style="color:#ff1744;margin:10px 0;">ОТКРЫТЫЕ ЛОББИ:</div><div id="pong-modal-lobbies" style="max-height:150px;overflow-y:auto;"></div><button class="modal-btn" id="pong-refresh-btn3" style="width:100%;margin:5px 0;">🔄 ОБНОВИТЬ</button><input type="text" class="chat-input" id="pong-code-input3" placeholder="КОД ЗАКРЫТОГО ЛОББИ" style="width:200px;text-align:center;display:block;margin:5px auto;"><button class="modal-btn" id="pong-join-code-btn3" style="width:100%;">ПОДКЛЮЧИТЬСЯ ПО КОДУ</button><button class="modal-btn" style="width:100%;margin-top:10px;" onclick="this.closest(\'.modal-overlay\').remove()">ЗАКРЫТЬ</button></div>';
 document.body.appendChild(modal);
 loadPongLobbies();
-document.getElementById('pong-create-btn2').onclick=()=>{modal.remove();showCreateLobbyModal();};
-document.getElementById('pong-refresh-btn2').onclick=loadPongLobbies;
-document.getElementById('pong-join-code-btn2').onclick=()=>{let code=document.getElementById('pong-code-input2').value.trim().toUpperCase();if(code){modal.remove();joinLobbyByCode(code);}};
+document.getElementById('pong-create-btn3').onclick=()=>{modal.remove();showCreateLobbyModal();};
+document.getElementById('pong-refresh-btn3').onclick=loadPongLobbies;
+document.getElementById('pong-join-code-btn3').onclick=()=>{let c=document.getElementById('pong-code-input3').value.trim().toUpperCase();if(c){modal.remove();joinLobbyByCode(c);}};
 }
 
 function showCreateLobbyModal(){
@@ -845,45 +856,51 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ ЛОББИ" value="Быстрая игра"><div style="margin:10px 0;color:#cc0000;">ТИП ЛОББИ:</div><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();initPong();">НАЗАД</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ" value="Быстрая игра"><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();initPong();">НАЗАД</button></div>';
 document.body.appendChild(modal);
 document.getElementById('pong-create-submit').onclick=()=>{
-let name=document.getElementById('pong-lobby-name').value.trim();
-let type=document.getElementById('pong-lobby-type').value;
-if(!name)return;
+let n=document.getElementById('pong-lobby-name').value.trim();
+let t=document.getElementById('pong-lobby-type').value;
+if(!n)return;
 modal.remove();
-createPongLobby(name,type);
+createPongLobby(n,t);
 };
 }
 
 async function createPongLobby(name,type){
 if(type==='open'){
 let{data}=await supabase.from('pong_lobbies').select('*').eq('name',name).eq('type','open').eq('status','waiting').maybeSingle();
-if(data){alert('Лобби с таким названием уже существует!');return showPongModal();}
+if(data){alert('Лобби с таким названием уже есть!');return initPong();}
 }
 pongLobbyId=Math.random().toString(36).substring(2,8).toUpperCase();
 let code=type==='closed'?Math.random().toString(36).substring(2,6).toUpperCase():null;
-pongPlayer=1;
+pongPlayer=1;pongIsAdmin=true;
 await supabase.from('pong_lobbies').insert({id:pongLobbyId,name,player1:CA.name,status:'waiting',type,code});
-showPongWaiting(code);
+showLobbyRoom(name,code);
 startPongHost();
 }
 
-function showPongWaiting(code){
-document.getElementById('pong-waiting').style.display='block';
-document.getElementById('pong-canvas').style.display='none';
-document.getElementById('pong-score').style.display='none';
-document.getElementById('pong-winner').style.display='none';
-document.getElementById('pong-ready-area').style.display='none';
-document.getElementById('pong-lobby-name-display').textContent='Лобби: '+(pongLobbyId?'':''); 
-document.getElementById('pong-waiting-status').textContent='Ожидание соперника...'+(code?' Код: '+code:'');
+function showLobbyRoom(name,code){
+document.getElementById('pong-lobby-room').style.display='block';
+document.getElementById('pong-lobby-name-display').textContent='🏓 '+name;
+document.getElementById('pong-lobby-code').textContent=code?'Код: '+code:'';
+document.getElementById('pong-player1-name').textContent=CA.name;
+document.getElementById('pong-player1-status').textContent='Не готов';
+document.getElementById('pong-player2-name').textContent='Ожидание...';
+document.getElementById('pong-player2-status').textContent='';
+document.getElementById('pong-ready-btn').style.display='block';
+document.getElementById('pong-ready-btn').textContent='ГОТОВ';
+document.getElementById('pong-ready-btn').disabled=false;
+document.getElementById('pong-start-btn').style.display='none';
+if(pongIsAdmin)document.getElementById('pong-leave-btn').style.display='block';
+document.getElementById('pong-rules').style.display='block';
 }
 
 async function startPongHost(){
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
 pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
-pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)endGameByForfeit(2);};
+pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
@@ -891,110 +908,64 @@ pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'U
 }
 
 function onOpponentConnected(){
-document.getElementById('pong-waiting-status').textContent='Соперник подключился!';
-document.getElementById('pong-ready-area').style.display='block';
-document.getElementById('pong-ready-btn').style.display='block';
-document.getElementById('pong-ready-btn').textContent='ГОТОВ';
-document.getElementById('pong-ready-btn').onclick=()=>{
+document.getElementById('pong-player2-name').textContent='Соперник';
+document.getElementById('pong-player2-status').textContent='Не готов';
+}
+
+function handleOpponentDisconnect(){
+document.getElementById('pong-player2-name').textContent='Ошибка';
+document.getElementById('pong-player2-status').textContent='Сигнал потерян';
+}
+
+function pongSetReady(){
 pongReady=true;
 document.getElementById('pong-ready-btn').textContent='✓ ГОТОВ';
 document.getElementById('pong-ready-btn').disabled=true;
-pongDC.send(JSON.stringify({type:'ready'}));
-document.getElementById('pong-opponent-status').textContent='Ожидание соперника...';
-if(pongOpponentReady)showStartButton();
-};
-}
-
-function showStartButton(){
-if(pongPlayer===1){
-document.getElementById('pong-ready-area').innerHTML+='<br><button class="modal-btn" id="pong-start-btn" onclick="startCountdown()">НАЧАТЬ ИГРУ</button>';
-}
-document.getElementById('pong-opponent-status').textContent='Соперник готов!';
-}
-
-function startCountdown(){
-pongDC.send(JSON.stringify({type:'start_countdown'}));
-showCountdown();
-}
-
-function showCountdown(){
-document.getElementById('pong-waiting').style.display='none';
-document.getElementById('pong-ready-area').style.display='none';
-let c=document.getElementById('pong-canvas');
-c.style.display='block';
-let ctx=c.getContext('2d');
-c.width=800;c.height=500;
-let count=3;
-function drawCount(){
-ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
-ctx.drawImage(pongIntro,0,0,800,500);
-ctx.fillStyle='#fff';ctx.font='80px VT323';
-ctx.fillText(count,370,280);
-if(count>0){count--;setTimeout(drawCount,1000);}else{startPongGame();}
-}
-drawCount();
-}
-
-async function joinLobbyByCode(code){
-let{data}=await supabase.from('pong_lobbies').select('*').or('code.eq.'+code+',id.eq.'+code).maybeSingle();
-if(!data||data.status!=='waiting'){alert('Лобби не найдено или занято');return showPongModal();}
-pongLobbyId=data.id;pongPlayer=2;
-await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',pongLobbyId);
-document.getElementById('pong-waiting').style.display='block';
-document.getElementById('pong-canvas').style.display='none';
-document.getElementById('pong-score').style.display='none';
-document.getElementById('pong-winner').style.display='none';
-document.getElementById('pong-ready-area').style.display='none';
-document.getElementById('pong-waiting-status').textContent='Подключаюсь...';
-joinPongWebRTC();
-}
-
-async function joinLobbyById(id){
-let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
-if(!data||data.status!=='waiting'){loadPongLobbies();return;}
-pongLobbyId=id;pongPlayer=2;
-await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
-document.getElementById('pong-waiting').style.display='block';
-document.getElementById('pong-canvas').style.display='none';
-document.getElementById('pong-waiting-status').textContent='Подключаюсь...';
-joinPongWebRTC();
-}
-
-async function joinPongWebRTC(){
-let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
-if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-waiting-status').textContent='Ошибка сигнала';return;}
-pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)endGameByForfeit(1);};onOpponentConnected();};
-pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
-let offer=JSON.parse(data.offer);
-if(typeof offer==='string')offer=JSON.parse(offer);
-await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
-let answer=await pongPC.createAnswer();
-await pongPC.setLocalDescription(answer);
+document.getElementById('pong-player1-status').textContent='Готов';
+if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'ready'}));
 }
 
 function handlePongMessage(d){
-if(d.type==='ready'){pongOpponentReady=true;document.getElementById('pong-opponent-status').textContent='Соперник готов!';if(pongReady&&pongPlayer===1)showStartButton();}
-if(d.type==='start_countdown'){showCountdown();}
+if(d.type==='ready'){pongOpponentReady=true;document.getElementById('pong-player2-status').textContent='Готов';if(pongReady&&pongIsAdmin)document.getElementById('pong-start-btn').style.display='block';}
+if(d.type==='start_countdown'){startCountdown();}
 if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}
 if(d.type==='move'){pongState.opponent_y=d.y;}
 if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}
 if(d.type==='forfeit'){endGameByForfeit(pongPlayer);}
+if(d.type==='restart'){pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,opponent_y:200,game_over:false,started:true};document.getElementById('pong-winner').style.display='none';}
 }
 
-function endGameByForfeit(winner){pongState.game_over=true;if(winner===1)pongState.score1=10;else pongState.score2=10;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
-
-function playPongSound(name){try{if(pongSounds[name]){let s=pongSounds[name].cloneNode();s.volume=0.3;s.play().catch(()=>{});}}catch(e){}}
+function startCountdown(){
+document.getElementById('pong-lobby-room').style.display='none';
+document.getElementById('pong-countdown').style.display='flex';
+let count=5;
+let cd=document.getElementById('pong-countdown-number');
+let img=document.getElementById('pong-countdown-img');
+img.src='Судьба Земли.png';
+function tick(){cd.textContent=count;if(count>0){count--;setTimeout(tick,1000);}else{document.getElementById('pong-countdown').style.display='none';if(pongIsAdmin)startPongGame();}}
+tick();
+if(pongIsAdmin)pongDC.send(JSON.stringify({type:'start_countdown'}));
+}
 
 function startPongGame(){
 pongGameStarted=true;
-document.getElementById('pong-waiting').style.display='none';
+document.getElementById('pong-lobby-room').style.display='none';
 document.getElementById('pong-canvas').style.display='block';
 document.getElementById('pong-score').style.display='block';
 document.addEventListener('keydown',pongKeyDown);
 document.addEventListener('keyup',pongKeyUp);
+if(window.innerWidth<=768){
+document.getElementById('pong-canvas').addEventListener('touchstart',pongTouchParry);
+}
 pongState.started=true;
 pongLoop();
+}
+
+let pongTouchTime=0;
+function pongTouchParry(e){
+let now=Date.now();
+if(now-pongTouchTime<300){pongKeyDown({key:' ',preventDefault:()=>{}});}
+pongTouchTime=now;
 }
 
 function pongKeyDown(e){
@@ -1009,6 +980,20 @@ function pongRestart(){
 pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,opponent_y:200,game_over:false,started:true};
 document.getElementById('pong-winner').style.display='none';
 if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'restart'}));
+}
+
+function endGameByForfeit(winner){pongState.game_over=true;if(winner===1)pongState.score1=10;else pongState.score2=10;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
+
+function playPongSound(name){try{if(pongSounds[name]){let s=pongSounds[name].cloneNode();s.volume=0.3;s.play().catch(()=>{});}}catch(e){}}
+
+function leaveLobby(){
+if(pongPC)pongPC.close();
+if(pongDC)pongDC.close();
+if(pongChannel)supabase.removeChannel(pongChannel);
+supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);
+supabase.from('pong_signals').delete().eq('id',pongLobbyId);
+resetPongUI();
+initPong();
 }
 
 function pongLoop(){
@@ -1026,15 +1011,14 @@ if(pongState.score1>=10||pongState.score2>=10){pongState.game_over=true;supabase
 }
 if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'move',y:pongPlayer===1?pongState.y1:pongState.y2}));
 let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
-c.width=c.offsetWidth;c.height=c.offsetWidth*0.625;
-ctx.drawImage(pongBg,0,0,c.width,c.height);
-let scaleX=c.width/800,scaleY=c.height/500;
-ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(c.width/2,0);ctx.lineTo(c.width/2,c.height);ctx.stroke();ctx.setLineDash([]);
-ctx.fillStyle='#448aff';ctx.fillRect(40*scaleX,(pongPlayer===1?pongState.y1:pongState.opponent_y)*scaleY,20*scaleX,150*scaleY);
-ctx.fillStyle='#ff4444';ctx.fillRect(740*scaleX,(pongPlayer===1?pongState.opponent_y:pongState.y2)*scaleY,20*scaleX,150*scaleY);
-ctx.beginPath();ctx.arc(pongState.ball_x*scaleX,pongState.ball_y*scaleY,12*scaleX,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
-let crownImg=pongState.score1>pongState.score2?pongCrownBlue:pongState.score2>pongState.score1?pongCrownRed:pongIconImg;
-if(crownImg&&crownImg.complete)ctx.drawImage(crownImg,pongState.ball_x*scaleX-30,pongState.ball_y*scaleY-40,60,40);
+c.width=800;c.height=500;
+ctx.drawImage(pongBg,0,0,800,500);
+ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#448aff';ctx.fillRect(40,pongPlayer===1?pongState.y1:pongState.opponent_y,20,150);
+ctx.fillStyle='#ff4444';ctx.fillRect(740,pongPlayer===1?pongState.opponent_y:pongState.y2,20,150);
+ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,12,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+let crownImg=pongState.score1>pongState.score2?pongCrownBlue:pongState.score2>pongState.score1?pongCrownRed:null;
+if(crownImg&&crownImg.complete)ctx.drawImage(crownImg,pongState.ball_x-25,pongState.ball_y-40,50,35);
 document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">'+pongState.score1+'</span> - <span style="color:#ff4444;">'+pongState.score2+'</span>';
 if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=10?'👑 СИНИЙ ПОБЕДИЛ! (E - рестарт)':'👑 КРАСНЫЙ ПОБЕДИЛ! (E - рестарт)';}
 pongAnimationId=requestAnimationFrame(pongLoop);
@@ -1047,12 +1031,45 @@ if(!list)return;
 if(!data||data.length===0){list.innerHTML='<div style="color:#cc0000;">Нет открытых лобби</div>';return;}
 list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" onclick="document.querySelector(\'.modal-overlay\').remove();joinLobbyById(\''+l.id+'\')"><span style="color:#ff1744;">'+l.name+'</span> | 👤 '+l.player1+'</div>').join('');
 }
-window.showPongModal=showPongModal;
-window.createPongLobby=createPongLobby;
+
+async function joinLobbyByCode(code){
+let{data}=await supabase.from('pong_lobbies').select('*').or('code.eq.'+code+',id.eq.'+code).maybeSingle();
+if(!data||data.status!=='waiting'){alert('Лобби не найдено или занято');return initPong();}
+pongLobbyId=data.id;pongPlayer=2;
+await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',pongLobbyId);
+showLobbyRoom(data.name,data.code);
+document.getElementById('pong-leave-btn').style.display='none';
+joinPongWebRTC();
+}
+
+async function joinLobbyById(id){
+let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
+if(!data||data.status!=='waiting'){loadPongLobbies();return;}
+pongLobbyId=id;pongPlayer=2;
+await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
+showLobbyRoom(data.name,data.code);
+document.getElementById('pong-leave-btn').style.display='none';
+joinPongWebRTC();
+}
+
+async function joinPongWebRTC(){
+let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
+if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-player2-status').textContent='Ошибка сигнала';return;}
+pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};onOpponentConnected();};
+pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
+let offer=JSON.parse(data.offer);
+if(typeof offer==='string')offer=JSON.parse(offer);
+await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
+let answer=await pongPC.createAnswer();
+await pongPC.setLocalDescription(answer);
+}
+
 window.joinLobbyById=joinLobbyById;
 window.joinLobbyByCode=joinLobbyByCode;
 window.startCountdown=startCountdown;
-window.initPong=initPong;
+window.pongSetReady=pongSetReady;
+window.leaveLobby=leaveLobby;
 </script>
 </body>
 </html>
