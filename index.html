@@ -1043,6 +1043,15 @@ async function startPongHost() {
         }
     };
     
+    // Мониторинг состояния подключения
+    pongPC.onconnectionstatechange = () => {
+        console.log('🎮 ХОСТ: connection state =', pongPC.connectionState);
+    };
+    
+    pongPC.oniceconnectionstatechange = () => {
+        console.log('🎮 ХОСТ: ICE connection state =', pongPC.iceConnectionState);
+    };
+    
     // Создаём offer
     const offer = await pongPC.createOffer();
     await pongPC.setLocalDescription(offer);
@@ -1196,7 +1205,7 @@ async function joinPongWebRTC() {
         return leaveLobby();
     }
     
-    // Создаём RTCPeerConnection
+    // Создаём RTCPeerConnection (гость)
     pongPC = new RTCPeerConnection({
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -1204,15 +1213,21 @@ async function joinPongWebRTC() {
         ]
     });
     
-    // Ждём data channel от хоста
+    // ВАЖНО: гость ждёт data channel от хоста
     pongPC.ondatachannel = (e) => {
-        console.log('🎮 Получен DC от хоста');
+        console.log('🎮 ГОСТЬ получил DC от хоста, состояние:', e.channel.readyState);
         pongDC = e.channel;
         setupDataChannel(pongDC);
-        onOpponentConnected();
+        
+        // Как только DC открыт — отправляем sync
+        if (pongDC.readyState === 'open') {
+            console.log('🎮 ГОСТЬ: DC уже открыт');
+            sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
+            onOpponentConnected();
+        }
     };
     
-    // Отправляем answer
+    // Отправляем answer когда соберутся ICE-кандидаты
     pongPC.onicecandidate = async (e) => {
         if (!e.candidate && pongPC.localDescription) {
             // ICE gathering complete — сохраняем answer
@@ -1220,23 +1235,38 @@ async function joinPongWebRTC() {
                 type: pongPC.localDescription.type,
                 sdp: pongPC.localDescription.sdp
             };
+            
+            console.log('🎮 ГОСТЬ сохраняет answer');
             await supabase.from('pong_signals').update({
                 answer: JSON.stringify(answerData)
             }).eq('id', pongLobbyId);
-            console.log('🎮 Answer сохранён');
+            console.log('🎮 ГОСТЬ: Answer сохранён');
         }
+    };
+    
+    // Отслеживаем изменение состояния подключения
+    pongPC.onconnectionstatechange = () => {
+        console.log('🎮 ГОСТЬ: connection state =', pongPC.iceConnectionState);
+    };
+    
+    pongPC.oniceconnectionstatechange = () => {
+        console.log('🎮 ГОСТЬ: ICE connection state =', pongPC.iceConnectionState);
     };
     
     // Устанавливаем offer от хоста
     try {
         let offer = JSON.parse(signalData.offer);
         if (typeof offer === 'string') offer = JSON.parse(offer);
+        
+        console.log('🎮 ГОСТЬ устанавливает remote offer');
         await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
+        console.log('🎮 ГОСТЬ: remote offer установлен');
         
         const answer = await pongPC.createAnswer();
         await pongPC.setLocalDescription(answer);
+        console.log('🎮 ГОСТЬ: local answer создан');
     } catch (e) {
-        console.error('Ошибка WebRTC handshake:', e);
+        console.error('Ошибка WebRTC handshake у гостя:', e);
         notif('⛔ ОШИБКА ПОДКЛЮЧЕНИЯ');
         return leaveLobby();
     }
