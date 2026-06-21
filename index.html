@@ -879,6 +879,7 @@ startPongHost();
 }
 
 function showLobbyRoom(name,code){
+resetPongUI();
 document.getElementById('pong-lobby-room').style.display='block';
 document.getElementById('pong-lobby-name-display').textContent='🏓 '+name;
 document.getElementById('pong-lobby-code').textContent=code?'Код: '+code:'';
@@ -891,6 +892,7 @@ document.getElementById('pong-ready-btn').textContent='ГОТОВ';
 document.getElementById('pong-ready-btn').disabled=false;
 document.getElementById('pong-ready-btn').onclick=()=>{pongClick();pongSetReady();};
 document.getElementById('pong-start-btn').style.display='none';
+document.getElementById('pong-start-btn').onclick=()=>{pongClick();startCountdown();};
 if(pongIsAdmin){document.getElementById('pong-leave-btn').style.display='block';document.getElementById('pong-leave-btn').onclick=()=>{pongClick();leaveLobby();};}
 document.getElementById('pong-rules').style.display='block';
 }
@@ -909,6 +911,7 @@ pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'U
 function onOpponentConnected(){
 document.getElementById('pong-player2-name').textContent=(pongOpponentName||'Соперник')+' (Красный)';
 document.getElementById('pong-player2-status').textContent='Не готов';
+if(pongReady){pongDC.send(JSON.stringify({type:'ready',name:pongMyName}));}
 }
 
 function handleOpponentDisconnect(){
@@ -958,16 +961,20 @@ pongLoop();
 
 function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
-document.getElementById('pong-canvas').style.display='block';
-let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
-c.width=800;c.height=500;
+let c=document.getElementById('pong-canvas');
+c.style.display='block';
+c.width=c.offsetWidth||800;
+c.height=c.offsetWidth*0.625||500;
+let ctx=c.getContext('2d');
 let img=new Image();img.src='Судьба Земли.png';
 let count=5;
 function drawCD(){
-ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
-ctx.drawImage(img,0,0,800,500);
+ctx.fillStyle='#000';ctx.fillRect(0,0,c.width,c.height);
+let iw=c.width*0.8,ih=c.height*0.7;
+let ix=(c.width-iw)/2,iy=(c.height-ih)/2-30;
+ctx.drawImage(img,ix,iy,iw,ih);
 ctx.fillStyle='#ff1744';ctx.font='80px VT323';
-ctx.fillText(count,370,450);
+ctx.fillText(count,c.width/2-20,c.height-50);
 if(count>0){count--;setTimeout(drawCD,1000);}else{startPongGame();}
 }
 drawCD();
@@ -984,16 +991,11 @@ pongTouchTime=now;
 function pongKeyDown(e){
 pongKeys[e.key]=true;
 if(e.key===' '&&pongDC&&pongDC.readyState==='open'&&!pongState.game_over){
-let myY,ballClose;
-if(pongPlayer===1){
-myY=pongState.y1;
-ballClose=pongState.ball_x<100&&pongState.ball_x>30&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150;
-}else{
-myY=pongState.y2;
-ballClose=pongState.ball_x>700&&pongState.ball_x<770&&pongState.ball_y>=myY&&pongState.ball_y<=myY+150;
-}
-if(ballClose){
-pongState.ball_sx=pongPlayer===1?Math.abs(pongState.ball_sx)*2:-Math.abs(pongState.ball_sx)*2;
+let distToBall=pongPlayer===1?Math.abs(pongState.ball_x-60):Math.abs(pongState.ball_x-740);
+let myY=pongPlayer===1?pongState.y1:pongState.y2;
+let ballInRange=pongState.ball_y>=myY-20&&pongState.ball_y<=myY+170;
+if(distToBall<80&&ballInRange){
+pongState.ball_sx=pongPlayer===1?Math.abs(pongState.ball_sx)*2.5:-Math.abs(pongState.ball_sx)*2.5;
 pongState.ball_sy=(Math.random()-0.5)*8;
 pongDC.send(JSON.stringify({type:'parry',ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy}));
 playPongSound('parry-ultrakill');
@@ -1032,18 +1034,19 @@ if(pongState.score1>=10||pongState.score2>=10){pongState.game_over=true;supabase
 }
 if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'move',y:pongPlayer===1?pongState.y1:pongState.y2}));
 let c=document.getElementById('pong-canvas'),ctx=c.getContext('2d');
-c.width=800;c.height=500;
-ctx.drawImage(pongBg,0,0,800,500);
-ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(400,0);ctx.lineTo(400,500);ctx.stroke();ctx.setLineDash([]);
-ctx.fillStyle='#448aff';ctx.fillRect(40,pongPlayer===1?pongState.y1:pongState.opponent_y,20,150);
-ctx.fillStyle='#ff4444';ctx.fillRect(740,pongPlayer===1?pongState.opponent_y:pongState.y2,20,150);
-ctx.beginPath();ctx.arc(pongState.ball_x,pongState.ball_y,12,0,Math.PI*2);
+c.width=Math.max(800,c.offsetWidth);c.height=Math.max(500,c.offsetWidth*0.625);
+ctx.drawImage(pongBg,0,0,c.width,c.height);
+let sx=c.width/800,sy=c.height/500;
+ctx.strokeStyle='#fff';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(c.width/2,0);ctx.lineTo(c.width/2,c.height);ctx.stroke();ctx.setLineDash([]);
+ctx.fillStyle='#448aff';ctx.fillRect(40*sx,(pongPlayer===1?pongState.y1:pongState.opponent_y)*sy,20*sx,150*sy);
+ctx.fillStyle='#ff4444';ctx.fillRect(740*sx,(pongPlayer===1?pongState.opponent_y:pongState.y2)*sy,20*sx,150*sy);
+ctx.beginPath();ctx.arc(pongState.ball_x*sx,pongState.ball_y*sy,12*sx,0,Math.PI*2);
 if(pongState.score1>pongState.score2)ctx.fillStyle='#448aff';
 else if(pongState.score2>pongState.score1)ctx.fillStyle='#ff4444';
 else ctx.fillStyle='#fff';
 ctx.fill();
-if(pongState.score1>pongState.score2){ctx.fillStyle='#448aff';ctx.font='24px serif';ctx.fillText('👑',pongState.ball_x-15,pongState.ball_y-20);}
-if(pongState.score2>pongState.score1){ctx.fillStyle='#ff4444';ctx.font='24px serif';ctx.fillText('👑',pongState.ball_x-15,pongState.ball_y-20);}
+if(pongState.score1>pongState.score2){ctx.fillStyle='#448aff';ctx.font=Math.floor(24*sx)+'px serif';ctx.fillText('👑',pongState.ball_x*sx-15*sx,pongState.ball_y*sy-20*sy);}
+if(pongState.score2>pongState.score1){ctx.fillStyle='#ff4444';ctx.font=Math.floor(24*sx)+'px serif';ctx.fillText('👑',pongState.ball_x*sx-15*sx,pongState.ball_y*sy-20*sy);}
 document.getElementById('pong-score').innerHTML='<span style="color:#448aff;">'+pongState.score1+'</span> - <span style="color:#ff4444;">'+pongState.score2+'</span>';
 if(pongState.game_over){document.getElementById('pong-winner').style.display='block';document.getElementById('pong-winner').textContent=pongState.score1>=10?'👑 СИНИЙ ПОБЕДИЛ!':'👑 КРАСНЫЙ ПОБЕДИЛ!';}
 pongAnimationId=requestAnimationFrame(pongLoop);
@@ -1054,7 +1057,7 @@ let{data}=await supabase.from('pong_lobbies').select('*').eq('status','waiting')
 let list=document.getElementById('pong-modal-lobbies');
 if(!list)return;
 if(!data||data.length===0){list.innerHTML='<div style="color:#cc0000;">Нет открытых лобби</div>';return;}
-list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" onclick="document.querySelector(\'.modal-overlay\').remove();joinLobbyById(\''+l.id+'\')"><span style="color:#ff1744;">'+l.name+'</span> | 👤 '+l.player1+'</div>').join('');
+list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" onclick="document.querySelector(\'.modal-overlay\').remove();window.joinLobbyById(\''+l.id+'\')"><span style="color:#ff1744;">'+l.name+'</span> | 👤 '+l.player1+'</div>').join('');
 }
 
 async function joinLobbyByCode(code){
@@ -1070,8 +1073,9 @@ joinPongWebRTC();
 }
 
 async function joinLobbyById(id){
+document.querySelector('.modal-overlay')?.remove();
 let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
-if(!data||data.status!=='waiting'){loadPongLobbies();return;}
+if(!data||data.status!=='waiting'){initPong();return;}
 pongLobbyId=id;pongPlayer=2;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
 showLobbyRoom(data.name,data.code);
