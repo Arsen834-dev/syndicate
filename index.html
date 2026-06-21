@@ -845,7 +845,7 @@ let modal=document.createElement('div');
 modal.className='modal-overlay';
 modal.style.display='flex';
 modal.classList.add('show');
-modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ ЛОББИ" value="Быстрая игра"><div style="margin:10px 0;color:#cc0000;">ТИП ЛОББИ:</div><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest(\'.modal-overlay\').remove();showPongModal();">НАЗАД</button></div>';
+modal.innerHTML='<div class="modal-box"><div class="modal-title">СОЗДАТЬ ЛОББИ</div><input type="text" class="modal-input" id="pong-lobby-name" placeholder="НАЗВАНИЕ ЛОББИ" value="Быстрая игра"><div style="margin:10px 0;color:#cc0000;">ТИП ЛОББИ:</div><select id="pong-lobby-type" class="modal-input"><option value="open">ОТКРЫТОЕ</option><option value="closed">ЗАКРЫТОЕ (по коду)</option></select><button class="modal-btn" id="pong-create-submit" style="width:100%;margin-top:10px;">СОЗДАТЬ</button><button class="modal-btn" style="width:100%;" onclick="this.closest('.modal-overlay').remove();initPong();">НАЗАД</button></div>';
 document.body.appendChild(modal);
 document.getElementById('pong-create-submit').onclick=()=>{
 let name=document.getElementById('pong-lobby-name').value.trim();
@@ -1047,10 +1047,12 @@ if(!list)return;
 if(!data||data.length===0){list.innerHTML='<div style="color:#cc0000;">Нет открытых лобби</div>';return;}
 list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" onclick="document.querySelector(\'.modal-overlay\').remove();joinLobbyById(\''+l.id+'\')"><span style="color:#ff1744;">'+l.name+'</span> | 👤 '+l.player1+'</div>').join('');
 }
-
+window.showPongModal=showPongModal;
+window.createPongLobby=createPongLobby;
 window.joinLobbyById=joinLobbyById;
 window.joinLobbyByCode=joinLobbyByCode;
 window.startCountdown=startCountdown;
+window.initPong=initPong;
 </script>
 </body>
 </html>
