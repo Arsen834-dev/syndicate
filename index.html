@@ -954,7 +954,7 @@ pongLoop();
 
 function pongKeyDown(e){
 pongKeys[e.key]=true;
-if(e.key===' '&&pongDC){pongState.ball_sx=pongState.ball_sx>0?-pongState.ball_sx-8:pongState.ball_sx<0?-pongState.ball_sx+8:-8;pongState.ball_sy=(Math.random()-0.5)*6;pongDC.send(JSON.stringify({type:'parry',ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy}));playPongSound('parry-ultrakill');}
+if(e.key===' '&&pongDC){pongState.ball_sx=pongState.ball_sx>0?-pongState.ball_sx-8:pongState.ball_sx<0?-pongState.ball_sx+8:-8;pongState.ball_sy=(Math.random()-0.5)*6;if(e.key===' '&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'parry',ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy}));playPongSound('parry-ultrakill');}
 if(e.key==='e'&&pongState.game_over){pongRestart();}
 e.preventDefault();
 }
@@ -963,7 +963,7 @@ function pongKeyUp(e){pongKeys[e.key]=false;}
 function pongRestart(){
 pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,opponent_y:200,game_over:false,started:true};
 document.getElementById('pong-winner').style.display='none';
-if(pongDC)pongDC.send(JSON.stringify({type:'restart'}));
+if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'restart'}));
 }
 
 function pongLoop(){
