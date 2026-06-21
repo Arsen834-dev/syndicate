@@ -833,7 +833,8 @@ showPongModal();
 }
 
 function resetPongUI(){
-['pong-lobby-room','pong-canvas','pong-score','pong-winner','pong-countdown','pong-parry-btn'].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display='none';});
+['pong-lobby-room','pong-canvas','pong-score','pong-winner','pong-countdown'].forEach(id=>{let el=document.getElementById(id);if(el)el.style.display='none';});
+let pb=document.getElementById('pong-parry-btn');if(pb)pb.style.display='none';
 }
 
 function showPongModal(){
@@ -943,11 +944,11 @@ if(d.type==='forfeit'){endGameByForfeit(pongPlayer);}
 }
 
 function startPongGame(){
+document.getElementById('pong-countdown').style.display='none';
 pongGameStarted=true;
-document.getElementById('pong-lobby-room').style.display='none';
 document.getElementById('pong-canvas').style.display='block';
 document.getElementById('pong-score').style.display='block';
-if(window.innerWidth<=768)document.getElementById('pong-parry-btn').style.display='block';
+if(window.innerWidth<=768){let pb=document.getElementById('pong-parry-btn');if(pb)pb.style.display='block';}
 document.addEventListener('keydown',pongKeyDown);
 document.addEventListener('keyup',pongKeyUp);
 if(window.innerWidth<=768){
@@ -962,20 +963,14 @@ pongLoop();
 
 function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
-let c=document.getElementById('pong-canvas');
-c.style.display='block';
-c.width=800;c.height=500;
-let ctx=c.getContext('2d');
-let img=new Image();img.src='Судьба Земли.png';
+document.getElementById('pong-countdown').style.display='flex';
+let cdNum=document.getElementById('pong-countdown-number');
+cdNum.textContent='7';
 let count=7;
-function drawCD(){
-ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
-ctx.drawImage(img,0,0,800,500);
-ctx.fillStyle='#ff1744';ctx.font='80px VT323';
-ctx.fillText(count,370,480);
-if(count>0){count--;setTimeout(drawCD,1000);}else{setTimeout(function(){startPongGame();},100);}
-}
-drawCD();
+let timer=setInterval(function(){
+count--;
+if(count<=0){clearInterval(timer);document.getElementById('pong-countdown').style.display='none';startPongGame();}else{cdNum.textContent=count;}
+},1000);
 if(pongIsAdmin&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
 
