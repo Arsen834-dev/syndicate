@@ -320,7 +320,7 @@
 <canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;margin:0 auto;"></canvas>
 <p id="pong-score" style="color:#ff1744;font-size:1.5rem;display:none;"></p>
 <p id="pong-winner" style="color:#ffd700;font-size:1.5rem;display:none;"></p>
-<button id="pong-parry-btn" class="modal-btn" style="display:none;position:fixed;bottom:30px;right:20px;z-index:200;width:80px;height:80px;border-radius:50%;font-size:2.5rem;background:rgba(0,0,0,0.85);color:#ff1744;border:2px solid #ff1744;" onclick="doParry()">💥</button>
+<button id="pong-parry-btn" class="modal-btn" style="display:none;position:fixed;bottom:30px;right:20px;z-index:200;width:80px;height:80px;border-radius:50%;font-size:2.5rem;background:rgba(0,0,0,0.85);color:#ff1744;border:2px solid #ff1744;touch-action:manipulation;" onclick="doParry()">💥</button>
 </div></div>
 <div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close mobile-only" onclick="document.getElementById('announcements-wall').style.display='none';if(window.innerWidth<=768)document.getElementById('announce-toggle-btn').style.display='block'" style="font-size:0.8rem;padding:3px 10px;">ЗАКРЫТЬ</button><div class="announce-filters"><button class="announce-filter-btn active" data-filter="all">ВСЕ</button><button class="announce-filter-btn" data-filter="news">📰 НОВОСТИ</button><button class="announce-filter-btn" data-filter="event">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" data-filter="auction">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" data-filter="update">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" data-filter="wanted">🔍 РОЗЫСК</button></div></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
     <div id="app-chat" class="app-screen"><div class="app-header"><span class="app-title">💬 ЧАТ</span><button class="app-close" data-close="chat">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;flex-direction:column;height:calc(100% - 50px);"><div class="chat-tabs" id="chat-tabs"><button class="chat-tab active" data-tab="general">💬 ОБЩИЙ</button><button class="chat-tab" data-tab="clan">⚔️ ОТРЯД</button><button class="chat-tab" data-tab="admin" style="display:none" id="admin-tab-btn">🛡 АДМИН</button></div><div class="pinned-header" id="chat-pinned-header"></div><div class="chat-messages" id="chat-messages"></div><div id="reply-indicator" class="reply-indicator" style="display:none;"></div><div id="typing-indicator" style="color:#cc0000;font-size:0.8rem;padding:2px 10px;display:none;min-height:20px;"></div><div class="chat-input-row" id="chat-input-row"><button class="emoji-btn" id="chat-emoji-btn">😊</button><input type="file" id="chat-file-input" accept="image/*" style="display:none"><button class="emoji-btn" id="chat-file-btn">📎</button><input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-msg-btn" style="margin:0;">▶</button></div></div></div>
@@ -815,7 +815,7 @@ setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)re
 let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null;
 let pongReady=false,pongOpponentReady=false,pongGameStarted=false,pongIsAdmin=false;
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-let pongKeys={},pongOpponentName='',pongMyName='',pongTouchY=null;
+let pongKeys={},pongOpponentName='',pongMyName='',pongTouchY=null,pongTouchActive=false;
 let pongBg=new Image();pongBg.src='background.png';
 let pongSounds={};
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
@@ -827,7 +827,7 @@ if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
 pongReady=false;pongOpponentReady=false;pongGameStarted=false;pongIsAdmin=false;pongOpponentName='';pongMyName=CA?CA.name:'';
 pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-pongKeys={};pongTouchY=null;
+pongKeys={};pongTouchY=null;pongTouchActive=false;
 resetPongUI();
 showPongModal();
 }
@@ -910,10 +910,10 @@ pongDC=pongPC.createDataChannel('pong');
 pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};
 pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
 pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
-pongPC.onicecandidate=async e=>{if(!e.candidate){let offerStr=JSON.stringify(pongPC.localDescription);console.log('Saving offer to Supabase...');await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:offerStr,answer:''});console.log('Offer saved!');}};
+pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
-setTimeout(async()=>{let offerStr=JSON.stringify(pongPC.localDescription);console.log('Saving offer (fallback)...');await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:offerStr,answer:''});console.log('Offer saved (fallback)!');},2000);
+setTimeout(async()=>{await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});},2000);
 pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
 supabase.channel('lobby-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_lobbies',filter:'id=eq.'+pongLobbyId},payload=>{if(payload.new.player2&&!pongOpponentName){pongOpponentName=payload.new.player2;refreshLobbyUI();}}).subscribe();
 }
@@ -936,11 +936,6 @@ refreshLobbyUI();
 
 function handlePongMessage(d){
 if(d.type==='sync'){pongOpponentName=d.name;pongOpponentReady=d.ready;refreshLobbyUI();}
-if(d.type==='request_state'){
-if(pongDC&&pongDC.readyState==='open'){
-pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));
-}
-}
 if(d.type==='ready'){pongOpponentReady=d.ready;refreshLobbyUI();}
 if(d.type==='start_countdown'){startCountdown();}
 if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}
@@ -959,26 +954,23 @@ document.addEventListener('keydown',pongKeyDown);
 document.addEventListener('keyup',pongKeyUp);
 if(window.innerWidth<=768){
 let c=document.getElementById('pong-canvas');
+c.addEventListener('touchstart',pongTouchStart,{passive:false});
 c.addEventListener('touchmove',pongTouchMove,{passive:false});
-c.addEventListener('touchend',()=>{pongTouchY=null;});
-c.addEventListener('touchstart',()=>{pongTouchY=null;});
+c.addEventListener('touchend',pongTouchEnd);
 }
 pongState.started=true;
-if(pongPlayer===2&&pongDC&&pongDC.readyState==='open'){
-pongDC.send(JSON.stringify({type:'request_state'}));
-}
 pongLoop();
 }
 
 function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
 document.getElementById('pong-countdown').style.display='flex';
-let cdNum=document.getElementById('pong-countdown-number');
-cdNum.textContent='7';
+document.getElementById('pong-countdown-img').src='Судьба Земли.png';
+document.getElementById('pong-countdown-number').textContent='7';
 let count=7;
 let timer=setInterval(function(){
 count--;
-if(count<=0){clearInterval(timer);document.getElementById('pong-countdown').style.display='none';startPongGame();}else{cdNum.textContent=count;}
+if(count<=0){clearInterval(timer);startPongGame();}else{document.getElementById('pong-countdown-number').textContent=count;}
 },1000);
 if(pongIsAdmin&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
@@ -995,22 +987,27 @@ playPongSound('parry-ultrakill');
 }
 }
 
-function pongTouchMove(e){
-if(pongTouchY===null){pongTouchY=e.touches[0].clientY;return;}
-let diff=e.touches[0].clientY-pongTouchY;
+function pongTouchStart(e){
+pongTouchActive=true;
 pongTouchY=e.touches[0].clientY;
+}
+function pongTouchMove(e){
+if(!pongTouchActive)return;
+let newY=e.touches[0].clientY;
+let diff=newY-pongTouchY;
+pongTouchY=newY;
 if(pongPlayer===1)pongState.y1=Math.max(0,Math.min(350,pongState.y1+diff));
 if(pongPlayer===2)pongState.y2=Math.max(0,Math.min(350,pongState.y2+diff));
 e.preventDefault();
 }
+function pongTouchEnd(){pongTouchActive=false;}
 
 function pongKeyDown(e){
-let key=e.key||e.code||'';
-pongKeys[key]=true;
-if(e.key===' '||e.code==='Space'){doParry();}
+pongKeys[e.key||e.code||'']=true;
+if(e.key===' '||e.code==='Space'){doParry();return;}
 e.preventDefault();
 }
-function pongKeyUp(e){let key=e.key||e.code||'';pongKeys[key]=false;}
+function pongKeyUp(e){pongKeys[e.key||e.code||'']=false;}
 
 function endGameByForfeit(winner){pongState.game_over=true;if(winner===1)pongState.score1=10;else pongState.score2=10;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
 
@@ -1068,6 +1065,7 @@ if(pongState.game_over){
 let winnerName=pongState.score1>=10?(pongPlayer===1?pongMyName:pongOpponentName):(pongPlayer===1?pongOpponentName:pongMyName);
 document.getElementById('pong-winner').style.display='block';
 document.getElementById('pong-winner').textContent='👑 '+winnerName+' ПОБЕДИЛ!';
+if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:0,ball_sy:0,score1:pongState.score1,score2:pongState.score2}));
 }
 pongAnimationId=requestAnimationFrame(pongLoop);
 }
@@ -1103,23 +1101,12 @@ joinPongWebRTC();
 }
 
 async function joinPongWebRTC(){
-let{data,error}=await supabase.from('pong_signals').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
-console.log('Signal lookup:',pongLobbyId,data,error);
-if(error||!data||!data.offer||data.offer===''||data.offer==='""'){
-document.getElementById('pong-player2-status').textContent='Ошибка сигнала';
-return;
-}
+let{data}=await supabase.from('pong_signals').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
+if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-player2-status').textContent='Ошибка сигнала';return;}
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{
-pongDC=e.channel;
-pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};
-pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
-pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
-onOpponentConnected();
-};
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};onOpponentConnected();};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
-let offer;
-try{offer=JSON.parse(data.offer);}catch(e){offer=data.offer;}
+let offer=JSON.parse(data.offer);
 if(typeof offer==='string')offer=JSON.parse(offer);
 await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
 let answer=await pongPC.createAnswer();
