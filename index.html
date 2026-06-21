@@ -1047,19 +1047,48 @@ async function startPongHost() {
     const offer = await pongPC.createOffer();
     await pongPC.setLocalDescription(offer);
     
-    // Подписываемся на ответ
+    // Подписываемся на ответ от гостя
     subscribeToPongAnswer();
+    
+    // Подписываемся на изменения лобби (узнаём когда игрок 2 заходит)
+    supabase
+        .channel('pong-lobby-' + pongLobbyId)
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'pong_lobbies',
+            filter: 'id=eq.' + pongLobbyId
+        }, (payload) => {
+            console.log('🎮 Лобби обновилось:', payload.new);
+            
+            if (payload.new.player2 && !pongOpponentName) {
+                pongOpponentName = payload.new.player2;
+                console.log('🎮 Игрок 2 присоединился:', pongOpponentName);
+                refreshLobbyUI();
+            }
+        })
+        .subscribe();
 }
 
 function setupDataChannel(dc) {
-    dc.onopen = () => {
-        console.log('🎮 DC открыт, отправляю sync');
+    console.log('🎮 setupDataChannel, начальное состояние:', dc.readyState);
+    
+    // Если DC уже открыт (бывает при переподключении)
+    if (dc.readyState === 'open') {
+        console.log('🎮 DC уже был открыт, отправляю sync');
         sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
+    }
+    
+    dc.onopen = () => {
+        console.log('🎮 DC открыт! Отправляю sync:', { name: pongMyName, ready: pongReady });
+        sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
+        onOpponentConnected();
     };
     
     dc.onmessage = (e) => {
         try {
             const data = JSON.parse(e.data);
+            console.log('🎮 Сообщение от соперника:', data.type, data);
             handlePongMessage(data);
         } catch (err) {
             console.error('Ошибка парсинга Pong сообщения:', err);
@@ -1112,17 +1141,43 @@ function subscribeToPongAnswer() {
             table: 'pong_signals',
             filter: 'id=eq.' + pongLobbyId
         }, async (payload) => {
-            if (payload.new.answer && payload.new.answer !== '' && pongPC && pongPC.signalingState === 'have-local-offer') {
+            console.log('🎮 ХОСТ получил сигнал:', payload.new);
+            
+            // Проверяем, есть ли answer и не установлен ли уже remote
+            if (payload.new.answer && 
+                payload.new.answer !== '' && 
+                payload.new.answer !== '""' &&
+                pongPC && 
+                pongPC.signalingState === 'have-local-offer') {
+                
                 try {
-                    const answer = JSON.parse(payload.new.answer);
+                    let answer = payload.new.answer;
+                    if (typeof answer === 'string') {
+                        answer = JSON.parse(answer);
+                    }
+                    
+                    console.log('🎮 ХОСТ устанавливает remote answer, signalingState:', pongPC.signalingState);
                     await pongPC.setRemoteDescription(new RTCSessionDescription(answer));
-                    console.log('🎮 Установлен remote answer');
+                    console.log('🎮 ХОСТ: remote answer установлен, signalingState:', pongPC.signalingState);
+                    
+                    // После установки answer, DC должен открыться
+                    // Проверим состояние DC
+                    if (pongDC) {
+                        console.log('🎮 DC состояние:', pongDC.readyState);
+                        if (pongDC.readyState === 'open') {
+                            console.log('🎮 DC уже открыт, отправляю sync');
+                            sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
+                        }
+                    }
+                    
                 } catch (e) {
-                    console.error('Ошибка установки answer:', e);
+                    console.error('Ошибка установки answer на хосте:', e);
                 }
             }
         })
         .subscribe();
+    
+    console.log('🎮 ХОСТ подписан на сигналы для лобби:', pongLobbyId);
 }
 
 async function joinPongWebRTC() {
