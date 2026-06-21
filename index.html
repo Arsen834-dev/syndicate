@@ -969,13 +969,12 @@ let ctx=c.getContext('2d');
 let img=new Image();img.src='Судьба Земли.png';
 let count=7;
 function drawCD(){
-if(count<=0){startPongGame();return;}
 ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
 ctx.drawImage(img,0,0,800,500);
 ctx.fillStyle='#ff1744';ctx.font='80px VT323';
 ctx.fillText(count,370,480);
 count--;
-setTimeout(drawCD,1000);
+if(count>=0){setTimeout(drawCD,1000);}else{startPongGame();}
 }
 drawCD();
 if(pongIsAdmin&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'start_countdown'}));
