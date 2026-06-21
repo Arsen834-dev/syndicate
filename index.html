@@ -1093,7 +1093,7 @@ joinPongWebRTC();
 }
 
 async function joinPongWebRTC(){
-let{data,error}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
+let{data,error}=await supabase.from('pong_signals').select('*').order('created_at',{ascending:false}).limit(1).maybeSingle();
 console.log('Signal lookup:',pongLobbyId,data,error);
 if(error||!data||!data.offer||data.offer===''||data.offer==='""'){
 document.getElementById('pong-player2-status').textContent='Ошибка сигнала';
