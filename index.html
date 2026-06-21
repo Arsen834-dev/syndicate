@@ -812,9 +812,9 @@ window.renderInventory=renderInventory;window.renderShopCategories=renderShopCat
 document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(document.hidden){if(bgMusic){bgMusic.pause();}}else{if(soundEnabled&&document.getElementById('desktop').style.display==='flex'){tryPlayBg();}}}});
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)return;let ctx=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx.clearRect(0,0,c.width,c.height);let ns=document.querySelectorAll('.web-node');if(ns.length<2)return;let mx=null,my=null;ns.forEach(function(n){let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();if(n.dataset.agent===CA.name){mx=r.left+r.width/2-cr.left;my=r.top+r.height/2-cr.top;}});if(!mx)return;ns.forEach(function(n){if(n.dataset.agent===CA.name)return;let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(r.left+r.width/2-cr.left,r.top+r.height/2-cr.top);ctx.strokeStyle='rgba(255,23,68,0.6)';ctx.lineWidth=1.5;ctx.stroke();});},100);
-// ============ KING PONG (ИСПРАВЛЕННЫЙ) ============
-let pongPC = null, pongDC = null, pongAnimationId = null;
-let pongLobbyId = null, pongPlayer = null, pongChannel = null, pongSignalChannel = null;
+// ============ KING PONG (Supabase Realtime версия) ============
+let pongAnimationId = null;
+let pongLobbyId = null, pongPlayer = null, pongChannel = null;
 let pongReady = false, pongOpponentReady = false, pongGameStarted = false, pongIsAdmin = false;
 let pongState = {ball_x:400, ball_y:250, ball_sx:5, ball_sy:2, score1:0, score2:0, y1:200, y2:200, game_over:false, started:false, opponent_y:200};
 let pongKeys = {}, pongOpponentName = '', pongMyName = '', pongTouchY = null, pongTouchActive = false;
@@ -824,7 +824,6 @@ let pongSounds = {};
     pongSounds[s] = new Audio(s + '.mp3');
     pongSounds[s].volume = 0.3;
 });
-let pongIceCandidates = []; // Буферизация ICE-кандидатов
 
 function initPong() {
     cleanupPong();
@@ -833,12 +832,8 @@ function initPong() {
 }
 
 function cleanupPong() {
-    if (pongPC) { pongPC.close(); pongPC = null; }
-    if (pongDC) { pongDC.close(); pongDC = null; }
     if (pongChannel) { supabase.removeChannel(pongChannel); pongChannel = null; }
-    if (pongSignalChannel) { supabase.removeChannel(pongSignalChannel); pongSignalChannel = null; }
     if (pongAnimationId) { cancelAnimationFrame(pongAnimationId); pongAnimationId = null; }
-    pongIceCandidates = [];
     pongReady = false;
     pongOpponentReady = false;
     pongGameStarted = false;
@@ -950,14 +945,9 @@ async function createPongLobby(name, type) {
         return initPong();
     }
     
-    console.log('🎮 Лобби создано в БД:', pongLobbyId);
-    
+    console.log('🎮 Лобби создано:', pongLobbyId);
     showLobbyRoom(name, code);
-    
-    // Даём 500мс чтобы лобби точно сохранилось, потом запускаем WebRTC
-    setTimeout(() => {
-        startPongHost();
-    }, 500);
+    subscribeToGameChannel();
 }
 
 function showLobbyRoom(name, code) {
@@ -1014,401 +1004,128 @@ function refreshLobbyUI() {
         startBtn.style.display = showStart ? 'block' : 'none';
         if (showStart) startBtn.onclick = () => startCountdown();
     }
-    
-    // Показываем кнопку выхода для админа
-    let leaveBtn = document.getElementById('pong-leave-btn');
-    if (leaveBtn && pongIsAdmin) {
-        leaveBtn.style.display = 'block';
-        leaveBtn.onclick = () => leaveLobby();
-    }
 }
 
-async function startPongHost() {
-    // Создаём RTCPeerConnection
-    pongPC = new RTCPeerConnection({
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' },
-            {
-                urls: 'turn:openrelay.metered.ca:80',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            }
-        ]
-    });
+// Подписка на игровой канал (работает у обоих игроков)
+function subscribeToGameChannel() {
+    if (pongChannel) supabase.removeChannel(pongChannel);
     
-    // Создаём data channel (хост всегда создаёт)
-    pongDC = pongPC.createDataChannel('pong', {
-        ordered: true
-    });
-    
-    setupDataChannel(pongDC);
-    
-    // Собираем ICE-кандидатов
-    pongPC.onicecandidate = async (e) => {
-        if (e.candidate) {
-            pongIceCandidates.push(e.candidate);
-        } else {
-            // ICE gathering complete — сохраняем полный offer
-            await savePongSignal();
-        }
-    };
-    
-    // Мониторинг состояния подключения
-    pongPC.onconnectionstatechange = () => {
-        console.log('🎮 ХОСТ: connection state =', pongPC.connectionState);
-    };
-    
-    pongPC.oniceconnectionstatechange = () => {
-        console.log('🎮 ХОСТ: ICE connection state =', pongPC.iceConnectionState);
-    };
-    
-    // Создаём offer
-    const offer = await pongPC.createOffer();
-    await pongPC.setLocalDescription(offer);
-    
-    // Подписываемся на ответ от гостя
-    subscribeToPongAnswer();
-    
-    // Подписываемся на изменения лобби (узнаём когда игрок 2 заходит)
-    supabase
-        .channel('pong-lobby-' + pongLobbyId)
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'pong_lobbies',
-            filter: 'id=eq.' + pongLobbyId
-        }, (payload) => {
-            console.log('🎮 Лобби обновилось:', payload.new);
+    pongChannel = supabase
+        .channel('pong-game-' + pongLobbyId)
+        .on('broadcast', { event: 'game' }, (payload) => {
+            const msg = payload.payload;
             
-            if (payload.new.player2 && !pongOpponentName) {
-                pongOpponentName = payload.new.player2;
-                console.log('🎮 Игрок 2 присоединился:', pongOpponentName);
+            if (msg.type === 'sync' && msg.from !== pongMyName) {
+                pongOpponentName = msg.from;
+                pongOpponentReady = msg.ready || false;
                 refreshLobbyUI();
             }
+            
+            if (msg.type === 'ready' && msg.from !== pongMyName) {
+                pongOpponentReady = msg.ready;
+                refreshLobbyUI();
+            }
+            
+            if (msg.type === 'start_countdown' && !pongIsAdmin) {
+                startCountdown();
+            }
+            
+            if (msg.type === 'state' && !pongIsAdmin) {
+                pongState.ball_x = msg.ball_x;
+                pongState.ball_y = msg.ball_y;
+                pongState.ball_sx = msg.ball_sx;
+                pongState.ball_sy = msg.ball_sy;
+                pongState.score1 = msg.score1;
+                pongState.score2 = msg.score2;
+                if (msg.game_over) pongState.game_over = true;
+            }
+            
+            if (msg.type === 'move') {
+                pongState.opponent_y = msg.y;
+            }
+            
+            if (msg.type === 'parry') {
+                pongState.ball_sx = msg.ball_sx;
+                pongState.ball_sy = msg.ball_sy;
+                playPongSound('parry-ultrakill');
+            }
         })
-        .subscribe();
+        .subscribe((status) => {
+            console.log('🎮 Канал игры:', status);
+            if (status === 'SUBSCRIBED') {
+                // Отправляем sync при подключении к каналу
+                broadcastGame({ type: 'sync', from: pongMyName, ready: pongReady });
+            }
+        });
 }
 
-function setupDataChannel(dc) {
-    console.log('🎮 setupDataChannel, начальное состояние:', dc.readyState);
-    
-    // Если DC уже открыт (бывает при переподключении)
-    if (dc.readyState === 'open') {
-        console.log('🎮 DC уже был открыт, отправляю sync');
-        sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
-    }
-    
-    dc.onopen = () => {
-        console.log('🎮 DC открыт! Отправляю sync:', { name: pongMyName, ready: pongReady });
-        sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
-        onOpponentConnected();
-    };
-    
-    dc.onmessage = (e) => {
-        try {
-            const data = JSON.parse(e.data);
-            console.log('🎮 Сообщение от соперника:', data.type, data);
-            handlePongMessage(data);
-        } catch (err) {
-            console.error('Ошибка парсинга Pong сообщения:', err);
-        }
-    };
-    
-    dc.onclose = () => {
-        console.log('🎮 DC закрыт');
-        if (!pongState.game_over && pongState.started) {
-            handleOpponentDisconnect();
-        }
-    };
-    
-    dc.onerror = (e) => {
-        console.error('🎮 DC ошибка:', e);
-    };
-}
-
-function sendPongMessage(data) {
-    if (pongDC && pongDC.readyState === 'open') {
-        pongDC.send(JSON.stringify(data));
+function broadcastGame(msg) {
+    if (pongChannel) {
+        pongChannel.send({
+            type: 'broadcast',
+            event: 'game',
+            payload: msg
+        });
     }
 }
 
-async function savePongSignal() {
-    if (!pongPC || !pongPC.localDescription) {
-        console.error('🎮 Нет localDescription для сохранения');
-        return;
-    }
-    
-    const offerData = {
-        type: pongPC.localDescription.type,
-        sdp: pongPC.localDescription.sdp
-    };
-    
-    console.log('🎮 Сохраняю offer в БД, lobbyId:', pongLobbyId);
-    
-    // Сначала пробуем update, если не exists — insert
-    const { data: existing } = await supabase
-        .from('pong_signals')
-        .select('id')
-        .eq('id', pongLobbyId)
+async function joinLobbyByCode(code) {
+    let { data } = await supabase.from('pong_lobbies')
+        .select('*')
+        .or('code.eq.' + code + ',id.eq.' + code)
         .maybeSingle();
     
-    if (existing) {
-        const { error } = await supabase
-            .from('pong_signals')
-            .update({ offer: JSON.stringify(offerData), answer: '' })
-            .eq('id', pongLobbyId);
-        if (error) console.error('Ошибка обновления сигнала:', error);
-        else console.log('🎮 Offer обновлён в БД');
-    } else {
-        const { error } = await supabase
-            .from('pong_signals')
-            .insert({ id: pongLobbyId, offer: JSON.stringify(offerData), answer: '' });
-        if (error) console.error('Ошибка вставки сигнала:', error);
-        else console.log('🎮 Offer вставлен в БД');
+    if (!data || data.status !== 'waiting') {
+        notif('⛔ ЛОББИ НЕ НАЙДЕНО');
+        return initPong();
     }
+    
+    cleanupPong();
+    pongLobbyId = data.id;
+    pongPlayer = 2;
+    pongIsAdmin = false;
+    pongMyName = CA.name;
+    pongOpponentName = data.player1;
+    
+    await supabase.from('pong_lobbies')
+        .update({ player2: CA.name, status: 'playing' })
+        .eq('id', pongLobbyId);
+    
+    showLobbyRoom(data.name, data.code);
+    subscribeToGameChannel();
+    broadcastGame({ type: 'sync', from: pongMyName, ready: false });
 }
 
-function subscribeToPongAnswer() {
-    if (pongSignalChannel) supabase.removeChannel(pongSignalChannel);
+async function joinLobbyById(id) {
+    let modal = document.querySelector('.pong-modal-overlay');
+    if (modal) modal.remove();
     
-    pongSignalChannel = supabase
-        .channel('pong-signal-' + pongLobbyId)
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'pong_signals',
-            filter: 'id=eq.' + pongLobbyId
-        }, async (payload) => {
-            console.log('🎮 ХОСТ получил сигнал:', payload.new);
-            
-            // Проверяем, есть ли answer и не установлен ли уже remote
-            if (payload.new.answer && 
-                payload.new.answer !== '' && 
-                payload.new.answer !== '""' &&
-                pongPC && 
-                pongPC.signalingState === 'have-local-offer') {
-                
-                try {
-                    let answer = payload.new.answer;
-                    if (typeof answer === 'string') {
-                        answer = JSON.parse(answer);
-                    }
-                    
-                    console.log('🎮 ХОСТ устанавливает remote answer, signalingState:', pongPC.signalingState);
-                    await pongPC.setRemoteDescription(new RTCSessionDescription(answer));
-                    console.log('🎮 ХОСТ: remote answer установлен, signalingState:', pongPC.signalingState);
-                    
-                    // После установки answer, DC должен открыться
-                    // Проверим состояние DC
-                    if (pongDC) {
-                        console.log('🎮 DC состояние:', pongDC.readyState);
-                        if (pongDC.readyState === 'open') {
-                            console.log('🎮 DC уже открыт, отправляю sync');
-                            sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
-                        }
-                    }
-                    
-                } catch (e) {
-                    console.error('Ошибка установки answer на хосте:', e);
-                }
-            }
-        })
-        .subscribe();
-    
-    console.log('🎮 ХОСТ подписан на сигналы для лобби:', pongLobbyId);
-}
-
-async function joinPongWebRTC() {
-    console.log('🎮 Подключаюсь к WebRTC...');
-    
-    // Ждём offer с повторными попытками
-    let signalData = null;
-    let attempts = 0;
-    const maxAttempts = 20; // 10 секунд максимум
-    
-    while (attempts < maxAttempts) {
-        const { data, error } = await supabase
-            .from('pong_signals')
-            .select('*')
-            .eq('id', pongLobbyId)
-            .maybeSingle();
-        
-        if (!error && data && data.offer && data.offer !== '' && data.offer !== '""') {
-            signalData = data;
-            console.log('🎮 Offer найден после', attempts, 'попыток');
-            break;
-        }
-        
-        console.log('🎮 Жду offer... попытка', attempts + 1);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        attempts++;
+    let { data } = await supabase.from('pong_lobbies').select('*').eq('id', id).maybeSingle();
+    if (!data || data.status !== 'waiting') {
+        notif('⛔ ЛОББИ НЕДОСТУПНО');
+        return initPong();
     }
     
-    if (!signalData) {
-        console.error('Сигнал не найден после', maxAttempts, 'попыток');
-        notif('⛔ СИГНАЛ НЕ НАЙДЕН (хост не создал лобби)');
-        return leaveLobby();
-    }
+    cleanupPong();
+    pongLobbyId = id;
+    pongPlayer = 2;
+    pongIsAdmin = false;
+    pongMyName = CA.name;
+    pongOpponentName = data.player1;
     
-    // Создаём RTCPeerConnection (гость)
-    pongPC = new RTCPeerConnection({
-        iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' },
-            {
-                urls: 'turn:openrelay.metered.ca:80',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            },
-            {
-                urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-                username: 'openrelayproject',
-                credential: 'openrelayproject'
-            }
-        ]
-    });
+    await supabase.from('pong_lobbies')
+        .update({ player2: CA.name, status: 'playing' })
+        .eq('id', id);
     
-    // ВАЖНО: гость ждёт data channel от хоста
-    pongPC.ondatachannel = (e) => {
-        console.log('🎮 ГОСТЬ получил DC от хоста, состояние:', e.channel.readyState);
-        pongDC = e.channel;
-        setupDataChannel(pongDC);
-        
-        // Как только DC открыт — отправляем sync
-        if (pongDC.readyState === 'open') {
-            console.log('🎮 ГОСТЬ: DC уже открыт');
-            sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
-            onOpponentConnected();
-        }
-    };
-    
-    // Отправляем answer когда соберутся ICE-кандидаты
-    pongPC.onicecandidate = async (e) => {
-        if (!e.candidate && pongPC.localDescription) {
-            // ICE gathering complete — сохраняем answer
-            const answerData = {
-                type: pongPC.localDescription.type,
-                sdp: pongPC.localDescription.sdp
-            };
-            
-            console.log('🎮 ГОСТЬ сохраняет answer');
-            await supabase.from('pong_signals').update({
-                answer: JSON.stringify(answerData)
-            }).eq('id', pongLobbyId);
-            console.log('🎮 ГОСТЬ: Answer сохранён');
-        }
-    };
-    
-    // Отслеживаем изменение состояния подключения
-    pongPC.onconnectionstatechange = () => {
-        console.log('🎮 ГОСТЬ: connection state =', pongPC.iceConnectionState);
-    };
-    
-    pongPC.oniceconnectionstatechange = () => {
-        console.log('🎮 ГОСТЬ: ICE connection state =', pongPC.iceConnectionState);
-    };
-    
-    // Устанавливаем offer от хоста
-    try {
-        let offer = JSON.parse(signalData.offer);
-        if (typeof offer === 'string') offer = JSON.parse(offer);
-        
-        console.log('🎮 ГОСТЬ устанавливает remote offer');
-        await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
-        console.log('🎮 ГОСТЬ: remote offer установлен');
-        
-        const answer = await pongPC.createAnswer();
-        await pongPC.setLocalDescription(answer);
-        console.log('🎮 ГОСТЬ: local answer создан');
-    } catch (e) {
-        console.error('Ошибка WebRTC handshake у гостя:', e);
-        notif('⛔ ОШИБКА ПОДКЛЮЧЕНИЯ');
-        return leaveLobby();
-    }
-}
-
-function onOpponentConnected() {
-    console.log('🎮 Противник подключился');
-    sendPongMessage({ type: 'sync', name: pongMyName, ready: pongReady });
-    refreshLobbyUI();
-}
-
-function handleOpponentDisconnect() {
-    document.getElementById('pong-player2-name').textContent = 'Отключился';
-    document.getElementById('pong-player2-status').textContent = 'Сигнал потерян';
-    if (pongState.started && !pongState.game_over) {
-        pongState.game_over = true;
-        document.getElementById('pong-winner').style.display = 'block';
-        document.getElementById('pong-winner').textContent = '👑 ' + pongMyName + ' ПОБЕДИЛ! (противник отключился)';
-    }
+    showLobbyRoom(data.name, data.code);
+    subscribeToGameChannel();
+    broadcastGame({ type: 'sync', from: pongMyName, ready: false });
 }
 
 function pongSetReady() {
     pongReady = !pongReady;
-    sendPongMessage({ type: 'ready', ready: pongReady });
+    broadcastGame({ type: 'ready', from: pongMyName, ready: pongReady });
     refreshLobbyUI();
-}
-
-function handlePongMessage(d) {
-    if (d.type === 'sync') {
-        pongOpponentName = d.name;
-        pongOpponentReady = d.ready || false;
-        refreshLobbyUI();
-    }
-    if (d.type === 'ready') {
-        pongOpponentReady = d.ready;
-        refreshLobbyUI();
-    }
-    if (d.type === 'start_countdown') {
-        startCountdown();
-    }
-    if (d.type === 'state') {
-        pongState.ball_x = d.ball_x;
-        pongState.ball_y = d.ball_y;
-        pongState.ball_sx = d.ball_sx;
-        pongState.ball_sy = d.ball_sy;
-        pongState.score1 = d.score1;
-        pongState.score2 = d.score2;
-        if (d.game_over) {
-            pongState.game_over = true;
-        }
-    }
-    if (d.type === 'move') {
-        pongState.opponent_y = d.y;
-    }
-    if (d.type === 'parry') {
-        pongState.ball_sx = d.ball_sx;
-        pongState.ball_sy = d.ball_sy;
-        playPongSound('parry-ultrakill');
-    }
-    if (d.type === 'forfeit') {
-        endGameByForfeit(pongPlayer === 1 ? 2 : 1);
-    }
-    if (d.type === 'ping') {
-        sendPongMessage({ type: 'pong', time: d.time });
-    }
 }
 
 function startCountdown() {
@@ -1429,7 +1146,7 @@ function startCountdown() {
     }, 1000);
     
     if (pongIsAdmin) {
-        sendPongMessage({ type: 'start_countdown' });
+        broadcastGame({ type: 'start_countdown' });
     }
 }
 
@@ -1467,27 +1184,23 @@ function startPongGame() {
 }
 
 function doParry() {
-    if (!pongDC || pongDC.readyState !== 'open' || pongState.game_over) return;
+    if (pongState.game_over) return;
     let myY = pongPlayer === 1 ? pongState.y1 : pongState.y2;
     let ballX = pongState.ball_x;
     let distToBall = pongPlayer === 1 ? Math.abs(ballX - 60) : Math.abs(ballX - 740);
     if (distToBall < 90 && pongState.ball_y >= myY - 20 && pongState.ball_y <= myY + 170) {
         pongState.ball_sx = pongPlayer === 1 ? Math.abs(pongState.ball_sx) * 1.3 : -Math.abs(pongState.ball_sx) * 1.3;
         pongState.ball_sy = (Math.random() - 0.5) * 4;
-        sendPongMessage({ type: 'parry', ball_sx: pongState.ball_sx, ball_sy: pongState.ball_sy });
+        broadcastGame({ type: 'parry', ball_sx: pongState.ball_sx, ball_sy: pongState.ball_sy });
         playPongSound('parry-ultrakill');
     }
 }
 
-function pongTouchStart(e) {
-    pongTouchActive = true;
-    pongTouchY = e.touches[0].clientY;
-}
+function pongTouchStart(e) { pongTouchActive = true; pongTouchY = e.touches[0].clientY; }
 function pongTouchMove(e) {
     if (!pongTouchActive) return;
-    let newY = e.touches[0].clientY;
-    let diff = newY - pongTouchY;
-    pongTouchY = newY;
+    let diff = e.touches[0].clientY - pongTouchY;
+    pongTouchY = e.touches[0].clientY;
     if (pongPlayer === 1) pongState.y1 = Math.max(0, Math.min(350, pongState.y1 + diff));
     if (pongPlayer === 2) pongState.y2 = Math.max(0, Math.min(350, pongState.y2 + diff));
     e.preventDefault();
@@ -1496,19 +1209,10 @@ function pongTouchEnd() { pongTouchActive = false; }
 
 function pongKeyDown(e) {
     pongKeys[e.key || e.code || ''] = true;
-    if (e.key === ' ' || e.code === 'Space') {
-        doParry();
-    }
+    if (e.key === ' ' || e.code === 'Space') doParry();
     e.preventDefault();
 }
 function pongKeyUp(e) { pongKeys[e.key || e.code || ''] = false; }
-
-function endGameByForfeit(winner) {
-    pongState.game_over = true;
-    if (winner === 1) pongState.score1 = 10;
-    else pongState.score2 = 10;
-    supabase.from('pong_lobbies').delete().eq('id', pongLobbyId);
-}
 
 function playPongSound(name) {
     try {
@@ -1523,13 +1227,12 @@ function playPongSound(name) {
 function leaveLobby() {
     cleanupPong();
     supabase.from('pong_lobbies').delete().eq('id', pongLobbyId).then(() => {});
-    supabase.from('pong_signals').delete().eq('id', pongLobbyId).then(() => {});
     resetPongUI();
     initPong();
 }
 
 function pongLoop() {
-    // Управление игрока
+    // Управление
     if (pongPlayer === 1) {
         if (pongKeys['w'] || pongKeys['W'] || pongKeys['KeyW'] || pongKeys['ц'] || pongKeys['Ц']) {
             if (pongState.y1 > 0) pongState.y1 -= 8;
@@ -1537,8 +1240,7 @@ function pongLoop() {
         if (pongKeys['s'] || pongKeys['S'] || pongKeys['KeyS'] || pongKeys['ы'] || pongKeys['Ы']) {
             if (pongState.y1 < 350) pongState.y1 += 8;
         }
-        // Отправляем позицию сопернику
-        sendPongMessage({ type: 'move', y: pongState.y1 });
+        broadcastGame({ type: 'move', y: pongState.y1 });
     }
     if (pongPlayer === 2) {
         if (pongKeys['ArrowUp'] || pongKeys['Up']) {
@@ -1547,62 +1249,49 @@ function pongLoop() {
         if (pongKeys['ArrowDown'] || pongKeys['Down']) {
             if (pongState.y2 < 350) pongState.y2 += 8;
         }
-        sendPongMessage({ type: 'move', y: pongState.y2 });
+        broadcastGame({ type: 'move', y: pongState.y2 });
     }
     
-    // Игровая логика (только хост обсчитывает физику)
+    // Физика (только хост)
     if (pongState.started && !pongState.game_over && pongIsAdmin) {
         pongState.ball_x += pongState.ball_sx;
         pongState.ball_y += pongState.ball_sy;
         
-        // Отскок от стен
         if (pongState.ball_y <= 10 || pongState.ball_y >= 490) {
             pongState.ball_sy *= -1;
             playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
-        // Отскок от ракеток
-        let hostY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
-        let guestY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
+        let leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
+        let rightY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
         
-        // Левая ракетка
-        if (pongState.ball_x <= 60 && pongState.ball_x >= 40 && pongState.ball_y >= hostY && pongState.ball_y <= hostY + 150) {
+        if (pongState.ball_x <= 60 && pongState.ball_x >= 40 && pongState.ball_y >= leftY && pongState.ball_y <= leftY + 150) {
             pongState.ball_sx = Math.abs(pongState.ball_sx);
-            pongState.ball_sy += (pongState.ball_y - (hostY + 75)) * 0.1;
+            pongState.ball_sy += (pongState.ball_y - (leftY + 75)) * 0.1;
             playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
-        // Правая ракетка
-        if (pongState.ball_x >= 740 && pongState.ball_x <= 760 && pongState.ball_y >= guestY && pongState.ball_y <= guestY + 150) {
+        if (pongState.ball_x >= 740 && pongState.ball_x <= 760 && pongState.ball_y >= rightY && pongState.ball_y <= rightY + 150) {
             pongState.ball_sx = -Math.abs(pongState.ball_sx);
-            pongState.ball_sy += (pongState.ball_y - (guestY + 75)) * 0.1;
+            pongState.ball_sy += (pongState.ball_y - (rightY + 75)) * 0.1;
             playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
-        // Голы
         if (pongState.ball_x < 20) {
             pongState.score2++;
-            pongState.ball_x = 400;
-            pongState.ball_y = 250;
-            pongState.ball_sx = 5;
-            pongState.ball_sy = (Math.random() - 0.5) * 4;
+            resetBall();
         }
         if (pongState.ball_x > 780) {
             pongState.score1++;
-            pongState.ball_x = 400;
-            pongState.ball_y = 250;
-            pongState.ball_sx = -5;
-            pongState.ball_sy = (Math.random() - 0.5) * 4;
+            resetBall();
         }
         
-        // Победа
         if (pongState.score1 >= 10 || pongState.score2 >= 10) {
             pongState.game_over = true;
-            supabase.from('pong_lobbies').delete().eq('id', pongLobbyId).then(() => {});
+            supabase.from('pong_lobbies').delete().eq('id', pongLobbyId);
         }
         
-        // Отправляем состояние гостю
-        sendPongMessage({
+        broadcastGame({
             type: 'state',
             ball_x: pongState.ball_x,
             ball_y: pongState.ball_y,
@@ -1618,10 +1307,8 @@ function pongLoop() {
     let c = document.getElementById('pong-canvas');
     if (!c) return;
     let ctx = c.getContext('2d');
-    c.width = 800;
-    c.height = 500;
+    c.width = 800; c.height = 500;
     
-    // Фон
     if (pongBg.complete && pongBg.naturalWidth > 0) {
         ctx.drawImage(pongBg, 0, 0, 800, 500);
     } else {
@@ -1629,175 +1316,69 @@ function pongLoop() {
         ctx.fillRect(0, 0, 800, 500);
     }
     
-    // Заголовок
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.fillRect(0, 0, 800, 30);
-    ctx.fillStyle = '#448aff';
-    ctx.font = '16px VT323';
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(0, 0, 800, 30);
+    ctx.fillStyle = '#448aff'; ctx.font = '16px VT323';
     ctx.fillText(pongPlayer === 1 ? pongMyName : pongOpponentName || '???', 10, 22);
     ctx.fillStyle = '#ff4444';
     let rn = pongPlayer === 1 ? (pongOpponentName || '???') : pongMyName;
     ctx.fillText(rn, 790 - ctx.measureText(rn).width, 22);
     
-    // Разделительная линия
-    ctx.strokeStyle = '#fff';
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-    ctx.moveTo(400, 0);
-    ctx.lineTo(400, 500);
-    ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 500); ctx.stroke();
     ctx.setLineDash([]);
     
-    // Ракетки
     let leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
     let rightY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
+    ctx.fillStyle = '#448aff'; ctx.fillRect(40, leftY, 20, 150);
+    ctx.fillStyle = '#ff4444'; ctx.fillRect(740, rightY, 20, 150);
     
-    ctx.fillStyle = '#448aff';
-    ctx.fillRect(40, leftY, 20, 150);
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(740, rightY, 20, 150);
-    
-    // Мяч
-    ctx.beginPath();
-    ctx.arc(pongState.ball_x, pongState.ball_y, 12, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(pongState.ball_x, pongState.ball_y, 12, 0, Math.PI * 2);
     if (pongState.score1 > pongState.score2) ctx.fillStyle = '#448aff';
     else if (pongState.score2 > pongState.score1) ctx.fillStyle = '#ff4444';
     else ctx.fillStyle = '#fff';
     ctx.fill();
     
-    // Корона на мяче
-    if (pongState.score1 > pongState.score2) {
-        ctx.fillStyle = '#448aff';
-        ctx.font = '24px serif';
-        ctx.fillText('👑', pongState.ball_x - 15, pongState.ball_y - 20);
-    }
-    if (pongState.score2 > pongState.score1) {
-        ctx.fillStyle = '#ff4444';
-        ctx.font = '24px serif';
-        ctx.fillText('👑', pongState.ball_x - 15, pongState.ball_y - 20);
-    }
-    
-    // Счёт
     let scoreEl = document.getElementById('pong-score');
-    if (scoreEl) {
-        scoreEl.innerHTML = '<span style="color:#448aff;">' + pongState.score1 + '</span> - <span style="color:#ff4444;">' + pongState.score2 + '</span>';
-    }
+    if (scoreEl) scoreEl.innerHTML = '<span style="color:#448aff;">' + pongState.score1 + '</span> - <span style="color:#ff4444;">' + pongState.score2 + '</span>';
     
-    // Победитель
     if (pongState.game_over) {
         let myScore = pongPlayer === 1 ? pongState.score1 : pongState.score2;
-        let oppScore = pongPlayer === 1 ? pongState.score2 : pongState.score1;
         let iWon = myScore >= 10;
-        let winnerName = iWon ? pongMyName : (pongOpponentName || 'Противник');
-        
         let winnerEl = document.getElementById('pong-winner');
         if (winnerEl) {
             winnerEl.style.display = 'block';
-            winnerEl.textContent = iWon ? '👑 ВЫ ПОБЕДИЛИ!' : '💀 ' + winnerName + ' ПОБЕДИЛ';
+            winnerEl.textContent = iWon ? '👑 ВЫ ПОБЕДИЛИ!' : '💀 ПОРАЖЕНИЕ';
             winnerEl.style.color = iWon ? '#ffd700' : '#ff0000';
         }
-        
-        // Награда победителю
         if (iWon && CA) {
             CA.crystals = (CA.crystals || 0) + 100;
-            updateStatusBar();
-            saveAgent();
-            notif('🏆 +100 ТК за победу!');
+            updateStatusBar(); saveAgent();
         }
-        
-        // Кнопка возврата
-        setTimeout(() => {
-            let modal = document.createElement('div');
-            modal.className = 'modal-overlay';
-            modal.style.display = 'flex';
-            modal.classList.add('show');
-            modal.style.zIndex = '100';
-            modal.innerHTML = `
-                <div class="modal-box" style="text-align:center;">
-                    <div style="font-size:1.5rem;margin:15px 0;">${iWon ? '🏆 ПОБЕДА!' : '💀 ПОРАЖЕНИЕ'}</div>
-                    <button class="modal-btn" onclick="this.closest('.modal-overlay').remove();leaveLobby();">ВЕРНУТЬСЯ В ЛОББИ</button>
-                </div>`;
-            document.body.appendChild(modal);
-        }, 2000);
     }
     
-    if (!pongState.game_over) {
-        pongAnimationId = requestAnimationFrame(pongLoop);
-    }
+    if (!pongState.game_over) pongAnimationId = requestAnimationFrame(pongLoop);
+}
+
+function resetBall() {
+    pongState.ball_x = 400;
+    pongState.ball_y = 250;
+    pongState.ball_sx = (Math.random() > 0.5 ? 5 : -5);
+    pongState.ball_sy = (Math.random() - 0.5) * 4;
 }
 
 async function loadPongLobbies() {
     let { data } = await supabase.from('pong_lobbies').select('*').eq('status', 'waiting').eq('type', 'open');
     let list = document.getElementById('pong-modal-lobbies');
     if (!list) return;
-    
     if (!data || data.length === 0) {
         list.innerHTML = '<div style="color:#cc0000;">Нет открытых лобби</div>';
         return;
     }
-    
     list.innerHTML = data.map(l => `
         <div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" 
              onclick="document.querySelector('.pong-modal-overlay')?.remove();joinLobbyById('${l.id}')">
             <span style="color:#ff1744;">${l.name}</span> | 👤 ${l.player1}
-        </div>
-    `).join('');
-}
-
-async function joinLobbyByCode(code) {
-    let { data } = await supabase.from('pong_lobbies')
-        .select('*')
-        .or('code.eq.' + code + ',id.eq.' + code)
-        .maybeSingle();
-    
-    if (!data || data.status !== 'waiting') {
-        notif('⛔ ЛОББИ НЕ НАЙДЕНО');
-        return initPong();
-    }
-    
-    cleanupPong();
-    pongLobbyId = data.id;
-    pongPlayer = 2;
-    pongIsAdmin = false;
-    pongMyName = CA.name;
-    pongOpponentName = data.player1;
-    
-    const { error } = await supabase.from('pong_lobbies')
-        .update({ player2: CA.name, status: 'playing' })
-        .eq('id', pongLobbyId);
-    
-    if (error) {
-        console.error('Ошибка присоединения:', error);
-        return initPong();
-    }
-    
-    showLobbyRoom(data.name, data.code);
-    await joinPongWebRTC();
-}
-
-async function joinLobbyById(id) {
-    let modal = document.querySelector('.pong-modal-overlay');
-    if (modal) modal.remove();
-    
-    let { data } = await supabase.from('pong_lobbies').select('*').eq('id', id).maybeSingle();
-    if (!data || data.status !== 'waiting') {
-        notif('⛔ ЛОББИ НЕДОСТУПНО');
-        return initPong();
-    }
-    
-    cleanupPong();
-    pongLobbyId = id;
-    pongPlayer = 2;
-    pongIsAdmin = false;
-    pongMyName = CA.name;
-    pongOpponentName = data.player1;
-    
-    await supabase.from('pong_lobbies')
-        .update({ player2: CA.name, status: 'playing' })
-        .eq('id', id);
-    
-    showLobbyRoom(data.name, data.code);
-    await joinPongWebRTC();
+        </div>`).join('');
 }
 
 // Глобальные функции
