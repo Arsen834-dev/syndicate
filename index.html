@@ -798,100 +798,108 @@ setInterval(updateDiscountDisplay,60000);
 setInterval(()=>{if(CA){saveAgent();updateStatusBar();loadFriends().then(()=>{let theirRequests=friends.filter(f=>f.status==='pending'&&f.friend===CA.name);if(theirRequests.length>0)glowIcon('icon-friends');});}},60000);
 setInterval(async()=>{if(CA&&document.visibilityState==='visible'){try{await supabase.from('agents').update({last_seen:new Date().toISOString()}).eq('name',CA.name);}catch(e){}}},30000);
 // ГЛОБАЛЬНЫЕ ФУНКЦИИ
-window.renderInventory=renderInventory;window.renderShopCategories=renderShopCategories;window.openApp=openApp;window.closeApp=closeApp;window.toggleAnnouncements=toggleAnnouncements;window.filterAnnouncements=filterAnnouncements;window.renderAnnouncements=renderAnnouncements;window.createAnnouncement=createAnnouncement;window.deleteAnnouncement=deleteAnnouncement;window.showCreateAnnouncement=showCreateAnnouncement;window.openDM=openDM;window.sendDM=sendDM;window.sendMessage=sendMessage;window.addReaction=addReaction;window.showReactionPickerUniversal=showReactionPickerUniversal;window.deleteMessage=deleteMessage;window.startDM=startDM;window.showAgentInfo=showAgentInfo;window.createGuide=createGuide;window.editGuide=editGuide;window.saveEditedGuide=saveEditedGuide;window.deleteGuide=deleteGuide;window.showCreateGuide=showCreateGuide;window.acceptRules=acceptRules;window.closeModal=closeModal;window.changeName=changeName;window.changePassword=changePassword;window.showChangeName=showChangeName;window.showChangePassword=showChangePassword;window.showChangeAvatar=showChangeAvatar;window.selectAvatar=selectAvatar;window.muteAgent=muteAgent;window.banAgent=banAgent;window.deleteAgent=deleteAgent;window.changeAgentRole=changeAgentRole;window.previewItem=previewItem;window.buyItem=buyItem;window.applyItem=applyItem;window.resetItem=resetItem;window.renderShopItems=renderShopItems;window.shopCategory=shopCategory;window.invCategory=invCategory;window.recoverSystem=recoverSystem;window.announcePage=announcePage;window.createClan=createClan;window.showCreateClan=showCreateClan;window.joinClan=joinClan;window.leaveClan=leaveClan;window.deleteClan=deleteClan;window.showClanInfo=showClanInfo;window.changeClanRole=changeClanRole;window.kickClanMember=kickClanMember;window.donateToClan=donateToClan;window.startClanWar=openWarTargetModal;window.filterLogs=filterLogs;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=acceptFriend;window.removeFriend=removeFriend;window.blockAgent=blockAgent;window.unblockAgent=unblockAgent;window.renderFriends=renderFriends;window.toggleSound=toggleSound;window.addDMReaction=addDMReaction;window.addClanReaction=addClanReaction;window.showReactionPicker=showReactionPickerUniversal;window.pinChatMessage=pinChatMessage;window.pinAnnouncement=pinAnnouncement;window.scrollToChatMessage=scrollToChatMessage;window.replyToMessage=replyToMessage;window.replyToClanMessage=replyToClanMessage;window.cancelReply=cancelReply;window.cancelDmReply=cancelDmReply;window.loadMoreChatMessages=loadMoreChatMessages;window.switchChatTab=switchChatTab;window.openClanChat=openClanChat;window.sendClanMessage=sendClanMessage;window.deleteClanMessage=deleteClanMessage;window.getDiscountedPrice=getDiscountedPrice;window.formatPrice=formatPrice;window.getItemDiscount=getItemDiscount;window.updateDiscountDisplay=updateDiscountDisplay;window.getActiveColorClassForId=getActiveColorClassForId;window.initTicker=initTicker;window.startBgMusic=startBgMusic;window.stopBgMusic=stopBgMusic;window.createMeme=createMeme;window.deleteMeme=deleteMeme;window.likeMeme=likeMeme;window.showCreateMeme=showCreateMeme;window.loadMemes=loadMemes;window.renderMemes=renderMemes;window.hideMentionSuggestions=hideMentionSuggestions;window.glowIcon=glowIcon;window.stopGlowIcon=stopGlowIcon;
+window.renderInventory=renderInventory;window.renderShopCategories=renderShopCategories;window.openApp=openApp;window.closeApp=closeApp;window.toggleAnnouncements=toggleAnnouncements;window.filterAnnouncements=filterAnnouncements;window.renderAnnouncements=renderAnnouncements;window.createAnnouncement=createAnnouncement;window.deleteAnnouncement=deleteAnnouncement;window.showCreateAnnouncement=showCreateAnnouncement;window.openDM=openDM;window.sendDM=sendDM;window.sendMessage=sendMessage;window.addReaction=addReaction;window.showReactionPickerUniversal=showReactionPickerUniversal;window.deleteMessage=deleteMessage;window.startDM=startDM;window.showAgentInfo=showAgentInfo;window.createGuide=createGuide;window.editGuide=editGuide;window.saveEditedGuide=saveEditedGuide;window.deleteGuide=deleteGuide;window.showCreateGuide=showCreateGuide;window.acceptRules=acceptRules;window.closeModal=closeModal;window.changeName=changeName;window.changePassword=changePassword;window.showChangeName=showChangeName;window.showChangePassword=showChangePassword;window.showChangeAvatar=showChangeAvatar;window.selectAvatar=selectAvatar;window.muteAgent=muteAgent;window.banAgent=banAgent;window.deleteAgent=deleteAgent;window.changeAgentRole=changeAgentRole;window.previewItem=previewItem;window.buyItem=buyItem;window.applyItem=applyItem;window.resetItem=resetItem;window.renderShopItems=renderShopItems;window.shopCategory=shopCategory;window.invCategory=invCategory;window.recoverSystem=recoverSystem;window.announcePage=announcePage;window.createClan=createClan;window.showCreateClan=showCreateClan;window.joinClan=joinClan;window.leaveClan=leaveClan;window.deleteClan=deleteClan;window.showClanInfo=showClanInfo;window.changeClanRole=changeClanRole;window.kickClanMember=kickClanMember;window.donateToClan=donateToClan;window.startClanWar=openWarTargetModal;window.filterLogs=filterLogs;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=acceptFriend;window.removeFriend=removeFriend;window.blockAgent=blockAgent;window.unblockAgent=unblockAgent;window.renderFriends=renderFriends;window.toggleSound=toggleSound;window.addDMReaction=addDMReaction;window.addClanReaction=addClanReaction;window.showReactionPicker=showReactionPickerUniversal;window.pinChatMessage=pinChatMessage;window.pinAnnouncement=pinAnnouncement;window.scrollToChatMessage=scrollToChatMessage;window.replyToMessage=replyToMessage;window.replyToClanMessage=replyToClanMessage;window.cancelReply=cancelReply;window.cancelDmReply=cancelDmReply;window.loadMoreChatMessages=loadMoreChatMessages;window.switchChatTab=switchChatTab;window.openClanChat=openClanChat;window.sendClanMessage=sendClanMessage;window.deleteClanMessage=deleteClanMessage;window.getDiscountedPrice=getDiscountedPrice;window.formatPrice=formatPrice;window.getItemDiscount=getItemDiscount;window.updateDiscountDisplay=updateDiscountDisplay;window.getActiveColorClassForId=getActiveColorClassForId;window.initTicker=initTicker;window.startBgMusic=startBgMusic;window.stopBgMusic=stopBgMusic;window.createMeme=createMeme;window.deleteMeme=deleteMeme;window.likeMeme=likeMeme;window.showCreateMeme=showCreateMeme;window.loadMemes=loadMemes;window.renderMemes=renderMemes;window.hideMentionSuggestions=hideMentionSuggestions;window.glowIcon=glowIcon;window.stopGlowIcon=stopGlowIcon;window.joinLobbyById=joinLobbyById;
+window.joinLobbyByCode=joinLobbyByCode;
 document.addEventListener('visibilitychange',()=>{if(window.innerWidth<=768){if(document.hidden){if(bgMusic){bgMusic.pause();}}else{if(soundEnabled&&document.getElementById('desktop').style.display==='flex'){tryPlayBg();}}}});
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/syndicate/sw.js')}
 setInterval(function(){let c=document.getElementById('web-canvas');if(!c||!CA)return;let ctx=c.getContext('2d');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx.clearRect(0,0,c.width,c.height);let ns=document.querySelectorAll('.web-node');if(ns.length<2)return;let mx=null,my=null;ns.forEach(function(n){let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();if(n.dataset.agent===CA.name){mx=r.left+r.width/2-cr.left;my=r.top+r.height/2-cr.top;}});if(!mx)return;ns.forEach(function(n){if(n.dataset.agent===CA.name)return;let r=n.getBoundingClientRect();let cr=c.parentElement.getBoundingClientRect();ctx.beginPath();ctx.moveTo(mx,my);ctx.lineTo(r.left+r.width/2-cr.left,r.top+r.height/2-cr.top);ctx.strokeStyle='rgba(255,23,68,0.6)';ctx.lineWidth=1.5;ctx.stroke();});},100);
-let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null;
+let pongPC=null,pongDC=null,pongAnimationId=null,pongLobbyId=null,pongPlayer=null,pongChannel=null,pongReady=false,pongOpponentReady=false;
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-let pongKeys={},pongImages={},pongSounds={};
+let pongKeys={};
 let pongBg=new Image();pongBg.src='background.png';
 let pongIntro=new Image();pongIntro.src='Судьба Земли.png';
 let pongCrownBlue=new Image();pongCrownBlue.src='Crownblue.png';
 let pongCrownRed=new Image();pongCrownRed.src='Crownred.png';
 let pongIconImg=new Image();pongIconImg.src='iconpong.png';
+let pongSounds={};
+['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;});
 
-function preloadPongSounds(){
-['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s=>{
-pongSounds[s]=new Audio(s+'.mp3');pongSounds[s].volume=0.3;
-});
-}
-
-async function initPong(){
-preloadPongSounds();
-document.getElementById('pong-menu').style.display='block';
-document.getElementById('pong-canvas').style.display='none';
-document.getElementById('pong-score').style.display='none';
-document.getElementById('pong-winner').style.display='none';
-document.getElementById('pong-status').textContent='';
+function initPong(){
 if(pongPC){pongPC.close();pongPC=null;}
 if(pongDC){pongDC.close();pongDC=null;}
 if(pongChannel)supabase.removeChannel(pongChannel);
 if(pongAnimationId)cancelAnimationFrame(pongAnimationId);
-pongLobbyId=null;pongPlayer=null;
-pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
-document.getElementById('pong-create-btn').onclick=showCreateLobby;
-document.getElementById('pong-join-btn').onclick=joinLobbyByCode;
-document.getElementById('pong-refresh-btn').onclick=refreshLobbies;
-refreshLobbies();
+pongReady=false;pongOpponentReady=false;
+showPongModal();
 }
 
-function showPongRules(){
-document.getElementById('pong-status').innerHTML='🔵 СИНИЙ: W/S + ПРОБЕЛ | 🔴 КРАСНЫЙ: ↑/↓ + ПРОБЕЛ<br>👑 До 10 очков | Пари: ПРОБЕЛ';
+function showPongModal(){
+let modal=document.createElement('div');
+modal.className='modal-overlay';
+modal.style.display='flex';
+modal.classList.add('show');
+modal.innerHTML='<div class="modal-box"><div class="modal-title">🎮 KING PONG</div><div style="margin:10px 0;"><button class="modal-btn" id="pong-create-lobby-btn" style="width:100%;">СОЗДАТЬ ЛОББИ</button></div><div style="color:#ff1744;margin:10px 0;">ОТКРЫТЫЕ ЛОББИ:</div><div id="pong-modal-lobbies" style="max-height:150px;overflow-y:auto;"></div><button class="modal-btn" id="pong-refresh-lobbies-btn" style="width:100%;margin:5px 0;">🔄 ОБНОВИТЬ</button><div style="margin-top:10px;"><input type="text" class="chat-input" id="pong-code-input" placeholder="КОД ЗАКРЫТОГО ЛОББИ" style="width:200px;text-align:center;"><br><button class="modal-btn" id="pong-join-code-btn" style="width:100%;">ПОДКЛЮЧИТЬСЯ ПО КОДУ</button></div><button class="modal-btn" data-close-modal="pong-close" style="width:100%;margin-top:10px;">ЗАКРЫТЬ</button></div>';
+document.body.appendChild(modal);
+loadPongLobbies();
+document.getElementById('pong-create-lobby-btn').onclick=()=>{modal.remove();showCreateLobby();};
+document.getElementById('pong-refresh-lobbies-btn').onclick=loadPongLobbies;
+document.getElementById('pong-join-code-btn').onclick=()=>{let code=document.getElementById('pong-code-input').value.trim().toUpperCase();if(code){modal.remove();joinLobbyByCode(code);}};
+modal.querySelector('[data-close-modal="pong-close"]').onclick=()=>modal.remove();
+}
+
+async function loadPongLobbies(){
+let{data}=await supabase.from('pong_lobbies').select('*').eq('status','waiting').eq('type','open');
+let list=document.getElementById('pong-modal-lobbies');
+if(!list)return;
+if(!data||data.length===0){list.innerHTML='<div style="color:#cc0000;">Нет открытых лобби</div>';return;}
+list.innerHTML=data.map(l=>'<div style="cursor:pointer;padding:8px;border:1px solid #2a0000;margin:3px 0;" onclick="document.querySelector(\'.modal-overlay\').remove();joinLobbyById(\''+l.id+'\')"><span style="color:#ff1744;">'+l.name+'</span> | 👤 '+l.player1+'</div>').join('');
 }
 
 async function showCreateLobby(){
 let name=prompt('Название лобби:','Быстрая игра');
-if(!name)return;
+if(!name)return showPongModal();
 let type=confirm('Открытое лобби? (OK - открытое, Отмена - закрытое)')?'open':'closed';
-let code=type==='closed'?Math.random().toString(36).substring(2,8).toUpperCase():null;
+if(type==='open'){
+let{data}=await supabase.from('pong_lobbies').select('*').eq('name',name).eq('type','open').eq('status','waiting').maybeSingle();
+if(data){alert('Лобби с таким названием уже существует!');return showPongModal();}
+}
 pongLobbyId=Math.random().toString(36).substring(2,8).toUpperCase();
+let code=type==='closed'?Math.random().toString(36).substring(2,6).toUpperCase():null;
 pongPlayer=1;
 await supabase.from('pong_lobbies').insert({id:pongLobbyId,name,player1:CA.name,status:'waiting',type,code});
-document.getElementById('pong-status').innerHTML='Лобби создано: '+name+(code?' | Код: '+code:'');
-showPongRules();
-showPongIntro();
+showPongWaiting(code);
 }
 
-function showPongIntro(){
-let c=document.getElementById('pong-canvas');
-c.style.display='block';
-let ctx=c.getContext('2d');
-c.width=800;c.height=500;
-ctx.drawImage(pongIntro,0,0,800,500);
-ctx.fillStyle='#fff';ctx.font='24px VT323';
-ctx.fillText('Нажми E чтобы начать',250,400);
-document.addEventListener('keydown',function waitE(e){
-if(e.key==='e'||e.key==='E'){
-document.removeEventListener('keydown',waitE);
+function showPongWaiting(code){
+document.getElementById('pong-menu').style.display='block';
+document.getElementById('pong-canvas').style.display='none';
+document.getElementById('pong-score').style.display='none';
+document.getElementById('pong-winner').style.display='none';
+document.getElementById('pong-status').innerHTML='Ожидание соперника...'+(code?'<br>Код лобби: <b style="color:#ffd700;">'+code+'</b>':'');
 startPongHost();
-}
-});
 }
 
 async function startPongHost(){
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
 pongDC=pongPC.createDataChannel('pong');
-pongDC.onopen=()=>{startPongGame();};
+pongDC.onopen=()=>{};
 pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
-pongDC.onclose=()=>{if(!pongState.game_over)endGameByForfeit(pongPlayer===1?2:1);};
+pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)endGameByForfeit(2);};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
-pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
-document.getElementById('pong-status').textContent='Ожидание соперника...';
+pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));pongDC.onopen=()=>{document.getElementById('pong-status').textContent='Соперник подключился! Нажми E для готовности';document.addEventListener('keydown',function ready(e){if(e.key==='e'||e.key==='E'){document.removeEventListener('keydown',arguments.callee);pongReady=true;pongDC.send(JSON.stringify({type:'ready'}));if(pongOpponentReady)showPongIntro();}});};}catch(e){}}}).subscribe();
 }
 
-async function joinLobbyByCode(){
-let code=document.getElementById('pong-room-input').value.trim().toUpperCase();
-if(!code)return;
+async function joinLobbyByCode(code){
 let{data}=await supabase.from('pong_lobbies').select('*').or('code.eq.'+code+',id.eq.'+code).maybeSingle();
-if(!data||data.status!=='waiting'){document.getElementById('pong-status').textContent='Лобби не найдено или занято';return;}
-if(data.player2){document.getElementById('pong-status').textContent='Лобби занято';return;}
+if(!data||data.status!=='waiting'){alert('Лобби не найдено или занято');return showPongModal();}
 pongLobbyId=data.id;pongPlayer=2;
 await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',pongLobbyId);
+document.getElementById('pong-menu').style.display='block';
+document.getElementById('pong-canvas').style.display='none';
 document.getElementById('pong-status').textContent='Подключаюсь...';
-showPongRules();
+joinPongWebRTC();
+}
+
+async function joinLobbyById(id){
+let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
+if(!data||data.status!=='waiting'){loadPongLobbies();return;}
+pongLobbyId=id;pongPlayer=2;
+await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
+document.getElementById('pong-menu').style.display='block';
+document.getElementById('pong-canvas').style.display='none';
+document.getElementById('pong-status').textContent='Подключаюсь...';
 joinPongWebRTC();
 }
 
@@ -899,52 +907,40 @@ async function joinPongWebRTC(){
 let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
 if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-status').textContent='Ошибка сигнала';return;}
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{startPongGame();};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over)endGameByForfeit(pongPlayer===1?2:1);};};
+pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{document.getElementById('pong-status').textContent='Подключено! Нажми E для готовности';document.addEventListener('keydown',function ready(e){if(e.key==='e'||e.key==='E'){document.removeEventListener('keydown',arguments.callee);pongReady=true;pongDC.send(JSON.stringify({type:'ready'}));if(pongOpponentReady)showPongIntro();}});};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)endGameByForfeit(1);};};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
-try{
 let offer=JSON.parse(data.offer);
 if(typeof offer==='string')offer=JSON.parse(offer);
 await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
 let answer=await pongPC.createAnswer();
 await pongPC.setLocalDescription(answer);
-}catch(e){document.getElementById('pong-status').textContent='Ошибка подключения';}
-}
-
-async function refreshLobbies(){
-let{data}=await supabase.from('pong_lobbies').select('*').eq('status','waiting').eq('type','open');
-let html='<div style="color:#ff1744;">ОТКРЫТЫЕ ЛОББИ:</div>';
-if(!data||data.length===0)html+='<div style="color:#cc0000;">Нет открытых лобби</div>';
-else data.forEach(l=>{html+='<div style="cursor:pointer;padding:5px;border:1px solid #2a0000;margin:3px 0;" onclick="joinLobbyById(\''+l.id+'\')">'+l.name+' | 👤 '+l.player1+'</div>';});
-document.getElementById('pong-lobbies-list').innerHTML=html;
-}
-
-async function joinLobbyById(id){
-let{data}=await supabase.from('pong_lobbies').select('*').eq('id',id).maybeSingle();
-if(!data||data.status!=='waiting'){refreshLobbies();return;}
-pongLobbyId=id;pongPlayer=2;
-await supabase.from('pong_lobbies').update({player2:CA.name,status:'playing'}).eq('id',id);
-document.getElementById('pong-status').textContent='Подключаюсь...';
-showPongRules();
-joinPongWebRTC();
 }
 
 function handlePongMessage(d){
+if(d.type==='ready'){pongOpponentReady=true;if(pongReady)showPongIntro();}
 if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}
 if(d.type==='move'){pongState.opponent_y=d.y;}
 if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}
 if(d.type==='forfeit'){endGameByForfeit(pongPlayer);}
 }
 
-function endGameByForfeit(winner){
-pongState.game_over=true;
-pongState.score1=winner===1?10:pongState.score1;
-pongState.score2=winner===2?10:pongState.score2;
-supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);
+function showPongIntro(){
+document.getElementById('pong-menu').style.display='none';
+let c=document.getElementById('pong-canvas');
+c.style.display='block';
+let ctx=c.getContext('2d');
+c.width=800;c.height=500;
+ctx.drawImage(pongIntro,0,0,800,500);
+ctx.fillStyle='#fff';ctx.font='24px VT323';
+ctx.fillText('Оба игрока готовы! Нажми E',200,400);
+document.addEventListener('keydown',function waitE(e){
+if(e.key==='e'||e.key==='E'){document.removeEventListener('keydown',waitE);startPongGame();}
+});
 }
 
-function playPongSound(name){
-try{if(pongSounds[name]){let s=pongSounds[name].cloneNode();s.volume=0.3;s.play().catch(()=>{});}}catch(e){}
-}
+function endGameByForfeit(winner){pongState.game_over=true;if(winner===1)pongState.score1=10;else pongState.score2=10;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
+
+function playPongSound(name){try{if(pongSounds[name]){let s=pongSounds[name].cloneNode();s.volume=0.3;s.play().catch(()=>{});}}catch(e){}}
 
 function startPongGame(){
 document.getElementById('pong-menu').style.display='none';
@@ -975,10 +971,10 @@ if(pongPlayer===1){if(pongKeys['w']&&pongState.y1>0)pongState.y1-=8;if(pongKeys[
 if(pongPlayer===2){if(pongKeys['ArrowUp']&&pongState.y2>0)pongState.y2-=8;if(pongKeys['ArrowDown']&&pongState.y2<350)pongState.y2+=8;}
 if(pongState.started&&!pongState.game_over){
 pongState.ball_x+=pongState.ball_sx;pongState.ball_y+=pongState.ball_sy;
-if(pongState.ball_y<=10||pongState.ball_y>=490){pongState.ball_sy*=-1;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
+if(pongState.ball_y<=10||pongState.ball_y>=490){pongState.ball_sy*=-1;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC)pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
 let opY=pongState.opponent_y;
-if(pongState.ball_x<=60&&pongState.ball_y>=pongState.y1&&pongState.ball_y<=pongState.y1+150){pongState.ball_sx=Math.abs(pongState.ball_sx);pongState.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
-if(pongState.ball_x>=740&&pongState.ball_y>=opY&&pongState.ball_y<=opY+150){pongState.ball_sx=-Math.abs(pongState.ball_sx);pongState.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
+if(pongState.ball_x<=60&&pongState.ball_y>=pongState.y1&&pongState.ball_y<=pongState.y1+150){pongState.ball_sx=Math.abs(pongState.ball_sx);pongState.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC)pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
+if(pongState.ball_x>=740&&pongState.ball_y>=opY&&pongState.ball_y<=opY+150){pongState.ball_sx=-Math.abs(pongState.ball_sx);pongState.ball_sy+=(Math.random()-0.5)*3;playPongSound('bounce'+(Math.floor(Math.random()*4)+1));if(pongDC)pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));}
 if(pongState.ball_x<20){pongState.score2++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=5;pongState.ball_sy=2;}
 if(pongState.ball_x>780){pongState.score1++;pongState.ball_x=400;pongState.ball_y=250;pongState.ball_sx=-5;pongState.ball_sy=2;}
 if(pongState.score1>=10||pongState.score2>=10){pongState.game_over=true;supabase.from('pong_lobbies').delete().eq('id',pongLobbyId);}
