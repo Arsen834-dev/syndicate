@@ -277,7 +277,6 @@
 @media(max-width:768px){
 #app-pong .app-content{padding:0!important}
 #pong-canvas{width:100%!important;height:auto!important;max-width:100%!important}
-<button id="pong-parry-btn" class="modal-btn" style="display:none;position:fixed;bottom:20px;right:20px;z-index:200;width:80px;height:80px;border-radius:50%;font-size:2rem;background:rgba(0,0,0,0.8);" onclick="doParry()">💥</button>
 }
     </style>
 </head>
@@ -321,6 +320,7 @@
 <canvas id="pong-canvas" width="800" height="500" style="border:2px solid #ff1744;background:#000;max-width:100%;display:none;margin:0 auto;"></canvas>
 <p id="pong-score" style="color:#ff1744;font-size:1.5rem;display:none;"></p>
 <p id="pong-winner" style="color:#ffd700;font-size:1.5rem;display:none;"></p>
+<button id="pong-parry-btn" class="modal-btn" style="display:none;position:fixed;bottom:30px;right:20px;z-index:200;width:80px;height:80px;border-radius:50%;font-size:2.5rem;background:rgba(0,0,0,0.85);color:#ff1744;border:2px solid #ff1744;" onclick="doParry()">💥</button>
 </div></div>
 <div id="announcements-wall"><div class="announce-header-bar"><span class="app-title">📢 ОБЪЯВЛЕНИЯ</span><button class="app-close mobile-only" onclick="document.getElementById('announcements-wall').style.display='none';if(window.innerWidth<=768)document.getElementById('announce-toggle-btn').style.display='block'" style="font-size:0.8rem;padding:3px 10px;">ЗАКРЫТЬ</button><div class="announce-filters"><button class="announce-filter-btn active" data-filter="all">ВСЕ</button><button class="announce-filter-btn" data-filter="news">📰 НОВОСТИ</button><button class="announce-filter-btn" data-filter="event">🎯 ИВЕНТЫ</button><button class="announce-filter-btn" data-filter="auction">💰 АУКЦИОНЫ</button><button class="announce-filter-btn" data-filter="update">⚡ ОБНОВЛЕНИЯ</button><button class="announce-filter-btn" data-filter="wanted">🔍 РОЗЫСК</button></div></div><div id="announcements-content" style="padding:5px;"></div><div class="announce-pagination" id="announce-pagination"></div></div>
     <div id="app-chat" class="app-screen"><div class="app-header"><span class="app-title">💬 ЧАТ</span><button class="app-close" data-close="chat">ЗАКРЫТЬ</button></div><div class="app-content" style="display:flex;flex-direction:column;height:calc(100% - 50px);"><div class="chat-tabs" id="chat-tabs"><button class="chat-tab active" data-tab="general">💬 ОБЩИЙ</button><button class="chat-tab" data-tab="clan">⚔️ ОТРЯД</button><button class="chat-tab" data-tab="admin" style="display:none" id="admin-tab-btn">🛡 АДМИН</button></div><div class="pinned-header" id="chat-pinned-header"></div><div class="chat-messages" id="chat-messages"></div><div id="reply-indicator" class="reply-indicator" style="display:none;"></div><div id="typing-indicator" style="color:#cc0000;font-size:0.8rem;padding:2px 10px;display:none;min-height:20px;"></div><div class="chat-input-row" id="chat-input-row"><button class="emoji-btn" id="chat-emoji-btn">😊</button><input type="file" id="chat-file-input" accept="image/*" style="display:none"><button class="emoji-btn" id="chat-file-btn">📎</button><input type="text" class="chat-input" id="chat-input" placeholder="СООБЩЕНИЕ... (ENTER)"><button class="app-close send-msg-btn" style="margin:0;">▶</button></div></div></div>
@@ -935,6 +935,11 @@ refreshLobbyUI();
 
 function handlePongMessage(d){
 if(d.type==='sync'){pongOpponentName=d.name;pongOpponentReady=d.ready;refreshLobbyUI();}
+if(d.type==='request_state'){
+if(pongDC&&pongDC.readyState==='open'){
+pongDC.send(JSON.stringify({type:'state',ball_x:pongState.ball_x,ball_y:pongState.ball_y,ball_sx:pongState.ball_sx,ball_sy:pongState.ball_sy,score1:pongState.score1,score2:pongState.score2}));
+}
+}
 if(d.type==='ready'){pongOpponentReady=d.ready;refreshLobbyUI();}
 if(d.type==='start_countdown'){startCountdown();}
 if(d.type==='state'){pongState.ball_x=d.ball_x;pongState.ball_y=d.ball_y;pongState.ball_sx=d.ball_sx||pongState.ball_sx;pongState.ball_sy=d.ball_sy||pongState.ball_sy;pongState.score1=d.score1;pongState.score2=d.score2;}
@@ -958,6 +963,9 @@ c.addEventListener('touchend',()=>{pongTouchY=null;});
 c.addEventListener('touchstart',()=>{pongTouchY=null;});
 }
 pongState.started=true;
+if(pongPlayer===2&&pongDC&&pongDC.readyState==='open'){
+pongDC.send(JSON.stringify({type:'request_state'}));
+}
 pongLoop();
 }
 
