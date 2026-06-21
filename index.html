@@ -947,18 +947,16 @@ tick();
 if(pongIsAdmin)pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
 
-function startPongGame(){
-pongGameStarted=true;
+function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
-document.getElementById('pong-canvas').style.display='block';
-document.getElementById('pong-score').style.display='block';
-document.addEventListener('keydown',pongKeyDown);
-document.addEventListener('keyup',pongKeyUp);
-if(window.innerWidth<=768){
-document.getElementById('pong-canvas').addEventListener('touchstart',pongTouchParry);
-}
-pongState.started=true;
-pongLoop();
+document.getElementById('pong-countdown').style.display='flex';
+let count=5;
+let cd=document.getElementById('pong-countdown-number');
+let img=document.getElementById('pong-countdown-img');
+img.src='Судьба Земли.png';
+function tick(){cd.textContent=count;if(count>0){count--;setTimeout(tick,1000);}else{document.getElementById('pong-countdown').style.display='none';startPongGame();}}
+tick();
+if(pongIsAdmin)pongDC.send(JSON.stringify({type:'start_countdown'}));
 }
 
 let pongTouchTime=0;
