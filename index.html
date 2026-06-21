@@ -1093,12 +1093,23 @@ joinPongWebRTC();
 }
 
 async function joinPongWebRTC(){
-let{data}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
-if(!data||!data.offer||data.offer===''||data.offer==='""'){document.getElementById('pong-player2-status').textContent='Ошибка сигнала';return;}
+let{data,error}=await supabase.from('pong_signals').select('*').eq('id',pongLobbyId).maybeSingle();
+console.log('Signal lookup:',pongLobbyId,data,error);
+if(error||!data||!data.offer||data.offer===''||data.offer==='""'){
+document.getElementById('pong-player2-status').textContent='Ошибка сигнала';
+return;
+}
 pongPC=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]});
-pongPC.ondatachannel=e=>{pongDC=e.channel;pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};onOpponentConnected();};
+pongPC.ondatachannel=e=>{
+pongDC=e.channel;
+pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};
+pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
+pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
+onOpponentConnected();
+};
 pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').update({answer:JSON.stringify(pongPC.localDescription)}).eq('id',pongLobbyId);}};
-let offer=JSON.parse(data.offer);
+let offer;
+try{offer=JSON.parse(data.offer);}catch(e){offer=data.offer;}
 if(typeof offer==='string')offer=JSON.parse(offer);
 await pongPC.setRemoteDescription(new RTCSessionDescription(offer));
 let answer=await pongPC.createAnswer();
