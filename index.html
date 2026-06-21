@@ -814,7 +814,6 @@ let pongReady=false,pongOpponentReady=false,pongGameStarted=false,pongIsAdmin=fa
 let pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,game_over:false,started:false,opponent_y:200};
 let pongKeys={};
 let pongBg=new Image();pongBg.src='background.png';
-let pongIntro=new Image();pongIntro.src='Судьба Земли.png';
 let pongCrownBlue=new Image();pongCrownBlue.src='Crownblue.png';
 let pongCrownRed=new Image();pongCrownRed.src='Crownred.png';
 let pongSounds={};
@@ -933,6 +932,20 @@ if(d.type==='move'){pongState.opponent_y=d.y;}
 if(d.type==='parry'){pongState.ball_sx=d.ball_sx;pongState.ball_sy=d.ball_sy;}
 if(d.type==='forfeit'){endGameByForfeit(pongPlayer);}
 if(d.type==='restart'){pongState={ball_x:400,ball_y:250,ball_sx:5,ball_sy:2,score1:0,score2:0,y1:200,y2:200,opponent_y:200,game_over:false,started:true};document.getElementById('pong-winner').style.display='none';}
+}
+
+function startPongGame(){
+pongGameStarted=true;
+document.getElementById('pong-lobby-room').style.display='none';
+document.getElementById('pong-canvas').style.display='block';
+document.getElementById('pong-score').style.display='block';
+document.addEventListener('keydown',pongKeyDown);
+document.addEventListener('keyup',pongKeyUp);
+if(window.innerWidth<=768){
+document.getElementById('pong-canvas').addEventListener('touchstart',pongTouchParry);
+}
+pongState.started=true;
+pongLoop();
 }
 
 function startCountdown(){
@@ -1054,7 +1067,6 @@ await pongPC.setLocalDescription(answer);
 window.initPong=initPong;
 window.joinLobbyById=joinLobbyById;
 window.joinLobbyByCode=joinLobbyByCode;
-window.startPongGame=startPongGame;
 window.startCountdown=startCountdown;
 window.pongSetReady=pongSetReady;
 window.leaveLobby=leaveLobby;
