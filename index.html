@@ -962,18 +962,21 @@ pongLoop();
 
 function startCountdown(){
 document.getElementById('pong-lobby-room').style.display='none';
+document.getElementById('pong-parry-btn').style.display='none';
 let c=document.getElementById('pong-canvas');
 c.style.display='block';
 c.width=800;c.height=500;
 let ctx=c.getContext('2d');
 let img=new Image();img.src='Судьба Земли.png';
-let count=10;
+let count=7;
 function drawCD(){
+if(count<=0){startPongGame();return;}
 ctx.fillStyle='#000';ctx.fillRect(0,0,800,500);
 ctx.drawImage(img,0,0,800,500);
 ctx.fillStyle='#ff1744';ctx.font='80px VT323';
 ctx.fillText(count,370,480);
-if(count>0){count--;setTimeout(drawCD,1000);}else{startPongGame();}
+count--;
+setTimeout(drawCD,1000);
 }
 drawCD();
 if(pongIsAdmin&&pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'start_countdown'}));
