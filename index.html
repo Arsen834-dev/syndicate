@@ -950,8 +950,14 @@ async function createPongLobby(name, type) {
         return initPong();
     }
     
+    console.log('🎮 Лобби создано в БД:', pongLobbyId);
+    
     showLobbyRoom(name, code);
-    startPongHost();
+    
+    // Даём 500мс чтобы лобби точно сохранилось, потом запускаем WebRTC
+    setTimeout(() => {
+        startPongHost();
+    }, 500);
 }
 
 function showLobbyRoom(name, code) {
@@ -1141,20 +1147,39 @@ function sendPongMessage(data) {
 }
 
 async function savePongSignal() {
-    if (!pongPC || !pongPC.localDescription) return;
+    if (!pongPC || !pongPC.localDescription) {
+        console.error('🎮 Нет localDescription для сохранения');
+        return;
+    }
     
     const offerData = {
         type: pongPC.localDescription.type,
         sdp: pongPC.localDescription.sdp
     };
     
-    const { error } = await supabase.from('pong_signals').upsert({
-        id: pongLobbyId,
-        offer: JSON.stringify(offerData),
-        answer: ''
-    });
+    console.log('🎮 Сохраняю offer в БД, lobbyId:', pongLobbyId);
     
-    if (error) console.error('Ошибка сохранения сигнала:', error);
+    // Сначала пробуем update, если не exists — insert
+    const { data: existing } = await supabase
+        .from('pong_signals')
+        .select('id')
+        .eq('id', pongLobbyId)
+        .maybeSingle();
+    
+    if (existing) {
+        const { error } = await supabase
+            .from('pong_signals')
+            .update({ offer: JSON.stringify(offerData), answer: '' })
+            .eq('id', pongLobbyId);
+        if (error) console.error('Ошибка обновления сигнала:', error);
+        else console.log('🎮 Offer обновлён в БД');
+    } else {
+        const { error } = await supabase
+            .from('pong_signals')
+            .insert({ id: pongLobbyId, offer: JSON.stringify(offerData), answer: '' });
+        if (error) console.error('Ошибка вставки сигнала:', error);
+        else console.log('🎮 Offer вставлен в БД');
+    }
 }
 
 function subscribeToPongAnswer() {
@@ -1210,16 +1235,32 @@ function subscribeToPongAnswer() {
 async function joinPongWebRTC() {
     console.log('🎮 Подключаюсь к WebRTC...');
     
-    // Получаем offer от хоста
-    const { data: signalData, error: signalError } = await supabase
-        .from('pong_signals')
-        .select('*')
-        .eq('id', pongLobbyId)
-        .maybeSingle();
+    // Ждём offer с повторными попытками
+    let signalData = null;
+    let attempts = 0;
+    const maxAttempts = 20; // 10 секунд максимум
     
-    if (signalError || !signalData || !signalData.offer || signalData.offer === '' || signalData.offer === '""') {
-        console.error('Сигнал не найден:', signalError);
-        notif('⛔ СИГНАЛ НЕ НАЙДЕН');
+    while (attempts < maxAttempts) {
+        const { data, error } = await supabase
+            .from('pong_signals')
+            .select('*')
+            .eq('id', pongLobbyId)
+            .maybeSingle();
+        
+        if (!error && data && data.offer && data.offer !== '' && data.offer !== '""') {
+            signalData = data;
+            console.log('🎮 Offer найден после', attempts, 'попыток');
+            break;
+        }
+        
+        console.log('🎮 Жду offer... попытка', attempts + 1);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        attempts++;
+    }
+    
+    if (!signalData) {
+        console.error('Сигнал не найден после', maxAttempts, 'попыток');
+        notif('⛔ СИГНАЛ НЕ НАЙДЕН (хост не создал лобби)');
         return leaveLobby();
     }
     
