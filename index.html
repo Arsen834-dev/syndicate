@@ -910,9 +910,10 @@ pongDC=pongPC.createDataChannel('pong');
 pongDC.onopen=()=>{if(pongDC)pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));};
 pongDC.onmessage=e=>handlePongMessage(JSON.parse(e.data));
 pongDC.onclose=()=>{if(!pongState.game_over&&pongState.started)handleOpponentDisconnect();};
-pongPC.onicecandidate=async e=>{if(!e.candidate){await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:JSON.stringify(pongPC.localDescription),answer:''});}};
+pongPC.onicecandidate=async e=>{if(!e.candidate){let offerStr=JSON.stringify(pongPC.localDescription);console.log('Saving offer to Supabase...');await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:offerStr,answer:''});console.log('Offer saved!');}};
 let offer=await pongPC.createOffer();
 await pongPC.setLocalDescription(offer);
+setTimeout(async()=>{let offerStr=JSON.stringify(pongPC.localDescription);console.log('Saving offer (fallback)...');await supabase.from('pong_signals').upsert({id:pongLobbyId,offer:offerStr,answer:''});console.log('Offer saved (fallback)!');},2000);
 pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
 supabase.channel('lobby-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_lobbies',filter:'id=eq.'+pongLobbyId},payload=>{if(payload.new.player2&&!pongOpponentName){pongOpponentName=payload.new.player2;refreshLobbyUI();}}).subscribe();
 }
