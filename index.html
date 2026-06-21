@@ -912,7 +912,6 @@ await pongPC.setLocalDescription(offer);
 pongChannel=supabase.channel('sig-'+pongLobbyId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'pong_signals',filter:'id=eq.'+pongLobbyId},async payload=>{if(payload.new.answer&&payload.new.answer!==''&&pongPC&&pongPC.signalingState!=='stable'){try{let ans=JSON.parse(payload.new.answer);await pongPC.setRemoteDescription(new RTCSessionDescription(ans));}catch(e){}}}).subscribe();
 }
 
-function onOpponentConnected(){}
 function onOpponentConnected(){
 if(pongDC&&pongDC.readyState==='open')pongDC.send(JSON.stringify({type:'sync',name:pongMyName,ready:pongReady}));
 }
