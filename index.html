@@ -820,18 +820,11 @@ let pongState = {ball_x:400, ball_y:250, ball_sx:5, ball_sy:2, score1:0, score2:
 let pongKeys = {}, pongOpponentName = '', pongMyName = '', pongTouchY = null, pongTouchActive = false;
 let pongBg = new Image(); pongBg.src = 'background.png';
 let pongSounds = {};
-// Было: pongLastBroadcast → pongLastBroadcastTime
-// Было: pongLastMoveBroadcast → pongLastMoveBroadcastTime
+let pongLastBroadcast = 0;
+let pongLastMoveBroadcast = 0;
+const PONG_BROADCAST_INTERVAL = 50;
+const PONG_MOVE_INTERVAL = 33;
 
-if (now - pongLastMoveBroadcastTime > PONG_MOVE_INTERVAL) {
-    broadcastGame({ type: 'move', y: pongState.y1 });
-    pongLastMoveBroadcastTime = now;
-}
-
-if (now - pongLastBroadcastTime > PONG_BROADCAST_INTERVAL) {
-    broadcastGame({ ... });
-    pongLastBroadcastTime = now;
-}
 ['bounce1','bounce2','bounce3','bounce4','parry-ultrakill'].forEach(s => {
     pongSounds[s] = new Audio(s + '.mp3');
     pongSounds[s].volume = 0.3;
@@ -856,6 +849,8 @@ function cleanupPong() {
     pongKeys = {};
     pongTouchY = null;
     pongTouchActive = false;
+    pongLastBroadcast = 0;
+    pongLastMoveBroadcast = 0;
 }
 
 function resetPongUI() {
@@ -943,12 +938,7 @@ async function createPongLobby(name, type) {
     pongMyName = CA.name;
     
     const { error } = await supabase.from('pong_lobbies').insert({
-        id: pongLobbyId,
-        name,
-        player1: CA.name,
-        status: 'waiting',
-        type,
-        code
+        id: pongLobbyId, name, player1: CA.name, status: 'waiting', type, code
     });
     
     if (error) {
@@ -964,21 +954,15 @@ async function createPongLobby(name, type) {
 
 function showLobbyRoom(name, code) {
     resetPongUI();
-    
     let lobbyRoom = document.getElementById('pong-lobby-room');
     if (lobbyRoom) lobbyRoom.style.display = 'block';
-    
     let nameDisplay = document.getElementById('pong-lobby-name-display');
     if (nameDisplay) nameDisplay.textContent = '🏓 ' + name;
-    
     let codeDisplay = document.getElementById('pong-lobby-code');
     if (codeDisplay) codeDisplay.textContent = code ? 'Код: ' + code : '';
-    
     refreshLobbyUI();
-    
     let rules = document.getElementById('pong-rules');
     if (rules) rules.style.display = 'block';
-    
     if (pongIsAdmin) {
         let leaveBtn = document.getElementById('pong-leave-btn');
         if (leaveBtn) {
@@ -1018,7 +1002,6 @@ function refreshLobbyUI() {
     }
 }
 
-// Подписка на игровой канал (работает у обоих игроков)
 function subscribeToGameChannel() {
     if (pongChannel) supabase.removeChannel(pongChannel);
     
@@ -1032,16 +1015,13 @@ function subscribeToGameChannel() {
                 pongOpponentReady = msg.ready || false;
                 refreshLobbyUI();
             }
-            
             if (msg.type === 'ready' && msg.from !== pongMyName) {
                 pongOpponentReady = msg.ready;
                 refreshLobbyUI();
             }
-            
             if (msg.type === 'start_countdown' && !pongIsAdmin) {
                 startCountdown();
             }
-            
             if (msg.type === 'state' && !pongIsAdmin) {
                 pongState.ball_x = msg.ball_x;
                 pongState.ball_y = msg.ball_y;
@@ -1051,11 +1031,9 @@ function subscribeToGameChannel() {
                 pongState.score2 = msg.score2;
                 if (msg.game_over) pongState.game_over = true;
             }
-            
             if (msg.type === 'move') {
                 pongState.opponent_y = msg.y;
             }
-            
             if (msg.type === 'parry') {
                 pongState.ball_sx = msg.ball_sx;
                 pongState.ball_sy = msg.ball_sy;
@@ -1065,7 +1043,6 @@ function subscribeToGameChannel() {
         .subscribe((status) => {
             console.log('🎮 Канал игры:', status);
             if (status === 'SUBSCRIBED') {
-                // Отправляем sync при подключении к каналу
                 broadcastGame({ type: 'sync', from: pongMyName, ready: pongReady });
             }
         });
@@ -1073,19 +1050,13 @@ function subscribeToGameChannel() {
 
 function broadcastGame(msg) {
     if (pongChannel) {
-        pongChannel.send({
-            type: 'broadcast',
-            event: 'game',
-            payload: msg
-        });
+        pongChannel.send({ type: 'broadcast', event: 'game', payload: msg });
     }
 }
 
 async function joinLobbyByCode(code) {
     let { data } = await supabase.from('pong_lobbies')
-        .select('*')
-        .or('code.eq.' + code + ',id.eq.' + code)
-        .maybeSingle();
+        .select('*').or('code.eq.' + code + ',id.eq.' + code).maybeSingle();
     
     if (!data || data.status !== 'waiting') {
         notif('⛔ ЛОББИ НЕ НАЙДЕНО');
@@ -1099,9 +1070,7 @@ async function joinLobbyByCode(code) {
     pongMyName = CA.name;
     pongOpponentName = data.player1;
     
-    await supabase.from('pong_lobbies')
-        .update({ player2: CA.name, status: 'playing' })
-        .eq('id', pongLobbyId);
+    await supabase.from('pong_lobbies').update({ player2: CA.name, status: 'playing' }).eq('id', pongLobbyId);
     
     showLobbyRoom(data.name, data.code);
     subscribeToGameChannel();
@@ -1125,9 +1094,7 @@ async function joinLobbyById(id) {
     pongMyName = CA.name;
     pongOpponentName = data.player1;
     
-    await supabase.from('pong_lobbies')
-        .update({ player2: CA.name, status: 'playing' })
-        .eq('id', id);
+    await supabase.from('pong_lobbies').update({ player2: CA.name, status: 'playing' }).eq('id', id);
     
     showLobbyRoom(data.name, data.code);
     subscribeToGameChannel();
@@ -1191,6 +1158,8 @@ function startPongGame() {
     pongState.score1 = 0;
     pongState.score2 = 0;
     pongState.game_over = false;
+    pongLastBroadcast = 0;
+    pongLastMoveBroadcast = 0;
     
     pongLoop();
 }
@@ -1243,15 +1212,9 @@ function leaveLobby() {
     initPong();
 }
 
-let pongLastBroadcast = 0;
-let pongLastMoveBroadcast = 0;
-const PONG_BROADCAST_INTERVAL = 50; // 20 раз в секунду для состояния
-const PONG_MOVE_INTERVAL = 33; // 30 раз в секунду для движения
-
 function pongLoop() {
     const now = Date.now();
     
-    // Управление (отправляем движение отдельно, реже)
     if (pongPlayer === 1) {
         if (pongKeys['w'] || pongKeys['W'] || pongKeys['KeyW'] || pongKeys['ц'] || pongKeys['Ц']) {
             if (pongState.y1 > 0) pongState.y1 -= 8;
@@ -1277,7 +1240,6 @@ function pongLoop() {
         }
     }
     
-    // Физика (только хост)
     if (pongState.started && !pongState.game_over && pongIsAdmin) {
         pongState.ball_x += pongState.ball_sx;
         pongState.ball_y += pongState.ball_sy;
@@ -1301,21 +1263,14 @@ function pongLoop() {
             playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
-        if (pongState.ball_x < 20) {
-            pongState.score2++;
-            resetBall();
-        }
-        if (pongState.ball_x > 780) {
-            pongState.score1++;
-            resetBall();
-        }
+        if (pongState.ball_x < 20) { pongState.score2++; resetBall(); }
+        if (pongState.ball_x > 780) { pongState.score1++; resetBall(); }
         
         if (pongState.score1 >= 10 || pongState.score2 >= 10) {
             pongState.game_over = true;
             supabase.from('pong_lobbies').delete().eq('id', pongLobbyId);
         }
         
-        // Отправляем состояние игры не каждый кадр
         if (now - pongLastBroadcast > PONG_BROADCAST_INTERVAL) {
             broadcastGame({
                 type: 'state',
@@ -1331,17 +1286,15 @@ function pongLoop() {
         }
     }
     
-    // Отрисовка (без изменений)
     let c = document.getElementById('pong-canvas');
-    if (!c) return;
+    if (!c) { pongAnimationId = requestAnimationFrame(pongLoop); return; }
     let ctx = c.getContext('2d');
     c.width = 800; c.height = 500;
     
     if (pongBg.complete && pongBg.naturalWidth > 0) {
         ctx.drawImage(pongBg, 0, 0, 800, 500);
     } else {
-        ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, 800, 500);
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 800, 500);
     }
     
     ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fillRect(0, 0, 800, 30);
@@ -1386,6 +1339,7 @@ function pongLoop() {
     
     if (!pongState.game_over) pongAnimationId = requestAnimationFrame(pongLoop);
 }
+
 function resetBall() {
     pongState.ball_x = 400;
     pongState.ball_y = 250;
@@ -1408,7 +1362,6 @@ async function loadPongLobbies() {
         </div>`).join('');
 }
 
-// Глобальные функции
 window.initPong = initPong;
 window.joinLobbyById = joinLobbyById;
 window.joinLobbyByCode = joinLobbyByCode;
