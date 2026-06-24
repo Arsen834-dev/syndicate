@@ -851,7 +851,64 @@ initDMPanel();
 let iconPositions=JSON.parse(localStorage.getItem('syndicate_icon_positions')||'{}');if(!iconPositions['settings']){iconPositions['settings']={x:20,y:380};localStorage.setItem('syndicate_icon_positions',JSON.stringify(iconPositions));}
 let draggedIcon=null,dragOffX=0,dragOffY=0,wasDragged=!1;
 function openDesktop(){let d=document.getElementById('desktop');if(d)d.style.display='flex';document.getElementById('desktop-agent-name').textContent=CA?.name||'АГЕНТ';let ab=document.getElementById('announce-toggle-btn');if(ab&&window.innerWidth<=768)ab.style.display='block';buildDesktopIcons();updateStatusBar();loadDiscount();let announceWall=document.getElementById('announcements-wall');if(window.innerWidth>768&&announceWall){announceWall.style.display='block';renderAnnouncements();}if(window.innerWidth<=768){setTimeout(()=>{loadMentionAgents();},10);}checkCompletedWars();dailyClanRewards();autoDistributeAllClanTreasuries();loadLastVisit();checkNewContent();}
-function buildDesktopIcons(){let area=document.getElementById('desktop-icons');if(!area)return;let icons=[{id:'chat',emoji:'💬',label:'ЧАТ'},{id:'pong',emoji:'🎮',label:'KING PONG'},{id:'contacts',emoji:'🌐',label:'СЕТЬ'},{id:'achievements',emoji:'🏆',label:'ДОСТИЖЕНИЯ'},{id:'guides',emoji:'📚',label:'ГАЙДЫ'},{id:'memes',emoji:'😂',label:'МЕМЫ'},{id:'dm',emoji:'📁',label:'ЛИЧКА'},{id:'clans',emoji:'⚔️',label:'ОТРЯДЫ'},{id:'friends',emoji:'🤝',label:'ДРУЗЬЯ'},{id:'shop',emoji:'🛒',label:'МАГАЗИН'},{id:'inventory',emoji:'🎒',label:'ИНВЕНТАРЬ'},{id:'announce',emoji:'📢',label:'ОБЪЯВЛЕНИЯ'},{id:'logs',emoji:'📜',label:'ЛОГИ'},{id:'admin',emoji:'👑',label:'АДМИН'},{id:'settings',emoji:'⚙️',label:'НАСТРОЙКИ'},{id:'logout',emoji:'🚪',label:'ВЫХОД'}];if(window.innerWidth<=768){area.style.position='relative';area.style.minHeight='400px';let cx=area.offsetWidth/2;let cy=area.offsetHeight/2;let radius=Math.min(cx,cy)*0.7;let angleStep=(2*Math.PI)/icons.length;area.innerHTML=icons.map((icon,i)=>{let angle=i*angleStep-Math.PI/2;let x=cx+Math.cos(angle)*radius-30;let y=cy+Math.sin(angle)*radius-30;return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+x+'px;top:'+y+'px;width:60px;height:60px;" data-app="'+icon.id+'"><span class="icon-emoji" style="font-size:1.5rem;">'+icon.emoji+'</span><span class="icon-label" style="font-size:0.55rem;">'+icon.label+'</span></div>';}).join('');}else{let adminIcons=['admin','logs','announce'];let filtered=icons.filter(i=>i.active!==!1||adminIcons.includes(i.id));area.style.minHeight='';area.innerHTML=filtered.map((icon,i)=>{let pos=iconPositions[icon.id]||{x:(i%4)*120+20,y:Math.floor(i/4)*120+20};return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+pos.x+'px;top:'+pos.y+'px;" data-app="'+icon.id+'"><span class="icon-emoji">'+icon.emoji+'</span><span class="icon-label">'+icon.label+'</span></div>';}).join('');}document.querySelectorAll('.desktop-icon').forEach(icon=>{icon.addEventListener('mousedown',function(e){startDrag(e,icon.dataset.app);});icon.addEventListener('touchstart',function(e){startDrag(e.touches[0],icon.dataset.app);},{passive:false});icon.addEventListener('click',function(e){if(!wasDragged)openApp(icon.dataset.app);});});updateBadgeIcons();}
+function buildDesktopIcons(){
+    let area=document.getElementById('desktop-icons');
+    if(!area)return;
+    
+    let isAdmin=CA&&(CA.role==='admin'||CA.role==='moderator');
+    
+    let icons=[
+        {id:'chat',emoji:'💬',label:'ЧАТ'},
+        {id:'pong',emoji:'🎮',label:'KING PONG'},
+        {id:'contacts',emoji:'🌐',label:'СЕТЬ'},
+        {id:'achievements',emoji:'🏆',label:'ДОСТИЖЕНИЯ'},
+        {id:'guides',emoji:'📚',label:'ГАЙДЫ'},
+        {id:'memes',emoji:'😂',label:'МЕМЫ'},
+        {id:'dm',emoji:'📁',label:'ЛИЧКА'},
+        {id:'clans',emoji:'⚔️',label:'ОТРЯДЫ'},
+        {id:'friends',emoji:'🤝',label:'ДРУЗЬЯ'},
+        {id:'shop',emoji:'🛒',label:'МАГАЗИН'},
+        {id:'inventory',emoji:'🎒',label:'ИНВЕНТАРЬ'},
+        {id:'settings',emoji:'⚙️',label:'НАСТРОЙКИ'},
+        {id:'logout',emoji:'🚪',label:'ВЫХОД'}
+    ];
+    
+    // Админские иконки только для админов и модеров
+    if(isAdmin){
+        icons.push({id:'admin',emoji:'👑',label:'АДМИН'});
+        icons.push({id:'logs',emoji:'📜',label:'ЛОГИ'});
+        icons.push({id:'announce',emoji:'📢',label:'ОБЪЯВЛЕНИЯ'});
+    }
+    
+    if(window.innerWidth<=768){
+        area.style.position='relative';
+        area.style.minHeight='400px';
+        let cx=area.offsetWidth/2;
+        let cy=area.offsetHeight/2;
+        let radius=Math.min(cx,cy)*0.7;
+        let angleStep=(2*Math.PI)/icons.length;
+        area.innerHTML=icons.map((icon,i)=>{
+            let angle=i*angleStep-Math.PI/2;
+            let x=cx+Math.cos(angle)*radius-30;
+            let y=cy+Math.sin(angle)*radius-30;
+            return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+x+'px;top:'+y+'px;width:60px;height:60px;" data-app="'+icon.id+'"><span class="icon-emoji" style="font-size:1.5rem;">'+icon.emoji+'</span><span class="icon-label" style="font-size:0.55rem;">'+icon.label+'</span></div>';
+        }).join('');
+    }else{
+        area.style.minHeight='';
+        area.innerHTML=icons.map((icon,i)=>{
+            let pos=iconPositions[icon.id]||{x:(i%4)*120+20,y:Math.floor(i/4)*120+20};
+            return '<div class="desktop-icon" id="icon-'+icon.id+'" style="left:'+pos.x+'px;top:'+pos.y+'px;" data-app="'+icon.id+'"><span class="icon-emoji">'+icon.emoji+'</span><span class="icon-label">'+icon.label+'</span></div>';
+        }).join('');
+    }
+    
+    document.querySelectorAll('.desktop-icon').forEach(icon=>{
+        icon.addEventListener('mousedown',function(e){startDrag(e,icon.dataset.app);});
+        icon.addEventListener('touchstart',function(e){startDrag(e.touches[0],icon.dataset.app);},{passive:false});
+        icon.addEventListener('click',function(e){if(!wasDragged)openApp(icon.dataset.app);});
+    });
+    
+    updateBadgeIcons();
+}
 function startDrag(e,id){if(e&&e.preventDefault)e.preventDefault();wasDragged=!1;draggedIcon=document.getElementById('icon-'+id);if(!draggedIcon)return;let cx=e.clientX||(e.touches&&e.touches[0].clientX)||0;let cy=e.clientY||(e.touches&&e.touches[0].clientY)||0;let rect=draggedIcon.getBoundingClientRect();dragOffX=cx-rect.left;dragOffY=cy-rect.top;draggedIcon.style.zIndex='50';}
 document.addEventListener('mousemove',function(e){if(!draggedIcon)return;wasDragged=!0;let area=document.getElementById('desktop-icons');let rect=area.getBoundingClientRect();let nx=e.clientX-dragOffX,ny=e.clientY-dragOffY;let maxX=window.innerWidth>768?rect.width*0.65-100:rect.width-100;nx=Math.max(0,Math.min(nx,maxX));ny=Math.max(0,Math.min(ny,rect.height-100));draggedIcon.style.left=nx+'px';draggedIcon.style.top=ny+'px';});
 document.addEventListener('touchmove',function(e){if(!draggedIcon)return;wasDragged=true;let area=document.getElementById('desktop-icons');let rect=area.getBoundingClientRect();let nx=e.touches[0].clientX-dragOffX,ny=e.touches[0].clientY-dragOffY;let maxX=window.innerWidth>768?rect.width*0.65-60:rect.width-60;nx=Math.max(0,Math.min(nx,maxX));ny=Math.max(0,Math.min(ny,rect.height-60));draggedIcon.style.left=nx+'px';draggedIcon.style.top=ny+'px';e.preventDefault();},{passive:false});
