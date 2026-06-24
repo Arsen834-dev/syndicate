@@ -1014,7 +1014,7 @@ async function showAgentInfo(name) {
                 let audio = new Audio(agent.active_sound);
                 audio.volume = 0.2;
                 audio.play().catch(() => {});
-                setTimeout(() => { audio.pause(); audio = null; }, 7000);
+                setTimeout(() => { audio.pause(); audio = null; }, 12000);
             } catch (e) {}
         }
         
