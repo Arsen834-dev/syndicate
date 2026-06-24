@@ -1549,29 +1549,39 @@ function pongLoop() {
         }
     }
     
-    // Физика (только хост) — без коллизии платформ
+    // Физика (только хост)
     if (pongState.started && !pongState.game_over && pongIsAdmin) {
         pongState.ball_x += pongState.ball_sx;
         pongState.ball_y += pongState.ball_sy;
         
-        // Отскок от верхней и нижней стен
+        // Отскок от стен
         if (pongState.ball_y <= 10 || pongState.ball_y >= 490) {
             pongState.ball_sy *= -1;
             playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
         }
         
-        // Платформы НЕ отбрасывают мяч — мяч просто пролетает сквозь них
-        // Единственный способ отбить мяч — парирование (пробел)
+        let leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
+        let rightY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
+        
+        // Коллизия левой ракетки (платформа отбивает)
+        if (pongState.ball_x <= 60 && pongState.ball_x >= 40 && pongState.ball_y >= leftY && pongState.ball_y <= leftY + 150) {
+            pongState.ball_x = 61;
+            pongState.ball_sx = Math.abs(pongState.ball_sx) * 1.05;
+            pongState.ball_sy += (pongState.ball_y - (leftY + 75)) * 0.15;
+            playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
+        }
+        
+        // Коллизия правой ракетки (платформа отбивает)
+        if (pongState.ball_x >= 740 && pongState.ball_x <= 760 && pongState.ball_y >= rightY && pongState.ball_y <= rightY + 150) {
+            pongState.ball_x = 739;
+            pongState.ball_sx = -Math.abs(pongState.ball_sx) * 1.05;
+            pongState.ball_sy += (pongState.ball_y - (rightY + 75)) * 0.15;
+            playPongSound('bounce' + (Math.floor(Math.random() * 4) + 1));
+        }
         
         // Голы
-        if (pongState.ball_x < 10) {
-            pongState.score2++;
-            resetBall();
-        }
-        if (pongState.ball_x > 790) {
-            pongState.score1++;
-            resetBall();
-        }
+        if (pongState.ball_x < 10) { pongState.score2++; resetBall(); }
+        if (pongState.ball_x > 790) { pongState.score1++; resetBall(); }
         
         // Победа
         if (pongState.score1 >= 10 || pongState.score2 >= 10) {
@@ -1592,21 +1602,6 @@ function pongLoop() {
                 game_over: pongState.game_over
             });
             pongLastBroadcast = now;
-        }
-    }
-    
-    // Сглаживание для гостя (интерполяция opponent_y)
-    if (!pongIsAdmin && pongState.started) {
-        // Плавно двигаем ракетку противника к полученной позиции
-        let targetY = pongState.opponent_y;
-        let currentY = pongPlayer === 1 ? pongState.y2_view : pongState.y1_view;
-        if (currentY === undefined) {
-            if (pongPlayer === 1) pongState.y2_view = targetY;
-            else pongState.y1_view = targetY;
-        } else {
-            let smoothedY = currentY + (targetY - currentY) * 0.4;
-            if (pongPlayer === 1) pongState.y2_view = smoothedY;
-            else pongState.y1_view = smoothedY;
         }
     }
     
@@ -1633,37 +1628,20 @@ function pongLoop() {
     ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 500); ctx.stroke();
     ctx.setLineDash([]);
     
-    // Ракетки со сглаживанием для гостя
-    let leftY, rightY;
-    if (pongIsAdmin) {
-        leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
-        rightY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
-    } else {
-        // Гость: своя ракетка реальная, чужая — сглаженная
-        if (pongPlayer === 1) {
-            leftY = pongState.y1;
-            rightY = pongState.y2_view !== undefined ? pongState.y2_view : pongState.opponent_y;
-        } else {
-            leftY = pongState.y1_view !== undefined ? pongState.y1_view : pongState.opponent_y;
-            rightY = pongState.y2;
-        }
-    }
-    
+    let leftY = pongPlayer === 1 ? pongState.y1 : pongState.opponent_y;
+    let rightY = pongPlayer === 1 ? pongState.opponent_y : pongState.y2;
     ctx.fillStyle = '#448aff'; ctx.fillRect(40, leftY, 20, 150);
     ctx.fillStyle = '#ff4444'; ctx.fillRect(740, rightY, 20, 150);
     
-    // Мяч
     ctx.beginPath(); ctx.arc(pongState.ball_x, pongState.ball_y, 12, 0, Math.PI * 2);
     if (pongState.score1 > pongState.score2) ctx.fillStyle = '#448aff';
     else if (pongState.score2 > pongState.score1) ctx.fillStyle = '#ff4444';
     else ctx.fillStyle = '#fff';
     ctx.fill();
     
-    // Счёт
     let scoreEl = document.getElementById('pong-score');
     if (scoreEl) scoreEl.innerHTML = '<span style="color:#448aff;">' + pongState.score1 + '</span> - <span style="color:#ff4444;">' + pongState.score2 + '</span>';
     
-    // Конец игры
     if (pongState.game_over) {
         let myScore = pongPlayer === 1 ? pongState.score1 : pongState.score2;
         let iWon = myScore >= 10;
