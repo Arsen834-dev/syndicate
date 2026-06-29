@@ -509,7 +509,7 @@ async function createMeme(){
         });
     }
     try{
-        await supabase.from('memes').insert({title:title||'',text:text||'',image_url,author:CA.name,likes:0,liked_by:[]});
+        await supabase.from('memes').insert({title:title||'',text:text||'',image_url,author:CA.name,likes:0});
 	CA.crystals=(CA.crystals||0)+40;updateStatusBar();saveAgent();
         notif('✅ МЕМ ОПУБЛИКОВАН');
         closeModal('modal-meme-create');
