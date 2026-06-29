@@ -493,30 +493,7 @@ async function loadMemes(){try{let{data}=await supabase.from('memes').select('*'
 function renderMemes(){let c=document.getElementById('memes-list');if(!c)return;if(memes.length===0){c.innerHTML='<div style="color:#cc0000;padding:20px;text-align:center;">МЕМОВ ПОКА НЕТ</div>';return;}c.innerHTML=memes.map(m=>{let likes=m.likes||0;let likedBy=m.liked_by||[];let iliked=CA&&likedBy.includes(CA.name);return '<div class="meme-card"><div class="meme-text"><b>'+m.title+'</b></div>'+(m.text?'<div class="meme-text">'+m.text+'</div>':'')+(m.image_url?'<img class="meme-image" src="'+m.image_url+'" onerror="this.style.display=\'none\'">':'')+'<div class="meme-author" onclick="window.showAgentInfo(\''+m.author+'\')" style="cursor:pointer;">— '+m.author+'</div><div class="meme-actions"><button class="meme-like-btn'+(iliked?' liked':'')+'" data-meme-like="'+m.id+'">👍 '+likes+'</button>'+(CA&&(CA.role==='admin'||CA.role==='moderator'||m.author===CA.name)?'<button class="meme-like-btn" onclick="window.deleteMeme('+m.id+')" style="color:#ff0000;border-color:#ff0000;">🗑</button>':'')+'</div></div>';}).join('');setTimeout(()=>{document.querySelectorAll('[data-meme-like]').forEach(b=>b.addEventListener('click',function(){likeMeme(parseInt(this.dataset.memeLike));}));},10);}
 function renderDMList(){let list=document.getElementById('dm-list');if(!CA||!list)return;let agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent);});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return;}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'"><span>'+a+'</span><span class="chat-menu-wrap"><button class="chat-menu-btn" data-dm-delete-btn="'+a+'">⋯</button></span></div>';});setTimeout(()=>{document.querySelectorAll('[data-dm-delete-btn]').forEach(b=>{b.addEventListener('click',async function(e){e.stopPropagation();let agent=this.dataset.dmDeleteBtn;document.getElementById('delete-dm-name').textContent='Диалог с агентом: '+agent;let modal=document.getElementById('modal-delete-dm');modal.style.display='flex';modal.classList.add('show');document.getElementById('confirm-delete-dm-btn').onclick=async function(){let{error}=await supabase.from('dm_messages').delete().or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name);console.log('Удаление:',error?'Ошибка: '+error.message:'Успешно');dmMessagesAll=dmMessagesAll.filter(m=>!(m.from_agent===CA.name&&m.to_agent===agent)&&!(m.from_agent===agent&&m.to_agent===CA.name));if(currentDM===agent)currentDM=null;renderDMList();renderDMMessages();notif('🗑 Диалог удалён');closeModal('modal-delete-dm');};});});document.querySelectorAll('.dm-list-item').forEach(item=>{item.addEventListener('click',function(e){if(e.target.closest('.chat-menu-btn'))return;let span=item.querySelector('span:first-child');if(span)openDM(span.textContent);});});},10);}
 async function likeMeme(id){if(!CA)return;let meme=memes.find(m=>m.id==id);if(!meme)return;let likedBy=meme.liked_by||[];let idx=likedBy.indexOf(CA.name);if(idx===-1){likedBy.push(CA.name);meme.likes=(meme.likes||0)+1;}else{likedBy.splice(idx,1);meme.likes=Math.max(0,(meme.likes||0)-1);}meme.liked_by=likedBy;try{await supabase.from('memes').update({likes:meme.likes,liked_by:likedBy}).eq('id',id);}catch(e){}renderMemes();}
-async function createMeme(){
-    if(!CA)return;
-    let title=document.getElementById('meme-title')?.value?.trim();
-    let text=document.getElementById('meme-text')?.value?.trim();
-    let fileInput=document.getElementById('meme-file');
-    let file=fileInput?.files[0];
-    if(!title&&!text)return notif('⛔ ВВЕДИ ТЕКСТ');
-    let image_url='';
-    if(file){
-        let reader=new FileReader();
-        reader.readAsDataURL(file);
-        image_url=await new Promise(resolve=>{
-            reader.onload=()=>resolve(reader.result);
-        });
-    }
-    try{
-        await supabase.from('memes').insert({title:title||'',text:text||'',image_url,author:CA.name,likes:0});
-	CA.crystals=(CA.crystals||0)+40;updateStatusBar();saveAgent();
-        notif('✅ МЕМ ОПУБЛИКОВАН');
-        closeModal('modal-meme-create');
-        await loadMemes();
-        renderMemes();
-    }catch(e){}
-}
+async function createMeme(){if(!CA)return;let title=document.getElementById('meme-title')?.value?.trim();let text=document.getElementById('meme-text')?.value?.trim();let fileInput=document.getElementById('meme-file');let file=fileInput?.files[0];if(!title&&!text)return notif('⛔ ВВЕДИ ТЕКСТ');let image_url='';if(file){let reader=new FileReader();reader.readAsDataURL(file);image_url=await new Promise(resolve=>{reader.onload=()=>resolve(reader.result);});}try{let insertData={author:CA.name};if(title)insertData.title=title;if(text)insertData.text=text;if(image_url)insertData.image_url=image_url;await supabase.from('memes').insert(insertData);CA.crystals=(CA.crystals||0)+40;updateStatusBar();saveAgent();notif('✅ МЕМ ОПУБЛИКОВАН');closeModal('modal-meme-create');await loadMemes();renderMemes();}catch(e){console.error(e);notif('⛔ ОШИБКА СОЗДАНИЯ');}}
 async function deleteMeme(id){try{await supabase.from('memes').delete().eq('id',id);notif('🗑 УДАЛЁН');await loadMemes();renderMemes();}catch(e){}}
 function showCreateMeme(){
     document.getElementById('meme-title').value='';
