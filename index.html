@@ -395,78 +395,6 @@ async function createGuide(){if(!CA)return;let title=document.getElementById('gu
 function acceptRules(){closeModal('modal-rules');document.getElementById('guide-title').value='';document.getElementById('guide-text').value='';let btn=document.getElementById('create-guide-submit-btn');btn.textContent='ОПУБЛИКОВАТЬ';delete btn.dataset.editing;document.getElementById('modal-create-title').textContent='✏️ НОВЫЙ ГАЙД';let el=document.getElementById('modal-create');if(el){el.style.display='flex';el.classList.add('show');}}
 function showCreateGuide(){let el=document.getElementById('modal-rules');if(el){el.style.display='flex';setTimeout(()=>el.classList.add('show'),10);}}
 
-
-async function askAI(question, history = []) {
-    // Кешируем на 15 минут
-    let cacheKey = question.substring(0, 50);
-    if(aiCache.has(cacheKey)) {
-        let cached = aiCache.get(cacheKey);
-        if(Date.now() - cached.time < 900000) { // 15 минут
-            console.log('W-C26: Использую кеш');
-            return cached.answer;
-        }
-        aiCache.delete(cacheKey);
-    }
-    
-    let models = ['google/gemma-4-26b-a4b-it:free'];
-    let maxRetries = 1; // Уменьшил до 1 попытки
-    
-    for(let retry = 0; retry < maxRetries; retry++) {
-        for(let model of models) {
-            try {
-                let messages = [
-                    {role:'system',content:'Ты W-C26, ИИ терминала Синдиката. Отвечай КРАТКО (максимум 10 слов). Будь саркастичным, но дружелюбным.'},
-                    ...history,
-                    {role:'user',content:question}
-                ];
-                
-                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                    method:'POST',
-                    headers:{
-                        'Content-Type':'application/json',
-                        'Authorization':'Bearer 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'
-                    },
-                    body:JSON.stringify({
-                        model: model,
-                        messages: messages,
-                        max_tokens: 300 // Ещё меньше
-                    })
-                });
-                
-                if(!response.ok) {
-                    if(response.status === 429) {
-                        console.log('W-C26: Rate limit, жду 60 секунд...');
-                        await new Promise(r => setTimeout(r, 60000)); // 60 секунд
-                        continue;
-                    }
-                    if(response.status === 402 || response.status === 403 || response.status === 401) {
-                        console.log('W-C26: Ошибка доступа к модели');
-                        wc26ErrorCount++;
-                        wc26LastErrorTime = Date.now();
-                        return '🧠';
-                    }
-                    continue;
-                }
-                
-                const data = await response.json();
-                if(data.choices && data.choices[0]) {
-                    let answer = data.choices[0].message.content.trim();
-                    if(answer.length > 100) answer = answer.substring(0, 100);
-                    aiCache.set(cacheKey, { answer, time: Date.now() });
-                    return answer;
-                }
-            } catch(e) {
-                console.log('W-C26 API error:', e);
-                continue;
-            }
-        }
-    }
-    
-    // Если ничего не вышло
-    wc26ErrorCount++;
-    wc26LastErrorTime = Date.now();
-    return '🧠';
-}
 let chatMessages=[],chatChannel=null;
 async function loadChatMessages(){try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data){chatMessages=data.reverse();renderChat();}}catch(e){}}
 async function loadMoreChatMessages(){chatPage++;let oldestId=chatMessages.length>0?chatMessages[0].id:null;if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return;}try{let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data&&data.length>0){chatMessages=[...data.reverse(),...chatMessages];renderChat(!0);}else{notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');chatPage--;}}catch(e){chatPage--;}}
@@ -1381,7 +1309,10 @@ let wc26ChatHook = function(payload) {
     let calledBy = text.toLowerCase().includes('w-c26') || text.includes('W-C26');
     let lastWasWC26 = chatMessages.length > 0 && chatMessages[chatMessages.length - 1].author === 'W-C26';
     if (calledBy || lastWasWC26) {
-        setTimeout(() => wc26Reply(author, text), 2000);
+        setTimeout(async () => {
+    let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0, 150) + '". Ответь по-своему, но более человечно.');
+    await wc26Send(answer);
+}, 2000);
     }
 };
 // ГЛОБАЛЬНЫЕ ФУНКЦИИ
