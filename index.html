@@ -408,8 +408,6 @@ async function askAI(question,history=[]){let models=['google/gemma-4-26b-a4b-it
 let chatMessages=[],chatChannel=null;
 async function loadChatMessages(){try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data){chatMessages=data.reverse();renderChat();}}catch(e){}}
 async function loadMoreChatMessages(){chatPage++;let oldestId=chatMessages.length>0?chatMessages[0].id:null;if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return;}try{let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data&&data.length>0){chatMessages=[...data.reverse(),...chatMessages];renderChat(!0);}else{notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');chatPage--;}}catch(e){chatPage--;}}
-let wc26LastContentTime=0;
-let wc26LastCheck = 0;
 let wc26LastContentTime = 0;
 const WC26_CHECK_INTERVAL = 120000; // 2 минуты вместо 1
 const WC26_CONTENT_INTERVAL = 3600000; // 1 час вместо 6 часов
