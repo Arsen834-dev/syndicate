@@ -417,22 +417,55 @@ async function loadAdminMessages(){try{let{data}=await supabase.from('admin_mess
 async function sendAdminMessage(){let inp=document.getElementById('chat-input');let msg=inp?.value?.trim();if(!msg||!CA||(CA.role!=='admin'&&CA.role!=='moderator'))return;let md={author:CA.name,avatar:CA.avatar||'🕶️',text:msg,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'}),author_color:activeItems.color,author_frame:activeItems.frame,author_badge:activeItems.badge,author_font:activeItems.font};try{await supabase.from('admin_messages').insert(md);}catch(e){}inp.value='';playSound('send');}
 function subscribeAdminChat(){adminChannel=supabase.channel('admin-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'admin_messages'},payload=>{adminMessages.push(payload.new);if(chatTabActive==='admin')renderAdminChat();playSound('receive');}).subscribe();window.adminChannel=adminChannel;}
 function renderAdminChat(){let c=document.getElementById('chat-messages');c.style.display='block';let msgs=adminMessages.slice(-30);if(msgs.length===0){c.innerHTML='<div style="text-align:center;color:#cc0000;padding:20px;">СООБЩЕНИЙ ПОКА НЕТ</div>';return;}c.innerHTML=msgs.map(m=>{let colClass=(m.author_color?getActiveColorClassForId(m.author_color):'');let cs=colClass==='rainbow-text'?'rainbow-text':colClass;let fc=(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel',fnt_blood:'font-blood',fnt_neon:'font-neon',fnt_medieval:'font-medieval',fnt_comic:'font-comic'}[m.author_font]||'':'');let frc=(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');let bdg=shopItems.badges.find(b=>b.id===m.author_badge);let be=bdg?(bdg.image?'<img src="'+bdg.image+'" style="width:20px;height:20px;vertical-align:middle;">':(bdg.emoji||'')):'';let txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');txt=txt.replace(/\[img\](.*?)\[\/img\]/g,'<img src="$1" style="max-width:200px;max-height:200px;border:1px solid #ff1744;margin:5px 0;" onerror="this.style.display=\'none\'">');txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>';});return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+(m.author||'???')+'</span>'+be+'<span class="chat-time">'+(m.time||'')+'</span></div><div class="chat-text '+fc+'">'+txt+'</div></div></div>';}).join('');c.scrollTop=c.scrollHeight;}
-function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));let at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');let cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';currentClanId=null;renderChat();if(ph){let pinned=chatMessages.filter(m=>m.pinned);ph.style.display=pinned.length>0?'block':'none';}}else if(tab==='clan'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='none';renderClanList();}else if(tab==='admin'){if(CA.role!=='admin'&&CA.role!=='moderator'){cm.style.display='none';cir.style.display='none';notif('⛔ ТОЛЬКО ДЛЯ АДМИНОВ И МОДЕРОВ');return;}cm.style.display='block';cir.style.display='flex';currentClanId=null;subscribeAdminChat();loadAdminMessages().then(()=>renderAdminChat());}
-function renderClanList(){
-    let c=document.getElementById('chat-messages');
-    c.style.display='block';
-    c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ ОТРЯД</div>';
-    let myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));
-    if(myClan){
-        c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>';
-    }else{
-        c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>';
+function switchChatTab(tab){
+    chatTabActive=tab;
+    document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));
+    let at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');
+    if(at)at.classList.add('active');
+    let cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');
+    if(tab==='general'){
+        cm.style.display='block';
+        cir.style.display='flex';
+        currentClanId=null;
+        renderChat();
+        if(ph){
+            let pinned=chatMessages.filter(m=>m.pinned);
+            ph.style.display=pinned.length>0?'block':'none';
+        }
+    }else if(tab==='clan'){
+        cm.style.display='block';
+        cir.style.display='flex';
+        if(ph)ph.style.display='none';
+        renderClanList();
+    }else if(tab==='admin'){
+        if(CA.role!=='admin'&&CA.role!=='moderator'){
+            cm.style.display='none';
+            cir.style.display='none';
+            notif('⛔ ТОЛЬКО ДЛЯ АДМИНОВ И МОДЕРОВ');
+            return;
+        }
+        cm.style.display='block';
+        cir.style.display='flex';
+        currentClanId=null;
+        subscribeAdminChat();
+        loadAdminMessages().then(()=>renderAdminChat());
     }
-    setTimeout(()=>{
-        document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){
-            openClanChat(parseInt(this.dataset.openClan));
-        }));
-    },10);
+    function renderClanList(){
+        let c=document.getElementById('chat-messages');
+        c.style.display='block';
+        c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ ОТРЯД</div>';
+        let myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));
+        if(myClan){
+            c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>';
+        }else{
+            c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>';
+        }
+        setTimeout(()=>{
+            document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){
+                openClanChat(parseInt(this.dataset.openClan));
+            }));
+        },10);
+    } // <-- ЭТА СКОБКА БЫЛА ПРОПУЩЕНА
 }
 async function openClanChat(clanId){currentClanId=clanId;await loadClanMessages(clanId);subscribeClanChat(clanId);renderClanMessages();document.getElementById('chat-input-row').style.display='flex';}
 function getActiveColor(){let c=shopItems.colors.find(i=>i.id===activeItems.color);return c?c.color:'#ff1744';}
@@ -480,8 +513,24 @@ function deleteMessage(msgId){chatMessages=chatMessages.filter(m=>m.id!=msgId);s
 async function pinChatMessage(msgId){if(!CA||(CA.role!=='admin'&&CA.role!=='moderator'))return notif('⛔ НЕТ ПРАВ');let msg=chatMessages.find(m=>m.id==msgId);if(!msg)return;let np=!msg.pinned;try{await supabase.from('chat_messages').update({pinned:np,pinned_by:np?CA.name:null}).eq('id',parseInt(msgId));chatMessages=chatMessages.map(m=>m.id==msgId?{...m,pinned:np,pinned_by:np?CA.name:null}:m);addLog(CA.name,np?'pin_chat':'unpin_chat','msg #'+msgId);notif(np?'📌 ЗАКРЕПЛЕНО':'📌 ОТКРЕПЛЕНО');renderChat();}catch(e){}}
 async function muteAgent(name){if(!CA||(CA.role!=='admin'&&CA.role!=='moderator'))return;try{let{data}=await supabase.from('agents').select('muted').eq('name',name).maybeSingle();if(data){let newMuted=!data.muted;await supabase.from('agents').update({muted:newMuted}).eq('name',name);addLog(CA.name,newMuted?'mute':'unmute',name);notif(newMuted?'🔇 '+name+' ЗАМУЧЕН':'🔊 '+name+' РАЗМУЧЕН');if(name===CA.name)CA.muted=newMuted;}}catch(e){}}
 async function banAgent(name){if(!CA||CA.role!=='admin')return;try{let{data}=await supabase.from('agents').select('banned').eq('name',name).maybeSingle();if(data){let newBanned=!data.banned;await supabase.from('agents').update({banned:newBanned}).eq('name',name);addLog(CA.name,newBanned?'ban':'unban',name);notif(newBanned?'🚫 '+name+' ЗАБАНЕН':'✅ '+name+' РАЗБАНЕН');if(name===CA.name){logout();}}}catch(e){}}
-async function deleteAgent(name){if(!CA||CA.role!=='admin'||name==='admin')return;try{await supabase.from('agents').delete().eq('name',name);addLog(CA.name,'delete',name);notif('🗑 '+name+' УДАЛЁН');renderAdmin();}catch(e){}}
-async function changeAgentRole(name,newRole){if(!CA||CA.role!=='admin')return;try{await supabase.from('agents').update({role:newRole}).eq('name',name);addLog(CA.name,'role_change',name+' → '+newRole);notif('👑 '+name+' теперь '+newRole);renderAdmin();}catch(e){}}
+async function deleteAgent(name){
+    if(!CA||CA.role!=='admin'||name==='admin')return;
+    try{
+        await supabase.from('agents').delete().eq('name',name);
+        addLog(CA.name,'delete',name);
+        notif('🗑 '+name+' УДАЛЁН');
+        renderAdmin();
+    }catch(e){}
+} // <-- ЭТА СКОБКА БЫЛА ПРОПУЩЕНА
+async function changeAgentRole(name,newRole){
+    if(!CA||CA.role!=='admin')return;
+    try{
+        await supabase.from('agents').update({role:newRole}).eq('name',name);
+        addLog(CA.name,'role_change',name+' → '+newRole);
+        notif('👑 '+name+' теперь '+newRole);
+        renderAdmin();
+    }catch(e){}
+} // <-- ЭТА СКОБКА БЫЛА ПРОПУЩЕНА
 let currentDM=null,dmMessagesAll=[],dmChannel=null;
 async function loadDMMessages(){if(!CA)return;try{let{data}=await supabase.from('dm_messages').select('*').or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name).order('id',{ascending:!0});if(data){dmMessagesAll=data;renderDMList();}}catch(e){}}
 function subscribeDM(){
@@ -685,7 +734,19 @@ function addClanActivityRating(clanId){let cl=clans.find(c=>c.id===clanId);if(cl
 setInterval(()=>{updateWarScores();checkCompletedWars();dailyClanRewards();autoDistributeAllClanTreasuries();},300000);
 async function loadClans(){try{let{data}=await supabase.from('clans').select('*').order('rating',{ascending:!1});if(data)clans=data;}catch(e){}}
 async function loadClanMessages(clanId){try{let{data}=await supabase.from('clan_messages').select('*').eq('clan_id',clanId).order('id',{ascending:!0}).limit(50);if(data)clanChats[clanId]=data;}catch(e){}}
-function subscribeClanChat(clanId){if(clanChannel)supabase.removeChannel(clanChannel);clanChannel=supabase.channel('clan-'+clanId).on('postgres_changes',{event:'INSERT',schema:'public',table:'clan_messages',filter:'clan_id=eq.'+clanId},payload=>{if(!clanChats[clanId])clanChats[clanId]=[];clanChats[clanId].push(payload.new);if(payload.new.text&&payload.new.text.includes('@'+CA?.name)&&payload.new.author!==CA?.name){unreadMentions.clan++;updateBadgeIcons();notif('📢 ВАС УПОМЯНУЛИ В ОТРЯДЕ');}if(currentClanId==clanId&&chatTabActive==='clan')renderClanMessages();}).subscribe();}
+function subscribeClanChat(clanId){
+    if(clanChannel)supabase.removeChannel(clanChannel);
+    clanChannel=supabase.channel('clan-'+clanId).on('postgres_changes',{event:'INSERT',schema:'public',table:'clan_messages',filter:'clan_id=eq.'+clanId},payload=>{
+        if(!clanChats[clanId])clanChats[clanId]=[];
+        clanChats[clanId].push(payload.new);
+        if(payload.new.text&&payload.new.text.includes('@'+CA?.name)&&payload.new.author!==CA?.name){
+            unreadMentions.clan++;
+            updateBadgeIcons();
+            notif('📢 ВАС УПОМЯНУЛИ В ОТРЯДЕ');
+        }
+        if(currentClanId==clanId&&chatTabActive==='clan')renderClanMessages();
+    }).subscribe();
+} // <-- ЭТА СКОБКА БЫЛА ПРОПУЩЕНА
 async function renderClans(){await loadClans();await loadClanWars();let c=document.getElementById('clans-content');if(!CA||!c)return;let myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA.name));let html='';if(myClan){let{data:joinReqs}=await supabase.from('clan_join_requests').select('*').eq('clan_id',myClan.id);if(joinReqs)joinReqs.forEach(r=>{if(!clanJoinRequests.some(j=>j.clanId===r.clan_id&&j.requester===r.requester))clanJoinRequests.push({clanId:r.clan_id,requester:r.requester});});let activeWars=clanWars.filter(w=>(w.attacker_tag===myClan.tag||w.defender_tag===myClan.tag)&&!w.resolved);console.log('Активные войны:',activeWars.length,activeWars);html+='<div class="clan-info-block"><div style="font-size:1.5rem;">'+myClan.emoji+' '+myClan.name+' <span style="color:#cc0000;">['+myClan.tag+']</span></div><div style="color:#cc0000;">'+(myClan.description||'')+'</div><div>👑 '+myClan.leader+' | 💰 '+(myClan.treasury||0)+' ТК | ⭐ '+(myClan.rating||0)+' | РЕП: '+(myClan.rep||0)+' | 👥 '+(myClan.members?.length||0)+' | 💎 +'+(Math.floor((myClan.treasury||0)*0.1))+' ТК/ч</div>';if(activeWars.length>0){html+='<div style="margin-top:10px;"><b>⚔️ АКТИВНЫЕ ВОЙНЫ:</b></div>';activeWars.forEach(w=>{let timeLeft=Math.max(0,Math.ceil((new Date(w.end_time).getTime()-Date.now())/3600000));let totalHours=24;let elapsed=totalHours-timeLeft;let progress=Math.min(100,Math.floor((elapsed/totalHours)*100));
 let barColor=progress>80?'#ff0000':progress>50?'#ff9100':'#ffd700';
 let attScore=w.stats?w.stats.attacker_score||0:0;
@@ -808,7 +869,18 @@ let currentTickerIndex=0;
 function updateTicker(){if(window.innerWidth<=768)return;let ticker=document.getElementById('header-ticker');if(ticker){ticker.textContent=tickerTexts[currentTickerIndex%tickerTexts.length];}let statusTicker=document.getElementById('ticker-text');if(statusTicker){let allText=tickerTexts.join(' ⬡ ');statusTicker.textContent=allText+' ⬡ '+allText+' ⬡ '+allText;statusTicker.style.animation='none';setTimeout(()=>{statusTicker.style.animation='ticker 50s linear infinite';},10);}}
 function initTicker(){updateTicker();let ticker=document.getElementById('header-ticker');if(ticker){ticker.addEventListener('animationiteration',function(){currentTickerIndex=(currentTickerIndex+1)%tickerTexts.length;updateTicker();});}}
 // СОХРАНЕНИЕ И ЗАГРУЗКА АГЕНТОВ
-async function saveAgent(){if(!CA)return;try{let data={name:CA.name,pass_hash:CA.passHash,rep:CA.rep||0,crystals:CA.crystals||0,achievements:CA.achievements||[],logins:CA.logins||1,avatar:CA.avatar||'🕶️',chat_count:CA.chatCount||0,role:CA.role||'agent',name_history:CA.nameHistory||[],guides_created:CA.guidesCreated||0,clans_created:CA.clansCreated||0,banned:CA.banned||!1,muted:CA.muted||!1,active_color:activeItems.color,active_frame:activeItems.frame,active_badge:activeItems.badge,active_font:activeItems.font,active_booster:activeBooster,booster_end_time:boosterEndTime,inventory:inventory,active_style:(CA&&CA.name?activeItems.style:''),active_sound:(CA&&CA.name?activeItems.sound:''),last_seen:new Date().toISOString()};let{error}=await supabase.from('agents').upsert(data,{onConflict:'name'});data._time=Date.now();localStorage.setItem('agent_cache_'+CA.name,JSON.stringify(data));if(error)console.log('Save agent error:',error);}catch(e){console.log('Save agent exception:',e);}}
+async function saveAgent(){
+    if(!CA)return;
+    try{
+        let data={name:CA.name,pass_hash:CA.passHash,rep:CA.rep||0,crystals:CA.crystals||0,achievements:CA.achievements||[],logins:CA.logins||1,avatar:CA.avatar||'🕶️',chat_count:CA.chatCount||0,role:CA.role||'agent',name_history:CA.nameHistory||[],guides_created:CA.guidesCreated||0,clans_created:CA.clansCreated||0,banned:CA.banned||!1,muted:CA.muted||!1,active_color:activeItems.color,active_frame:activeItems.frame,active_badge:activeItems.badge,active_font:activeItems.font,active_booster:activeBooster,booster_end_time:boosterEndTime,inventory:inventory,active_style:(CA&&CA.name?activeItems.style:''),active_sound:(CA&&CA.name?activeItems.sound:''),last_seen:new Date().toISOString()};
+        let{error}=await supabase.from('agents').upsert(data,{onConflict:'name'});
+        data._time=Date.now();
+        localStorage.setItem('agent_cache_'+CA.name,JSON.stringify(data));
+        if(error)console.log('Save agent error:',error);
+    }catch(e){
+        console.log('Save agent exception:',e);
+    } // <-- catch был добавлен
+}
 async function loadAgent(name){try{let{data,error}=await supabase.from('agents').select('*').ilike('name',name);if(error||!data||data.length===0)return null;return data[0];}catch(e){return null;}}
 window.loadAgent=loadAgent;
 async function getAgents(){try{let{data,error}=await supabase.from('agents').select('*');if(error){console.error('getAgents error:',error.message);return{};}let ag={};if(data)data.forEach(a=>ag[a.name]=a);return ag;}catch(e){return{};}}
