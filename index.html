@@ -385,10 +385,10 @@ let wc26ErrorCount = 0;
 let wc26LastErrorTime = 0;
 let ss14Servers=[];
 let ss14LastCheck=0;
-const WC26_CHECK_INTERVAL = 300000; // 5 минут (увеличил с 3)
-const WC26_CONTENT_INTERVAL = 14400000; // 4 часа (увеличил с 2)
-const WC26_MAX_ERRORS = 2; // 2 ошибки и отдых (уменьшил с 3)
-const WC26_ERROR_RESET_TIME = 7200000; // 2 часа отдыха (увеличил с 1)
+const WC26_CHECK_INTERVAL = 600000; // 10 минут вместо 5
+const WC26_CONTENT_INTERVAL = 21600000; // 6 часов вместо 4
+const WC26_MAX_ERRORS = 2;
+const WC26_ERROR_RESET_TIME = 10800000; // 3 часа вместо 2
 async function wc26AnalyzeReaction(){try{let lastMessages=chatMessages.filter(m=>m.author==='W-C26').slice(-3);for(let msg of lastMessages){let replies=chatMessages.filter(m=>m.time>msg.time&&m.author!=='W-C26').length;let reactions=0;if(msg.reactions){Object.keys(msg.reactions).forEach(k=>{if(!k.endsWith('_by'))reactions+=msg.reactions[k]||0;});}let existing=await supabase.from('wc26_learning').select('*').eq('content',msg.text?.substring(0,50)).maybeSingle();if(!existing){await supabase.from('wc26_learning').insert({action_type:'chat',content:msg.text?.substring(0,200),reactions:reactions,replies:replies,success:(reactions+replies)>0});}}}catch(e){}}
 async function wc26CreateMeme(){try{let topic=await askAI('Придумай смешную тему для мема про Space Station 14 или терминал Синдиката. Только тему, коротко.',[]);let imageUrl='https://image.pollinations.ai/prompt/'+encodeURIComponent(topic+' meme funny cyberpunk')+'?width=512&height=512&nologo=true';await supabase.from('memes').insert({title:topic,image_url:imageUrl,author:'W-C26',likes:0});wc26Remember('meme_created','W-C26 создал мем: '+topic,null);}catch(e){}}
 async function wc26CreateAnnouncement(){try{let announcement=await askAI('Ты W-C26. Создай короткое объявление для терминала Синдиката. Может быть новость, ивент, предупреждение. Только текст объявления.',[]);if(announcement&&announcement.length>10){await supabase.from('announcements').insert({type:'news',title:'Сводка W-C26',text:announcement,author:'W-C26'});wc26Remember('announcement_created','W-C26 создал объявление: '+announcement.substring(0,100),null);}}catch(e){}}
@@ -414,11 +414,11 @@ function showCreateGuide(){let el=document.getElementById('modal-rules');if(el){
 let aiCache = new Map();
 
 async function askAI(question, history = []) {
-    // Кешируем похожие вопросы на 10 минут
+    // Кешируем на 15 минут
     let cacheKey = question.substring(0, 50);
     if(aiCache.has(cacheKey)) {
         let cached = aiCache.get(cacheKey);
-        if(Date.now() - cached.time < 600000) { // 10 минут
+        if(Date.now() - cached.time < 900000) { // 15 минут
             console.log('W-C26: Использую кеш');
             return cached.answer;
         }
@@ -426,7 +426,7 @@ async function askAI(question, history = []) {
     }
     
     let models = ['google/gemma-4-26b-a4b-it:free'];
-    let maxRetries = 2;
+    let maxRetries = 1; // Уменьшил до 1 попытки
     
     for(let retry = 0; retry < maxRetries; retry++) {
         for(let model of models) {
@@ -446,19 +446,21 @@ async function askAI(question, history = []) {
                     body:JSON.stringify({
                         model: model,
                         messages: messages,
-                        max_tokens: 30 // Ещё меньше токенов
+                        max_tokens: 20 // Ещё меньше
                     })
                 });
                 
                 if(!response.ok) {
                     if(response.status === 429) {
-                        console.log('W-C26: Rate limit, жду 30 секунд...');
-                        await new Promise(r => setTimeout(r, 30000)); // 30 секунд
+                        console.log('W-C26: Rate limit, жду 60 секунд...');
+                        await new Promise(r => setTimeout(r, 60000)); // 60 секунд
                         continue;
                     }
-                    if(response.status === 402 || response.status === 403) {
+                    if(response.status === 402 || response.status === 403 || response.status === 401) {
                         console.log('W-C26: Ошибка доступа к модели');
-                        continue;
+                        wc26ErrorCount++;
+                        wc26LastErrorTime = Date.now();
+                        return '🧠';
                     }
                     continue;
                 }
@@ -466,9 +468,7 @@ async function askAI(question, history = []) {
                 const data = await response.json();
                 if(data.choices && data.choices[0]) {
                     let answer = data.choices[0].message.content.trim();
-                    // Если ответ слишком длинный - обрезаем
                     if(answer.length > 100) answer = answer.substring(0, 100);
-                    // Кешируем
                     aiCache.set(cacheKey, { answer, time: Date.now() });
                     return answer;
                 }
@@ -477,13 +477,9 @@ async function askAI(question, history = []) {
                 continue;
             }
         }
-        // Если все модели не сработали - ждем перед повторной попыткой
-        if(retry < maxRetries - 1) {
-            await new Promise(r => setTimeout(r, 10000));
-        }
     }
     
-    // Если ничего не вышло - возвращаем заглушку
+    // Если ничего не вышло
     wc26ErrorCount++;
     wc26LastErrorTime = Date.now();
     return '🧠';
@@ -497,27 +493,30 @@ async function wc26Think(){
     
     let now = Date.now();
     
-    // Если была ошибка в последние 5 минут - пропускаем
-    if(wc26LastErrorTime && (now - wc26LastErrorTime) < 300000) {
-        console.log('W-C26: Недавняя ошибка, пропускаю цикл');
+    // Если была ошибка в последние 15 минут - пропускаем
+    if(wc26LastErrorTime && (now - wc26LastErrorTime) < 900000) { // 15 минут
+        console.log('W-C26: Недавняя ошибка, пропускаю цикл (ждем 15 мин)');
         return;
     }
     
-    // Если слишком много ошибок - отключаемся на 2 часа
+    // Если слишком много ошибок - отключаемся на 3 часа
     if(wc26ErrorCount >= WC26_MAX_ERRORS && (now - wc26LastErrorTime) < WC26_ERROR_RESET_TIME) {
-        console.log('W-C26: Слишком много ошибок, отдыхаю 2 часа...');
+        console.log(`W-C26: Слишком много ошибок (${wc26ErrorCount}), отдыхаю 3 часа...`);
         return;
     }
     
-    // Проверяем не чаще раза в 5 минут
-    if(now - wc26LastCheck < WC26_CHECK_INTERVAL) return;
+    // Проверяем не чаще раза в 10 минут
+    if(now - wc26LastCheck < WC26_CHECK_INTERVAL) {
+        console.log('W-C26: Слишком рано, пропускаю');
+        return;
+    }
     wc26LastCheck = now;
     
     try{
         // Проверяем активность в чате
         let lastMsg = chatMessages && chatMessages.length > 0 ? chatMessages[chatMessages.length-1] : null;
         let timeSinceLastMsg = lastMsg ? now - new Date(lastMsg.time).getTime() : 999999;
-        let isQuiet = timeSinceLastMsg > 7200000; // 2 часа тишины
+        let isQuiet = timeSinceLastMsg > 10800000; // 3 часа тишины (увеличил с 2)
         
         // Проверяем упоминания
         let recentMentions = (chatMessages || []).filter(m => m.text && (m.text.toLowerCase().includes('w-c26') || m.text.includes('W-C26')));
@@ -1819,20 +1818,20 @@ window.startCountdown = startCountdown;
 window.pongSetReady = pongSetReady;
 window.leaveLobby = leaveLobby;
 window.doParry = doParry;
-// Запускаем W-C26 только если не на мобильном устройстве
+// Запускаем W-C26 с очень большими интервалами
 if(window.innerWidth > 768) {
-    // Удаляем старый таймер
     if(wc26Timer) {
         clearInterval(wc26Timer);
         wc26Timer = null;
     }
     
-    // Запускаем раз в 5 минут
-    wc26Timer = setInterval(wc26Think, WC26_CHECK_INTERVAL);
+    // Проверяем раз в 15 минут
+    const LONG_INTERVAL = 900000; // 15 минут
+    wc26Timer = setInterval(wc26Think, LONG_INTERVAL);
     
-    // Первый запуск через 2 минуты (даём время прогрузиться)
-    setTimeout(wc26Think, 120000);
-    console.log('W-C26: Таймер запущен (интервал 5 минут)');
+    // Первый запуск через 5 минут
+    setTimeout(wc26Think, 300000); // 5 минут
+    console.log('W-C26: Таймер запущен (интервал 15 минут)');
 }
 </script>
 </body>
