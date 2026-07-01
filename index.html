@@ -418,7 +418,22 @@ async function sendAdminMessage(){let inp=document.getElementById('chat-input');
 function subscribeAdminChat(){adminChannel=supabase.channel('admin-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'admin_messages'},payload=>{adminMessages.push(payload.new);if(chatTabActive==='admin')renderAdminChat();playSound('receive');}).subscribe();window.adminChannel=adminChannel;}
 function renderAdminChat(){let c=document.getElementById('chat-messages');c.style.display='block';let msgs=adminMessages.slice(-30);if(msgs.length===0){c.innerHTML='<div style="text-align:center;color:#cc0000;padding:20px;">СООБЩЕНИЙ ПОКА НЕТ</div>';return;}c.innerHTML=msgs.map(m=>{let colClass=(m.author_color?getActiveColorClassForId(m.author_color):'');let cs=colClass==='rainbow-text'?'rainbow-text':colClass;let fc=(m.author_font?{fnt_cyber:'font-cyber',fnt_gothic:'font-gothic',fnt_rune:'font-rune',fnt_glitch:'font-glitch',fnt_western:'font-western',fnt_typewriter:'font-typewriter',fnt_stencil:'font-stencil',fnt_pixel:'font-pixel',fnt_blood:'font-blood',fnt_neon:'font-neon',fnt_medieval:'font-medieval',fnt_comic:'font-comic'}[m.author_font]||'':'');let frc=(m.author_frame?shopItems.frames.find(f=>f.id===m.author_frame)?.cssClass||'f-default':'f-default');let bdg=shopItems.badges.find(b=>b.id===m.author_badge);let be=bdg?(bdg.image?'<img src="'+bdg.image+'" style="width:20px;height:20px;vertical-align:middle;">':(bdg.emoji||'')):'';let txt=(m.text||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');txt=txt.replace(/\[img\](.*?)\[\/img\]/g,'<img src="$1" style="max-width:200px;max-height:200px;border:1px solid #ff1744;margin:5px 0;" onerror="this.style.display=\'none\'">');txt=txt.replace(/@(\S+)/g,function(_,name){return '<span class="mention" onclick="window.showAgentInfo(\''+name+'\')">@'+name+'</span>';});return '<div class="chat-msg"><div class="chat-msg-left"><span class="chat-avatar-frame '+frc+'"><span class="chat-avatar">'+(m.avatar||'🕶️')+'</span></span></div><div class="chat-msg-right"><div class="chat-header-row"><span class="chat-author '+cs+'">'+(m.author||'???')+'</span>'+be+'<span class="chat-time">'+(m.time||'')+'</span></div><div class="chat-text '+fc+'">'+txt+'</div></div></div>';}).join('');c.scrollTop=c.scrollHeight;}
 function switchChatTab(tab){chatTabActive=tab;document.querySelectorAll('.chat-tab').forEach(t=>t.classList.remove('active'));let at=document.querySelector('.chat-tab[data-tab="'+tab+'"]');if(at)at.classList.add('active');let cm=document.getElementById('chat-messages'),cir=document.getElementById('chat-input-row'),ph=document.getElementById('chat-pinned-header');if(tab==='general'){cm.style.display='block';cir.style.display='flex';currentClanId=null;renderChat();if(ph){let pinned=chatMessages.filter(m=>m.pinned);ph.style.display=pinned.length>0?'block':'none';}}else if(tab==='clan'){cm.style.display='block';cir.style.display='flex';if(ph)ph.style.display='none';renderClanList();}else if(tab==='admin'){if(CA.role!=='admin'&&CA.role!=='moderator'){cm.style.display='none';cir.style.display='none';notif('⛔ ТОЛЬКО ДЛЯ АДМИНОВ И МОДЕРОВ');return;}cm.style.display='block';cir.style.display='flex';currentClanId=null;subscribeAdminChat();loadAdminMessages().then(()=>renderAdminChat());}
-function renderClanList(){let c=document.getElementById('chat-messages');c.style.display='block';c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ ОТРЯД</div>';let myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));if(myClan){c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>';}else{c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>';}setTimeout(()=>{document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){openClanChat(parseInt(this.dataset.openClan));}));},10);}}
+function renderClanList(){
+    let c=document.getElementById('chat-messages');
+    c.style.display='block';
+    c.innerHTML='<div style="color:#ff1744;margin-bottom:10px;padding:10px;">⚔️ ОТРЯД</div>';
+    let myClan=clans.find(cl=>cl.members&&cl.members.find(m=>m.name===CA?.name));
+    if(myClan){
+        c.innerHTML+='<div class="dm-list-item '+(currentClanId===myClan.id?'active':'')+'" data-open-clan="'+myClan.id+'"><span>'+myClan.emoji+' '+myClan.name+'</span></div>';
+    }else{
+        c.innerHTML+='<div style="color:#cc0000;padding:10px;">ВЫ НЕ В ОТРЯДЕ</div>';
+    }
+    setTimeout(()=>{
+        document.querySelectorAll('[data-open-clan]').forEach(b=>b.addEventListener('click',function(){
+            openClanChat(parseInt(this.dataset.openClan));
+        }));
+    },10);
+}
 async function openClanChat(clanId){currentClanId=clanId;await loadClanMessages(clanId);subscribeClanChat(clanId);renderClanMessages();document.getElementById('chat-input-row').style.display='flex';}
 function getActiveColor(){let c=shopItems.colors.find(i=>i.id===activeItems.color);return c?c.color:'#ff1744';}
 function getActiveColorClass(){let id=activeItems.color;let map={'c_red':'color-red','c_blue':'color-blue','c_green':'color-green','c_yellow':'color-yellow','c_white':'color-white','c_orange':'color-orange','c_purple':'color-purple','c_pink':'color-pink','c_cyan':'color-cyan','c_gray':'color-gray','c_gold':'color-gold','c_neon_green':'color-neon-green','c_neon_blue':'color-neon-blue','c_fire':'color-fire','c_ice':'color-ice','c_dark_purple':'color-dark-purple','c_blood':'color-blood','c_silver':'color-silver','c_rainbow':'rainbow-text','c_sapphire':'color-sapphire','c_void':'color-void','c_aurora':'color-aurora','c_matrix':'color-matrix'};return map[id]||'';}
@@ -498,7 +513,55 @@ async function addReaction(msgId,emoji){let msg=chatMessages.find(m=>m.id==msgId
 // МЕМЫ
 async function loadMemes(){try{let{data}=await supabase.from('memes').select('*').order('id',{ascending:!1}).limit(50);if(data)memes=data;else memes=[];}catch(e){memes=[];}}
 function renderMemes(){let c=document.getElementById('memes-list');if(!c)return;if(memes.length===0){c.innerHTML='<div style="color:#cc0000;padding:20px;text-align:center;">МЕМОВ ПОКА НЕТ</div>';return;}c.innerHTML=memes.map(m=>{let likes=m.likes||0;let likedBy=m.liked_by||[];let iliked=CA&&likedBy.includes(CA.name);return '<div class="meme-card"><div class="meme-text"><b>'+m.title+'</b></div>'+(m.text?'<div class="meme-text">'+(m.text||'').replace(/\n/g,'<br>')+'</div>':'')+(m.image_url?'<img class="meme-image" src="'+m.image_url+'" onerror="this.style.display=\'none\'">':'')+'<div class="meme-author" onclick="window.showAgentInfo(\''+m.author+'\')" style="cursor:pointer;">— '+m.author+'</div><div class="meme-actions"><button class="meme-like-btn'+(iliked?' liked':'')+'" data-meme-like="'+m.id+'">👍 '+likes+'</button>'+(CA&&(CA.role==='admin'||CA.role==='moderator'||m.author===CA.name)?'<button class="meme-like-btn" onclick="window.deleteMeme('+m.id+')" style="color:#ff0000;border-color:#ff0000;">🗑</button>':'')+'</div></div>';}).join('');setTimeout(()=>{document.querySelectorAll('[data-meme-like]').forEach(b=>b.addEventListener('click',function(){likeMeme(parseInt(this.dataset.memeLike));}));},10);}
-function renderDMList(){let list=document.getElementById('dm-list');if(!CA||!list)return;let agents=new Set();dmMessagesAll.forEach(m=>{if(m.from_agent===CA.name)agents.add(m.to_agent);if(m.to_agent===CA.name)agents.add(m.from_agent);});list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div><div class="dm-list-item" id="dm-wc26" style="border-color:#ffd700;"><span>🧠 W-C26</span></div>';if(agents.size===0){list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';return;}agents.forEach(a=>{list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'"><span>'+a+'</span><span class="chat-menu-wrap"><button class="chat-menu-btn" data-dm-delete-btn="'+a+'">⋯</button></span></div>';});setTimeout(()=>{document.querySelectorAll('[data-dm-delete-btn]').forEach(b=>{b.addEventListener('click',async function(e){e.stopPropagation();let agent=this.dataset.dmDeleteBtn;document.getElementById('delete-dm-name').textContent='Диалог с агентом: '+agent;let modal=document.getElementById('modal-delete-dm');modal.style.display='flex';modal.classList.add('show');document.getElementById('confirm-delete-dm-btn').onclick=async function(){let{error}=await supabase.from('dm_messages').delete().or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name);console.log('Удаление:',error?'Ошибка: '+error.message:'Успешно');dmMessagesAll=dmMessagesAll.filter(m=>!(m.from_agent===CA.name&&m.to_agent===agent)&&!(m.from_agent===agent&&m.to_agent===CA.name));if(currentDM===agent)currentDM=null;renderDMList();renderDMMessages();notif('🗑 Диалог удалён');closeModal('modal-delete-dm');};});});document.getElementById('dm-wc26')?.addEventListener('click',function(e){if(e.target.closest('.chat-menu-btn'))return;openDM('W-C26');});document.querySelectorAll('.dm-list-item').forEach(item=>{item.addEventListener('click',function(e){if(e.target.closest('.chat-menu-btn'))return;let span=item.querySelector('span:first-child');if(span)openDM(span.textContent);});});},10);
+function renderDMList(){
+    let list=document.getElementById('dm-list');
+    if(!CA||!list)return;
+    let agentsSet=new Set(); // Переименовано, чтобы не конфликтовать с глобальным объектом agents
+    dmMessagesAll.forEach(m=>{
+        if(m.from_agent===CA.name)agentsSet.add(m.to_agent);
+        if(m.to_agent===CA.name)agentsSet.add(m.from_agent);
+    });
+    list.innerHTML='<div style="color:#ff1744;margin-bottom:10px;">ДИАЛОГИ</div><div class="dm-list-item" id="dm-wc26" style="border-color:#ffd700;"><span>🧠 W-C26</span></div>';
+    if(agentsSet.size===0){
+        list.innerHTML+='<div style="color:#cc0000;">НЕТ ДИАЛОГОВ</div>';
+    } else {
+        agentsSet.forEach(a=>{
+            list.innerHTML+='<div class="dm-list-item '+(currentDM===a?'active':'')+'"><span>'+a+'</span><span class="chat-menu-wrap"><button class="chat-menu-btn" data-dm-delete-btn="'+a+'">⋯</button></span></div>';
+        });
+    }
+    setTimeout(()=>{
+        document.querySelectorAll('[data-dm-delete-btn]').forEach(b=>{
+            b.addEventListener('click',async function(e){
+                e.stopPropagation();
+                let agent=this.dataset.dmDeleteBtn;
+                document.getElementById('delete-dm-name').textContent='Диалог с агентом: '+agent;
+                let modal=document.getElementById('modal-delete-dm');
+                modal.style.display='flex';
+                modal.classList.add('show');
+                document.getElementById('confirm-delete-dm-btn').onclick=async function(){
+                    await supabase.from('dm_messages').delete().or('from_agent.eq.'+CA.name+',to_agent.eq.'+CA.name);
+                    dmMessagesAll=dmMessagesAll.filter(m=>!(m.from_agent===CA.name&&m.to_agent===agent)&&!(m.from_agent===agent&&m.to_agent===CA.name));
+                    if(currentDM===agent)currentDM=null;
+                    renderDMList();
+                    renderDMMessages();
+                    notif('🗑 Диалог удалён');
+                    closeModal('modal-delete-dm');
+                };
+            });
+        });
+        document.getElementById('dm-wc26')?.addEventListener('click',function(e){
+            if(e.target.closest('.chat-menu-btn'))return;
+            openDM('W-C26');
+        });
+        document.querySelectorAll('.dm-list-item').forEach(item=>{
+            item.addEventListener('click',function(e){
+                if(e.target.closest('.chat-menu-btn'))return;
+                let span=item.querySelector('span:first-child');
+                if(span)openDM(span.textContent);
+            });
+        });
+    },10);
+}
 async function likeMeme(id){if(!CA)return;let meme=memes.find(m=>m.id==id);if(!meme)return;let likedBy=meme.liked_by||[];let idx=likedBy.indexOf(CA.name);if(idx===-1){likedBy.push(CA.name);meme.likes=(meme.likes||0)+1;}else{likedBy.splice(idx,1);meme.likes=Math.max(0,(meme.likes||0)-1);}meme.liked_by=likedBy;try{await supabase.from('memes').update({likes:meme.likes,liked_by:likedBy}).eq('id',id);}catch(e){}renderMemes();}
 async function createMeme(){if(!CA)return;let title=document.getElementById('meme-title')?.value?.trim();let text=document.getElementById('meme-text')?.value?.trim();let fileInput=document.getElementById('meme-file');let file=fileInput?.files[0];if(!title&&!text)return notif('⛔ ВВЕДИ ТЕКСТ');let image_url='';if(file){let reader=new FileReader();reader.readAsDataURL(file);image_url=await new Promise(resolve=>{reader.onload=()=>resolve(reader.result);});}try{await supabase.from('memes').insert({title:title||'',text:text||'',image_url:image_url||'',author:CA.name,likes:0,liked_by:[]});CA.crystals=(CA.crystals||0)+40;updateStatusBar();saveAgent();notif('✅ МЕМ ОПУБЛИКОВАН');closeModal('modal-meme-create');await loadMemes();renderMemes();}catch(e){console.error(e);}}
 async function deleteMeme(id){try{await supabase.from('memes').delete().eq('id',id);notif('🗑 УДАЛЁН');await loadMemes();renderMemes();}catch(e){}}
