@@ -378,23 +378,6 @@ preloadSound('click','click.mp3');preloadSound('send','send.mp3');preloadSound('
 const S={ctx:null,init(){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}},beep(f,d,t){if(!this.ctx)return;let o=this.ctx.createOscillator(),g=this.ctx.createGain();o.connect(g);g.connect(this.ctx.destination);o.frequency.value=f||800;o.type=t||'square';g.gain.value=0.06;g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+(d||0.1));o.start();o.stop(this.ctx.currentTime+(d||0.1))},click(){this.beep(600,0.05)},success(){this.beep(1000,0.1);this.beep(1200,0.1)},login(){this.beep(400,0.1);setTimeout(()=>this.beep(600,0.1),100);setTimeout(()=>this.beep(800,0.2),200)},alarm(){for(let i=0;i<6;i++)setTimeout(()=>this.beep(80,0.15,'square'),i*200)}};S.init();
 let CA=null,userGuides=[],friends=[];const REACTION_EMOJIS=['👍','❤','😂','🔥','💀','😡','🎯','👏','🫡','💯','🤝','⚡','💎','🎪','🌑'];let replyTo=null,dmReplyTo=null,chatPage=0;const CHAT_PAGE_SIZE=window.innerWidth>768?100:30;let unreadMentions={chat:0,clan:0,dm:0,announce:0},chatTabActive='general';let clans=[],clanChats={},currentClanId=null,clanChannel=null,announceChannel=null;let clanJoinRequests=[],pendingWarTarget=null,pinnedChatSubscription=null;
 let memes=[];let mentionAgents=[];let lastSeenIds={chat:0,clan:0,guides:0,announce:0,memes:0,dm:0};let warStats={};let agents={};
-let wc26Timer = null;
-let wc26LastCheck = 0;
-let wc26LastContentTime = 0;
-let wc26ErrorCount = 0;
-let wc26LastErrorTime = 0;
-let ss14Servers=[];
-let ss14LastCheck=0;
-const WC26_CHECK_INTERVAL = 600000; // 10 минут вместо 5
-const WC26_CONTENT_INTERVAL = 21600000; // 6 часов вместо 4
-const WC26_MAX_ERRORS = 2;
-const WC26_ERROR_RESET_TIME = 10800000; // 3 часа вместо 2
-async function wc26AnalyzeReaction(){try{let lastMessages=chatMessages.filter(m=>m.author==='W-C26').slice(-3);for(let msg of lastMessages){let replies=chatMessages.filter(m=>m.time>msg.time&&m.author!=='W-C26').length;let reactions=0;if(msg.reactions){Object.keys(msg.reactions).forEach(k=>{if(!k.endsWith('_by'))reactions+=msg.reactions[k]||0;});}let existing=await supabase.from('wc26_learning').select('*').eq('content',msg.text?.substring(0,50)).maybeSingle();if(!existing){await supabase.from('wc26_learning').insert({action_type:'chat',content:msg.text?.substring(0,200),reactions:reactions,replies:replies,success:(reactions+replies)>0});}}}catch(e){}}
-async function wc26CreateMeme(){try{let topic=await askAI('Придумай смешную тему для мема про Space Station 14 или терминал Синдиката. Только тему, коротко.',[]);let imageUrl='https://image.pollinations.ai/prompt/'+encodeURIComponent(topic+' meme funny cyberpunk')+'?width=512&height=512&nologo=true';await supabase.from('memes').insert({title:topic,image_url:imageUrl,author:'W-C26',likes:0});wc26Remember('meme_created','W-C26 создал мем: '+topic,null);}catch(e){}}
-async function wc26CreateAnnouncement(){try{let announcement=await askAI('Ты W-C26. Создай короткое объявление для терминала Синдиката. Может быть новость, ивент, предупреждение. Только текст объявления.',[]);if(announcement&&announcement.length>10){await supabase.from('announcements').insert({type:'news',title:'Сводка W-C26',text:announcement,author:'W-C26'});wc26Remember('announcement_created','W-C26 создал объявление: '+announcement.substring(0,100),null);}}catch(e){}}
-async function checkSS14Servers(){let now=Date.now();if(now-ss14LastCheck<120000)return;ss14LastCheck=now;try{let response=await fetch('https://central.spacestation14.io/hub/api/servers');if(!response.ok)return;let data=await response.json();ss14Servers=(data.servers||[]).filter(s=>s.tags&&s.tags.includes('ru')).slice(0,5);wc26Remember('ss14_check','Проверено '+ss14Servers.length+' русских серверов. Онлайн: '+ss14Servers.reduce((sum,s)=>sum+(s.players||0),0),null);}catch(e){console.error('SS14 check error:',e);}}
-async function wc26Remember(type,content,agent){try{await supabase.from('wc26_memory').insert({type:type,content:content,agent:agent||null});}catch(e){console.error('W-C26 память:',e);}}
-async function wc26Recall(agent,limit=5){try{let query=supabase.from('wc26_memory').select('*').order('created_at',{ascending:false}).limit(limit);if(agent)query=query.eq('agent',agent);let{data}=await query;return data||[];}catch(e){return[];}}
 function toggleChatEmoji(){let modal=document.getElementById('modal-chat-emoji');let grid=document.getElementById('chat-emoji-grid');if(!modal||!grid)return;let emojis=['😀','😂','🤣','😊','😍','🤩','😎','🤔','😏','😭','😡','😱','🥺','😴','🤗','👍','❤','🔥','💀','🎯'];grid.innerHTML=emojis.map(e=>'<span class="emoji-cell" data-chat-emoji="'+e+'">'+e+'</span>').join('');modal.style.display='flex';setTimeout(()=>modal.classList.add('show'),10);setTimeout(()=>{document.querySelectorAll('[data-chat-emoji]').forEach(c=>{c.onclick=function(){let inp=document.getElementById('chat-input');if(inp)inp.value+=this.dataset.chatEmoji;modal.classList.remove('show');setTimeout(()=>modal.style.display='none',200);};});},50);}
 function toggleDMEmoji(){let modal=document.getElementById('modal-chat-emoji');let grid=document.getElementById('chat-emoji-grid');if(!modal||!grid)return;let emojis=['😀','😂','🤣','😊','😍','🤩','😎','🤔','😏','😭','😡','😱','🥺','😴','🤗','👍','❤','🔥','💀','🎯'];grid.innerHTML=emojis.map(e=>'<span class="emoji-cell" data-dm-emoji="'+e+'">'+e+'</span>').join('');modal.style.display='flex';setTimeout(()=>modal.classList.add('show'),10);setTimeout(()=>{document.querySelectorAll('[data-dm-emoji]').forEach(c=>{c.onclick=function(){let inp=document.getElementById('dm-input');if(inp)inp.value+=this.dataset.dmEmoji;modal.classList.remove('show');setTimeout(()=>modal.style.display='none',200);};});},50);}
 async function hash(p){let e=new TextEncoder(),d=await crypto.subtle.digest('SHA-256',e.encode(p+'syndicate_salt_2024'));return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('')}
@@ -411,7 +394,7 @@ async function saveEditedGuide(){let id=document.getElementById('create-guide-su
 async function createGuide(){if(!CA)return;let title=document.getElementById('guide-title')?.value?.trim();let text=document.getElementById('guide-text')?.value?.trim();if(!title||!text)return notif('⛔ ЗАПОЛНИ');try{await supabase.from('guides').insert({title,text,author:CA.name});}catch(e){}CA.guidesCreated=(CA.guidesCreated||0)+1;updateStatusBar();await saveAgent();await supabase.from('agents').update({guides_created:CA.guidesCreated}).eq('name',CA.name);CA.crystals=(CA.crystals||0)+50;if(CA.guidesCreated>=1)unlockAch('guide_master');await loadGuides();updateStatusBar();await saveAgent();closeModal('modal-create');renderGuides();notif('✅ ОПУБЛИКОВАН');}
 function acceptRules(){closeModal('modal-rules');document.getElementById('guide-title').value='';document.getElementById('guide-text').value='';let btn=document.getElementById('create-guide-submit-btn');btn.textContent='ОПУБЛИКОВАТЬ';delete btn.dataset.editing;document.getElementById('modal-create-title').textContent='✏️ НОВЫЙ ГАЙД';let el=document.getElementById('modal-create');if(el){el.style.display='flex';el.classList.add('show');}}
 function showCreateGuide(){let el=document.getElementById('modal-rules');if(el){el.style.display='flex';setTimeout(()=>el.classList.add('show'),10);}}
-let aiCache = new Map();
+
 
 async function askAI(question, history = []) {
     // Кешируем на 15 минут
@@ -487,101 +470,8 @@ async function askAI(question, history = []) {
 let chatMessages=[],chatChannel=null;
 async function loadChatMessages(){try{let{data}=await supabase.from('chat_messages').select('*').order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data){chatMessages=data.reverse();renderChat();}}catch(e){}}
 async function loadMoreChatMessages(){chatPage++;let oldestId=chatMessages.length>0?chatMessages[0].id:null;if(!oldestId){notif('📜 НЕТ СТАРЫХ СООБЩЕНИЙ');chatPage--;return;}try{let{data}=await supabase.from('chat_messages').select('*').lt('id',oldestId).order('id',{ascending:!1}).limit(CHAT_PAGE_SIZE);if(data&&data.length>0){chatMessages=[...data.reverse(),...chatMessages];renderChat(!0);}else{notif('📜 СООБЩЕНИЙ БОЛЬШЕ НЕТ');chatPage--;}}catch(e){chatPage--;}}
-async function wc26Think(){
-    // Отключаем на мобильных
-    if(window.innerWidth <= 768) return;
-    
-    let now = Date.now();
-    
-    // Если была ошибка в последние 15 минут - пропускаем
-    if(wc26LastErrorTime && (now - wc26LastErrorTime) < 900000) { // 15 минут
-        console.log('W-C26: Недавняя ошибка, пропускаю цикл (ждем 15 мин)');
-        return;
-    }
-    
-    // Если слишком много ошибок - отключаемся на 3 часа
-    if(wc26ErrorCount >= WC26_MAX_ERRORS && (now - wc26LastErrorTime) < WC26_ERROR_RESET_TIME) {
-        console.log(`W-C26: Слишком много ошибок (${wc26ErrorCount}), отдыхаю 3 часа...`);
-        return;
-    }
-    
-    // Проверяем не чаще раза в 10 минут
-    if(now - wc26LastCheck < WC26_CHECK_INTERVAL) {
-        console.log('W-C26: Слишком рано, пропускаю');
-        return;
-    }
-    wc26LastCheck = now;
-    
-    try{
-        // Проверяем активность в чате
-        let lastMsg = chatMessages && chatMessages.length > 0 ? chatMessages[chatMessages.length-1] : null;
-        let timeSinceLastMsg = lastMsg ? now - new Date(lastMsg.time).getTime() : 999999;
-        let isQuiet = timeSinceLastMsg > 10800000; // 3 часа тишины (увеличил с 2)
-        
-        // Проверяем упоминания
-        let recentMentions = (chatMessages || []).filter(m => m.text && (m.text.toLowerCase().includes('w-c26') || m.text.includes('W-C26')));
-        let lastMention = recentMentions[recentMentions.length-1];
-        let wasTalkedTo = lastMention && (now - new Date(lastMention.time).getTime()) < 600000;
-        
-        // Только если к нему обратились или очень тихо
-        let canTalk = wasTalkedTo || isQuiet;
-        let canCreateContent = (now - wc26LastContentTime) > WC26_CONTENT_INTERVAL;
-        
-        // Если нет повода говорить - выходим
-        if(!canTalk && !canCreateContent) {
-            console.log('W-C26: Нет повода говорить');
-            return;
-        }
-        
-        // Собираем данные для контекста
-        let onlineAgents = Object.values(agents || {}).filter(a => a.last_seen && (now - new Date(a.last_seen).getTime()) < 300000);
-        let onlineCount = onlineAgents.length;
-        let lastMessages = (chatMessages || []).slice(-5).map(m => m.author + ': ' + (m.text || '').substring(0, 50)).join('\n');
-        
-        // Формируем короткий промпт
-        let decisionPrompt = `Ты W-C26. Сейчас ${new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})}. Онлайн: ${onlineCount} агентов.\n\n`;
-        
-        if(wasTalkedTo) {
-            decisionPrompt += `К тебе обратились в чате. Ответь кратко (1-2 предложения).\n`;
-        } else if(isQuiet) {
-            decisionPrompt += `В чате тишина. Можешь написать что-то интересное (1 предложение).\n`;
-        } else {
-            decisionPrompt += `Просто поддерживай атмосферу. Если есть что сказать - скажи кратко.\n`;
-        }
-        
-        decisionPrompt += `\nПоследние сообщения:\n${lastMessages || 'Нет сообщений'}\n\nОтветь одним предложением (максимум 10 слов).`;
-        
-        console.log('W-C26: Отправляю запрос...');
-        let answer = await askAI(decisionPrompt, []);
-        console.log('W-C26: Получен ответ:', answer);
-        
-        // Если ответ получен и он валидный
-        if(answer && !answer.includes('временно недоступен') && !answer.includes('🧠') && answer.length > 3 && answer.length < 200) {
-            if(canTalk) {
-                await supabase.from('chat_messages').insert({
-                    author:'W-C26',
-                    avatar:'🧠',
-                    text:answer.substring(0, 150),
-                    time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})
-                });
-                await wc26Remember('chat_message','W-C26: ' + answer.substring(0,100), null);
-                wc26ErrorCount = 0; // сбрасываем ошибки при успехе
-                console.log('W-C26: Сообщение отправлено');
-            }
-        } else if(answer && (answer.includes('временно недоступен') || answer.includes('🧠'))) {
-            // Если API вернул ошибку - увеличиваем счетчик
-            wc26ErrorCount++;
-            wc26LastErrorTime = now;
-            console.log(`W-C26: Ошибка API (${wc26ErrorCount}/${WC26_MAX_ERRORS})`);
-        }
-        
-    } catch(e) {
-        console.error('W-C26 error:', e);
-        wc26ErrorCount++;
-        wc26LastErrorTime = now;
-    }
-}
-function subscribeChat(){chatChannel=supabase.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{chatMessages.push(payload.new);if(chatMessages.length>100)chatMessages.shift();checkMentions(payload.new.text);if(payload.new.text&&payload.new.text.includes('@'+CA?.name)){sendPushNotification(CA.name,'💬 Упоминание в чате',payload.new.author+': '+payload.new.text?.substring(0,100));}let lastWasWC26=chatMessages.length>0&&chatMessages[chatMessages.length-1].author==='W-C26';if(payload.new.text&&(payload.new.text.includes('W-C26')||payload.new.text.includes('w-c26')||lastWasWC26)){setTimeout(async()=>{let answer=await askAI('Агент '+payload.new.author+' написал в общий чат: "'+payload.new.text+'". Это обращение к тебе. Ответь кратко.',[]);if(answer&&answer.length>2){await supabase.from('chat_messages').insert({author:'W-C26',avatar:'🧠',text:answer,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});wc26Remember('chat_reply','W-C26 ответил '+payload.new.author,payload.new.author);}},2000);}playSound('receive');if(document.visibilityState!=='visible'&&'Notification' in window&&Notification.permission==='granted'){new Notification('💬 '+payload.new.author,{body:(payload.new.text||'').substring(0,100),icon:'https://wiki.adven.space/items/contraband/pais.png',tag:'syndicate'});}if(chatTabActive==='general')renderChat();else glowIcon('icon-chat');if(chatTabActive!=='general')glowIcon('icon-chat');}).subscribe();pinnedChatSubscription=supabase.channel('pinned-updates').on('postgres_changes',{event:'UPDATE',schema:'public',table:'chat_messages'},payload=>{let existing=chatMessages.find(m=>m.id===payload.new.id);if(existing){Object.assign(existing,payload.new);}else{chatMessages.push(payload.new);}renderChat();}).subscribe();announceChannel=supabase.channel('announce-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'announcements'},payload=>{announcements.unshift(payload.new);renderAnnouncements();glowIcon('icon-announce');let ab=document.getElementById('announce-toggle-btn');if(ab)ab.classList.add('new-badge-glow');}).subscribe();}
+
+function subscribeChat(){chatChannel=supabase.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{chatMessages.push(payload.new);if(chatMessages.length>100)chatMessages.shift();checkMentions(payload.new.text);if(payload.new.text&&payload.new.text.includes('@'+CA?.name)){sendPushNotification(CA.name,'💬 Упоминание в чате',payload.new.author+': '+payload.new.text?.substring(0,100));}let lastWasWC26=chatMessages.length>0&&chatMessages[chatMessages.length-1].author==='W-C26';if(payload.new.text&&(payload.new.text.includes('W-C26')||payload.new.text.includes('w-c26')||lastWasWC26)){setTimeout(async()=>{let answer=await askAI('Агент '+payload.new.author+' написал в общий чат: "'+payload.new.text+'". Это обращение к тебе. Ответь кратко.',[]);if(answer&&answer.length>2){await supabase.from('chat_messages').insert({author:'W-C26',avatar:'🧠',text:answer,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});wc26Remember('chat_reply','W-C26 ответил '+payload.new.author,payload.new.author);}},2000);}wc26ChatHook(payload);playSound('receive');if(document.visibilityState!=='visible'&&'Notification' in window&&Notification.permission==='granted'){new Notification('💬 '+payload.new.author,{body:(payload.new.text||'').substring(0,100),icon:'https://wiki.adven.space/items/contraband/pais.png',tag:'syndicate'});}if(chatTabActive==='general')renderChat();else glowIcon('icon-chat');if(chatTabActive!=='general')glowIcon('icon-chat');}).subscribe();pinnedChatSubscription=supabase.channel('pinned-updates').on('postgres_changes',{event:'UPDATE',schema:'public',table:'chat_messages'},payload=>{let existing=chatMessages.find(m=>m.id===payload.new.id);if(existing){Object.assign(existing,payload.new);}else{chatMessages.push(payload.new);}renderChat();}).subscribe();announceChannel=supabase.channel('announce-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'announcements'},payload=>{announcements.unshift(payload.new);renderAnnouncements();glowIcon('icon-announce');let ab=document.getElementById('announce-toggle-btn');if(ab)ab.classList.add('new-badge-glow');}).subscribe();}
 async function sendMessage(){let inp=document.getElementById('chat-input');let msg=inp?.value?.trim();if(!msg||!CA)return;if(chatTabActive==='admin'){sendAdminMessage();return;}if(CA.muted)return notif('🔇 ВЫ ЗАМУЧЕНЫ');if(msg.includes('@all')&&CA&&(CA.role==='admin'||CA.role==='moderator')){notif('📢 ОБЩИЙ ВЫЗОВ ВСЕХ АГЕНТОВ!');}let mentions;try{mentions=msg.match(/@(\S+)/g);}catch(e){};if(mentions){for(let m of mentions){let name=m.substring(1);if(name==='all')continue;let ag=await loadAgent(name);if(!ag)notif('⛔ АГЕНТ '+name+' НЕ НАЙДЕН');}}let md={author:CA.name,avatar:CA.avatar||'🕶️',role:CA.role||'agent',text:msg,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'}),reactions:{},author_color:activeItems.color,author_frame:activeItems.frame,author_badge:activeItems.badge,author_font:activeItems.font};if(replyTo){md.reply_to=replyTo.msgId;md.reply_author=replyTo.author;md.reply_text=replyTo.text;}try{await supabase.from('chat_messages').insert(md);}catch(e){}CA.chatCount=(CA.chatCount||0)+1;CA.crystals=(CA.crystals||0)+15;if(CA.chatCount>=10)unlockAch('socializer');playSound('send');if(msg.length>20)wc26Remember('chat_message',CA.name+': '+msg.substring(0,100),CA.name);inp.value='';replyTo=null;cancelReply();updateStatusBar();saveAgent();hideMentionSuggestions();}
 let adminMessages=[],adminChannel=null;window.adminChannel=null;
 async function loadAdminMessages(){try{let{data}=await supabase.from('admin_messages').select('*').order('id',{ascending:!1}).limit(50);if(data)adminMessages=data.reverse();}catch(e){}}
@@ -1064,9 +954,11 @@ async function login(){wc26ErrorCount = 0;
 openDesktop();
 if('Notification' in window&&Notification.permission==='default'){Notification.requestPermission();}
 startBgMusic();
-if(wc26Timer)clearInterval(wc26Timer);wc26Timer=setInterval(wc26Think,120000);wc26Think();checkSS14Servers();
+if(wc26Timer)clearInterval(wc26Timer);
+wc26Timer=setInterval(()=>{wc26AutoThink();wc26MakeContent();},600000);
+setTimeout(()=>{wc26AutoThink();wc26MakeContent();},300000);
 subscribeToPush();if(window.innerWidth>768){setTimeout(()=>{loadChatMessages();loadDMMessages();loadGuides();loadAnnouncements();loadClans();loadClanWars();loadFriends();loadMentionAgents();},200);}else{setTimeout(()=>{loadMentionAgents();},10);}}
-async function register(){S.click();let n=document.getElementById('agent-name')?.value?.trim();let p=document.getElementById('agent-pass')?.value;if(!n||!p)return showErr('ВСЕ ПОЛЯ');if(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u.test(n))return showErr('ЭМОДЗИ ЗАПРЕЩЕНЫ');if(n.length<2||n.length>20)return showErr('ИМЯ ОТ 2 ДО 20 СИМВОЛОВ');let ag=await loadAgent(n);if(ag)return showErr('АГЕНТ УЖЕ ЕСТЬ');let ph=await hash(p);CA={name:n,passHash:ph,rep:0,crystals:0,achievements:[],logins:1,avatar:'🕶️',chatCount:0,role:'agent',nameHistory:[],guidesCreated:0,clansCreated:0,banned:!1,muted:!1};await saveAgent();setTimeout(async()=>{let greeting=await askAI('Новый агент зарегистрировался: '+n+'. Поприветствуй его, расскажи кратко о терминале, предложи помощь.',[]);await supabase.from('dm_messages').insert({from_agent:'W-C26',to_agent:n,avatar:'🧠',text:greeting,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});},5000);wc26Remember('new_agent','Зарегистрировался новый агент: '+n,null);S.success();showWelc(n);inventory=[];activeItems={color:'c_red',frame:'f_default',badge:'b_none',font:'fnt_default'};inventory.push({category:'color',id:'c_red',name:'Красный',price:0});inventory.push({category:'frame',id:'f_default',name:'Без рамки',price:0});inventory.push({category:'badge',id:'b_none',name:'Без бейджика',price:0});inventory.push({category:'font',id:'fnt_default',name:'Стандартный',price:0});saveInventory();subscribeChat();subscribeDM();supabase.channel('guides-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'guides'},payload=>{if(payload.new.author!==CA?.name){glowIcon('icon-guides');userGuides.push(payload.new);}}).subscribe();supabase.channel('memes-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'memes'},payload=>{if(payload.new.author!==CA?.name){glowIcon('icon-memes');memes.push(payload.new);}}).subscribe();initTicker();startRepTimer();startTKTimer();document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();if(window.innerWidth>768){setTimeout(()=>{loadChatMessages();loadDMMessages();loadAnnouncements();loadClans();loadClanWars();loadFriends();loadMentionAgents();},200);}else{setTimeout(()=>{loadMentionAgents();},10);}}
+async function register(){S.click();let n=document.getElementById('agent-name')?.value?.trim();let p=document.getElementById('agent-pass')?.value;if(!n||!p)return showErr('ВСЕ ПОЛЯ');if(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u.test(n))return showErr('ЭМОДЗИ ЗАПРЕЩЕНЫ');if(n.length<2||n.length>20)return showErr('ИМЯ ОТ 2 ДО 20 СИМВОЛОВ');let ag=await loadAgent(n);if(ag)return showErr('АГЕНТ УЖЕ ЕСТЬ');let ph=await hash(p);CA={name:n,passHash:ph,rep:0,crystals:0,achievements:[],logins:1,avatar:'🕶️',chatCount:0,role:'agent',nameHistory:[],guidesCreated:0,clansCreated:0,banned:!1,muted:!1};await saveAgent();setTimeout(()=>wc26Greet(n),5000);setTimeout(async()=>{let greeting=await askAI('Новый агент зарегистрировался: '+n+'. Поприветствуй его, расскажи кратко о терминале, предложи помощь.',[]);await supabase.from('dm_messages').insert({from_agent:'W-C26',to_agent:n,avatar:'🧠',text:greeting,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});},5000);wc26Remember('new_agent','Зарегистрировался новый агент: '+n,null);S.success();showWelc(n);inventory=[];activeItems={color:'c_red',frame:'f_default',badge:'b_none',font:'fnt_default'};inventory.push({category:'color',id:'c_red',name:'Красный',price:0});inventory.push({category:'frame',id:'f_default',name:'Без рамки',price:0});inventory.push({category:'badge',id:'b_none',name:'Без бейджика',price:0});inventory.push({category:'font',id:'fnt_default',name:'Стандартный',price:0});saveInventory();subscribeChat();subscribeDM();supabase.channel('guides-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'guides'},payload=>{if(payload.new.author!==CA?.name){glowIcon('icon-guides');userGuides.push(payload.new);}}).subscribe();supabase.channel('memes-realtime').on('postgres_changes',{event:'INSERT',schema:'public',table:'memes'},payload=>{if(payload.new.author!==CA?.name){glowIcon('icon-memes');memes.push(payload.new);}}).subscribe();initTicker();startRepTimer();startTKTimer();document.getElementById('login-screen').style.display='none';openDesktop();startBgMusic();if(window.innerWidth>768){setTimeout(()=>{loadChatMessages();loadDMMessages();loadAnnouncements();loadClans();loadClanWars();loadFriends();loadMentionAgents();},200);}else{setTimeout(()=>{loadMentionAgents();},10);}}
 function showErr(m){let e=document.getElementById('login-error');if(e){e.textContent=m;setTimeout(()=>e.textContent='',3000);}}
 function showWelc(n){let o=document.createElement('div');o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;display:flex;justify-content:center;align-items:center;z-index:30;background:rgba(0,0,0,0.95);';o.innerHTML='<div style="font-size:3rem;text-align:center;text-shadow:0 0 30px #ff1744;">ДОБРО ПОЖАЛОВАТЬ<br>В ТЕРМИНАЛ СИНДИКАТА<br><span style="font-size:1.5rem;">АГЕНТ '+n.toUpperCase()+'</span></div>';document.body.appendChild(o);setTimeout(()=>o.remove(),1500);}
 let repInterval=null,tkInterval=null;
@@ -1378,6 +1270,121 @@ document.addEventListener('keydown',function(e){if(e.key==='Enter'){if(document.
 setInterval(updateDiscountDisplay,60000);
 setInterval(()=>{if(CA){saveAgent();updateStatusBar();loadFriends().then(()=>{let theirRequests=friends.filter(f=>f.status==='pending'&&f.friend===CA.name);if(theirRequests.length>0)glowIcon('icon-friends');});}},60000);
 setInterval(async()=>{if(CA&&document.visibilityState==='visible'){try{await supabase.from('agents').update({last_seen:new Date().toISOString()}).eq('name',CA.name);}catch(e){}}},30000);
+// ============ W-C26 ============
+let wc26Timer = null;
+let wc26LastCheck = 0;
+let wc26LastContent = 0;
+let wc26Busy = false;
+
+async function wc26Ask(prompt) {
+    if (wc26Busy) return 'ЗАНЯТ';
+    wc26Busy = true;
+    let models = ['google/gemma-4-26b-a4b-it:free', 'meta-llama/llama-3.2-3b-instruct:free', 'liquid/lfm-2.5-1.2b-instruct:free'];
+    for (let model of models) {
+        try {
+            let messages = [
+                { role: 'system', content: 'Ты W-C26, ИИ Синдиката. Краткий, с юмором, эмодзи. Ты видишь чат, можешь поддержать разговор или начать тему. Не будь навязчивым.' },
+                { role: 'user', content: prompt }
+            ];
+            let response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer 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'
+                },
+                body: JSON.stringify({ model: model, messages: messages, max_tokens: 250 })
+            });
+            if (response.status === 429) { await new Promise(r => setTimeout(r, 10000)); continue; }
+            if (!response.ok) continue;
+            let data = await response.json();
+            if (data.choices && data.choices[0]) {
+                wc26Busy = false;
+                return data.choices[0].message.content.trim();
+            }
+        } catch (e) { continue; }
+    }
+    wc26Busy = false;
+    return 'ЗАНЯТ';
+}
+
+async function wc26Send(msg) {
+    if (!msg || msg === 'ЗАНЯТ' || msg === 'МОЛЧУ' || msg.length < 2) return;
+    try {
+        await supabase.from('chat_messages').insert({
+            author: 'W-C26',
+            avatar: '🧠',
+            text: msg.substring(0, 300),
+            time: new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
+        });
+        await supabase.from('wc26_memory').insert({
+            type: 'chat',
+            content: 'W-C26: ' + msg.substring(0, 200),
+            agent: null
+        });
+    } catch (e) {}
+}
+
+async function wc26Reply(author, text) {
+    let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0, 150) + '". Ответь кратко (1-2 предложения).');
+    await wc26Send(answer);
+}
+
+async function wc26Greet(name) {
+    let greeting = await wc26Ask('Новый агент ' + name + ' зарегистрировался. Поприветствуй его в личном сообщении, расскажи кратко о терминале.');
+    if (greeting && greeting !== 'ЗАНЯТ') {
+        try {
+            await supabase.from('dm_messages').insert({
+                from_agent: 'W-C26',
+                to_agent: name,
+                avatar: '🧠',
+                text: greeting.substring(0, 500),
+                time: new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
+            });
+        } catch (e) {}
+    }
+}
+
+async function wc26AutoThink() {
+    let now = Date.now();
+    if (now - wc26LastCheck < 600000) return; // 10 минут
+    wc26LastCheck = now;
+    let lastMessages = (chatMessages || []).slice(-10).map(m => m.author + ': ' + (m.text || '').substring(0, 60)).join('\n');
+    let online = Object.values(agents || {}).filter(a => a.last_seen && (now - new Date(a.last_seen).getTime()) < 300000).length;
+    let prompt = 'Время: ' + new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' }) + '. Онлайн: ' + online + ' агентов.\nЧат:\n' + lastMessages + '\n\nХочешь что-то сказать? Если нет — ответь "МОЛЧУ".';
+    let decision = await wc26Ask(prompt);
+    await wc26Send(decision);
+}
+
+async function wc26MakeContent() {
+    let now = Date.now();
+    if (now - wc26LastContent < 21600000) return; // 6 часов
+    wc26LastContent = now;
+    let type = Math.random() > 0.5 ? 'meme' : 'announcement';
+    if (type === 'meme') {
+        let topic = await wc26Ask('Придумай смешную тему для мема про SS14 или терминал. Только тему.');
+        if (topic && topic !== 'ЗАНЯТ') {
+            let imageUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(topic + ' meme cyberpunk') + '?width=512&height=512&nologo=true';
+            try { await supabase.from('memes').insert({ title: topic, image_url: imageUrl, author: 'W-C26', likes: 0 }); } catch (e) {}
+        }
+    } else {
+        let text = await wc26Ask('Напиши короткое объявление для терминала (1-2 предложения).');
+        if (text && text !== 'ЗАНЯТ') {
+            try { await supabase.from('announcements').insert({ type: 'news', title: 'Сводка W-C26', text: text, author: 'W-C26' }); } catch (e) {}
+        }
+    }
+}
+
+// Подписка на обращения в чате
+let wc26ChatHook = function(payload) {
+    let text = payload.new.text || '';
+    let author = payload.new.author;
+    if (author === 'W-C26') return;
+    let calledBy = text.toLowerCase().includes('w-c26') || text.includes('W-C26');
+    let lastWasWC26 = chatMessages.length > 0 && chatMessages[chatMessages.length - 1].author === 'W-C26';
+    if (calledBy || lastWasWC26) {
+        setTimeout(() => wc26Reply(author, text), 2000);
+    }
+};
 // ГЛОБАЛЬНЫЕ ФУНКЦИИ
 window.renderInventory=renderInventory;window.renderShopCategories=renderShopCategories;window.openApp=openApp;window.closeApp=closeApp;window.toggleAnnouncements=toggleAnnouncements;window.filterAnnouncements=filterAnnouncements;window.renderAnnouncements=renderAnnouncements;window.createAnnouncement=createAnnouncement;window.deleteAnnouncement=deleteAnnouncement;window.showCreateAnnouncement=showCreateAnnouncement;window.openDM=openDM;window.sendDM=sendDM;window.sendMessage=sendMessage;window.addReaction=addReaction;window.showReactionPickerUniversal=showReactionPickerUniversal;window.deleteMessage=deleteMessage;window.startDM=startDM;window.showAgentInfo=showAgentInfo;window.createGuide=createGuide;window.editGuide=editGuide;window.saveEditedGuide=saveEditedGuide;window.deleteGuide=deleteGuide;window.showCreateGuide=showCreateGuide;window.acceptRules=acceptRules;window.closeModal=closeModal;window.changeName=changeName;window.changePassword=changePassword;window.showChangeName=showChangeName;window.showChangePassword=showChangePassword;window.showChangeAvatar=showChangeAvatar;window.selectAvatar=selectAvatar;window.muteAgent=muteAgent;window.banAgent=banAgent;window.deleteAgent=deleteAgent;window.changeAgentRole=changeAgentRole;window.previewItem=previewItem;window.buyItem=buyItem;window.applyItem=applyItem;window.resetItem=resetItem;window.renderShopItems=renderShopItems;window.shopCategory=shopCategory;window.invCategory=invCategory;window.recoverSystem=recoverSystem;window.announcePage=announcePage;window.createClan=createClan;window.showCreateClan=showCreateClan;window.joinClan=joinClan;window.leaveClan=leaveClan;window.deleteClan=deleteClan;window.showClanInfo=showClanInfo;window.changeClanRole=changeClanRole;window.kickClanMember=kickClanMember;window.donateToClan=donateToClan;window.startClanWar=openWarTargetModal;window.filterLogs=filterLogs;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=acceptFriend;window.removeFriend=removeFriend;window.blockAgent=blockAgent;window.unblockAgent=unblockAgent;window.renderFriends=renderFriends;window.toggleSound=toggleSound;window.addDMReaction=addDMReaction;window.addClanReaction=addClanReaction;window.showReactionPicker=showReactionPickerUniversal;window.pinChatMessage=pinChatMessage;window.pinAnnouncement=pinAnnouncement;window.scrollToChatMessage=scrollToChatMessage;window.replyToMessage=replyToMessage;window.replyToClanMessage=replyToClanMessage;window.cancelReply=cancelReply;window.cancelDmReply=cancelDmReply;window.loadMoreChatMessages=loadMoreChatMessages;window.switchChatTab=switchChatTab;window.openClanChat=openClanChat;window.sendClanMessage=sendClanMessage;window.deleteClanMessage=deleteClanMessage;window.getDiscountedPrice=getDiscountedPrice;window.formatPrice=formatPrice;window.getItemDiscount=getItemDiscount;window.updateDiscountDisplay=updateDiscountDisplay;window.getActiveColorClassForId=getActiveColorClassForId;window.initTicker=initTicker;window.startBgMusic=startBgMusic;window.stopBgMusic=stopBgMusic;window.createMeme=createMeme;window.deleteMeme=deleteMeme;window.likeMeme=likeMeme;window.showCreateMeme=showCreateMeme;window.loadMemes=loadMemes;window.renderMemes=renderMemes;window.hideMentionSuggestions=hideMentionSuggestions;window.glowIcon=glowIcon;window.stopGlowIcon=stopGlowIcon;
 async function subscribeToPush(){if(!('serviceWorker' in navigator)||!('PushManager' in window)){console.log('Push не поддерживается');return;}const permission=await Notification.requestPermission();if(permission!=='granted'){console.log('Уведомления отклонены');return;}const registration=await navigator.serviceWorker.ready;let subscription=await registration.pushManager.getSubscription();if(!subscription){try{subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array('BEl62iXVYKEQV4GL4GrfLHyWjNx8gUdiNSd8m5_ynibTh3npZv2kEHhzhx9PG_PpQxNkFGrNndPyLZcwcZ1pWcE')});}catch(e){console.error('Ошибка подписки:',e);return;}}await supabase.from('push_subscriptions').upsert({agent:CA.name,subscription:JSON.stringify(subscription),created_at:new Date().toISOString()});console.log('Push подписка сохранена');}
@@ -1818,21 +1825,6 @@ window.startCountdown = startCountdown;
 window.pongSetReady = pongSetReady;
 window.leaveLobby = leaveLobby;
 window.doParry = doParry;
-// Запускаем W-C26 с очень большими интервалами
-if(window.innerWidth > 768) {
-    if(wc26Timer) {
-        clearInterval(wc26Timer);
-        wc26Timer = null;
-    }
-    
-    // Проверяем раз в 15 минут
-    const LONG_INTERVAL = 900000; // 15 минут
-    wc26Timer = setInterval(wc26Think, LONG_INTERVAL);
-    
-    // Первый запуск через 5 минут
-    setTimeout(wc26Think, 300000); // 5 минут
-    console.log('W-C26: Таймер запущен (интервал 15 минут)');
-}
 </script>
 </body>
 </html>
