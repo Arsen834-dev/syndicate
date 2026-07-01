@@ -1220,7 +1220,7 @@ async function wc26Ask(prompt) {
                 },
                 body: JSON.stringify({ model: model, messages: messages, max_tokens: 250 })
             });
-            if (response.status === 429) { await new Promise(r => setTimeout(r, 10000)); continue; }
+            if (response.status === 429) { await new Promise(r => setTimeout(r, 15000)); continue; }
             if (!response.ok) continue;
             let data = await response.json();
             if (data.choices && data.choices[0]) {
@@ -1310,9 +1310,9 @@ let wc26ChatHook = function(payload) {
     let lastWasWC26 = chatMessages.length > 0 && chatMessages[chatMessages.length - 1].author === 'W-C26';
     if (calledBy || lastWasWC26) {
         setTimeout(async () => {
-    let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0, 150) + '". Ответь по-своему, но более человечно.');
+    let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0, 150) + '". Ответь кратко.');
     await wc26Send(answer);
-}, 2000);
+}, 5000);
     }
 };
 // ГЛОБАЛЬНЫЕ ФУНКЦИИ
