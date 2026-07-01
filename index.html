@@ -446,7 +446,7 @@ async function askAI(question, history = []) {
                     body:JSON.stringify({
                         model: model,
                         messages: messages,
-                        max_tokens: 20 // Ещё меньше
+                        max_tokens: 300 // Ещё меньше
                     })
                 });
                 
