@@ -1319,6 +1319,7 @@ async function wc26Send(msg) {
             content: 'W-C26: ' + msg.substring(0, 200),
             agent: null
         });
+        if(chatTabActive==='general')renderChat();
     } catch (e) {}
 }
 
