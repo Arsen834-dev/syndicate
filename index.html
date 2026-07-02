@@ -1205,7 +1205,7 @@ let wc26Busy = false;
 async function wc26Ask(prompt) {
     if (wc26Busy) return 'ЗАНЯТ';
     wc26Busy = true;
-    let models = ['qwen/qwen3-next-80b-a3b-instruct:free', 'meta-llama/llama-3.2-3b-instruct:free'];
+    let models = ['meta-llama/llama-3.3-70b-instruct:free', 'google/gemma-4-26b-a4b-it:free'];
     for (let model of models) {
         try {
             let messages = [
