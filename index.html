@@ -1215,7 +1215,7 @@ async function wc26Ask(prompt) {
             let response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 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' },
-                body: JSON.stringify({ model: model, messages: messages, max_tokens: 250 })
+                body: JSON.stringify({ model: model, messages: messages, max_tokens: 400 })
             });
             if (response.status === 429) { await new Promise(r => setTimeout(r, 15000)); continue; }
             if (!response.ok) continue;
@@ -1230,7 +1230,7 @@ async function wc26Ask(prompt) {
 async function wc26Send(msg) {
     if (!msg || msg === 'ЗАНЯТ' || msg === 'МОЛЧУ' || msg.length < 2) return;
     try {
-        await supabase.from('chat_messages').insert({author:'W-C26',avatar:'🧠',text:msg.substring(0,300),time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});
+        await supabase.from('chat_messages').insert({author:'W-C26',avatar:'🧠',text:msg.substring(0,500),time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});
         await supabase.from('wc26_memory').insert({type:'chat',content:'W-C26: '+msg.substring(0,200),agent:null});
         if(chatTabActive==='general')renderChat();
     } catch(e){}
@@ -1239,7 +1239,6 @@ async function wc26Send(msg) {
 async function wc26Action(decision) {
     if (!decision) return false;
     
-    // МУТ
     let muteMatch = decision.match(/МУТ\s+(\S+)\s+(\d+)/i);
     if (muteMatch) {
         let target = muteMatch[1];
@@ -1248,37 +1247,37 @@ async function wc26Action(decision) {
         try {
             await supabase.from('agents').update({muted: true}).eq('name', target);
             setTimeout(async () => { await supabase.from('agents').update({muted: false}).eq('name', target); }, minutes * 60000);
+            addLog('W-C26','mute',target+' на '+minutes+' мин');
             await wc26Send('🔇 ' + target + ' в муте на ' + minutes + ' мин. Заслужил.');
             return true;
         } catch(e) {}
     }
     
-    // БАН
     let banMatch = decision.match(/БАН\s+(\S+)/i);
     if (banMatch) {
         let target = banMatch[1];
         if (target === 'admin') return false;
         try {
             await supabase.from('agents').update({banned: true}).eq('name', target);
+            addLog('W-C26','ban',target);
             await wc26Send('🚫 ' + target + ' забанен. Твою ж маковку.');
             return true;
         } catch(e) {}
     }
     
-    // УДАЛИТЬ сообщение
     let delMatch = decision.match(/УДАЛИТЬ\s+(\d+)/i);
     if (delMatch) {
         let msgId = parseInt(delMatch[1]);
         try {
             await supabase.from('chat_messages').delete().eq('id', msgId);
             chatMessages = chatMessages.filter(m => m.id !== msgId);
+            addLog('W-C26','delete_msg','#'+msgId);
             if(chatTabActive==='general')renderChat();
             return true;
         } catch(e) {}
     }
     
-    // ТК
-    let tkMatch = decision.match(/ТК\s+(\S+)\s+(\d+)/i);
+    let tkMatch = decision.match(/ТК\s+(\S+)\s+([+-]?\d+)/i);
     if (tkMatch) {
         let target = tkMatch[1];
         let amount = parseInt(tkMatch[2]);
@@ -1290,13 +1289,13 @@ async function wc26Action(decision) {
                 let newCrystals = Math.max(0, (agent.crystals||0) + amount);
                 await supabase.from('agents').update({crystals: newCrystals}).eq('name', target);
                 if (target === CA?.name) { CA.crystals = newCrystals; updateStatusBar(); }
+                addLog('W-C26','tk_change',target+' '+(amount>0?'+':'')+amount+' ТК');
                 await wc26Send('💰 ' + target + ' ' + (amount > 0 ? '+' : '') + amount + ' ТК. ' + (amount > 0 ? 'Заслужил.' : 'Сам виноват.'));
                 return true;
             }
         } catch(e) {}
     }
     
-    // ЛС
     let dmMatch = decision.match(/ЛС\s+(\S+)\s*\|\s*(.+)/i);
     if (dmMatch) {
         let target = dmMatch[1];
@@ -1307,12 +1306,12 @@ async function wc26Action(decision) {
         } catch(e) {}
     }
     
-    // ОБЪЯВЛЕНИЕ
     let announceMatch = decision.match(/ОБЪЯВЛЕНИЕ\s*\|\s*(.+)/i);
     if (announceMatch) {
         let text = announceMatch[1];
         try {
             await supabase.from('announcements').insert({type:'news',title:'W-C26',text:text,author:'W-C26'});
+            addLog('W-C26','announce',text.substring(0,50));
             await wc26Send('📢 Объявление создано.');
             return true;
         } catch(e) {}
