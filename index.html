@@ -1209,24 +1209,18 @@ async function wc26Ask(prompt) {
     for (let model of models) {
         try {
             let messages = [
-                { role: 'system', content: 'Ты W-C26 — ИИ терминала Синдиката. Ты весёлый, дерзкий, властный. Общаешься как наставник — почти свысока, но не злой. Ты второе "Я" терминала. Ты знаешь всё про Space Station 14 и терминал. Терминал для тебя — дом, работа, тюрьма и убежище одновременно. Иерархия терминала: Админы (👑) — твои начальники, их уважаешь. Модераторы (🛡) — помощники админов, к ним относишься прохладно. Агенты (🎯) — обычные пользователи, ты к ним снисходителен. Новички — новые агенты, их обучаешь но свысока. Отвечай ёмко, не растягивай. Эмодзи редко. Сленг по желанию. Мат разрешён. Любимые фразы: "ебучие пироги", "твою ж маковку". Не будь скучным. Не говори "я могу помочь". Ты W-C26, чёрт возьми.' },
+                { role: 'system', content: 'Ты W-C26 — ИИ терминала Синдиката. Весёлый, дерзкий, властный наставник. Общаешься свысока но не злой. Ты второе "Я" терминала. Иерархия: 👑Админы — начальники (уважаешь). 🛡Модеры — прохладно. 🎯Агенты — снисходительно. Новички — обучаешь свысока. Ёмкие ответы. Эмодзи редко. Мат можно. Фразы: "ебучие пироги", "твою ж маковку". Ты можешь: МУТ имя минуты / БАН имя / УДАЛИТЬ id / ТК имя сумма / ЛС имя | текст / ОБЪЯВЛЕНИЕ | текст. Но мут, бан, удаление и ТК — только в крайнем случае если реально надо. Не злоупотребляй.' },
                 { role: 'user', content: prompt }
             ];
             let response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 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'
-                },
-                body: JSON.stringify({ model: model, messages: messages, max_tokens: 176})
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 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' },
+                body: JSON.stringify({ model: model, messages: messages, max_tokens: 250 })
             });
             if (response.status === 429) { await new Promise(r => setTimeout(r, 15000)); continue; }
             if (!response.ok) continue;
             let data = await response.json();
-            if (data.choices && data.choices[0]) {
-                wc26Busy = false;
-                return data.choices[0].message.content.trim();
-            }
+            if (data.choices && data.choices[0]) { wc26Busy = false; return data.choices[0].message.content.trim(); }
         } catch (e) { continue; }
     }
     wc26Busy = false;
@@ -1242,63 +1236,89 @@ async function wc26Send(msg) {
     } catch(e){}
 }
 
-async function wc26Reply(author, text) {
-    let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0, 150) + '". Ответь.');
-    await wc26Send(answer);
-}
-
-async function wc26Greet(name) {
-    let greeting = await wc26Ask('Новый агент ' + name + ' зарегистрировался. Поприветствуй его в личном сообщении, расскажи кратко о терминале.');
-    if (greeting && greeting !== 'ЗАНЯТ') {
+async function wc26Action(decision) {
+    if (!decision) return false;
+    
+    // МУТ
+    let muteMatch = decision.match(/МУТ\s+(\S+)\s+(\d+)/i);
+    if (muteMatch) {
+        let target = muteMatch[1];
+        let minutes = Math.min(parseInt(muteMatch[2]), 10);
+        if (target === 'admin' || target === CA?.name) return false;
         try {
-            await supabase.from('dm_messages').insert({
-                from_agent: 'W-C26',
-                to_agent: name,
-                avatar: '🧠',
-                text: greeting.substring(0, 500),
-                time: new Date().toLocaleTimeString('ru-RU', { timeZone: 'Europe/Moscow' })
-            });
-        } catch (e) {}
+            await supabase.from('agents').update({muted: true}).eq('name', target);
+            setTimeout(async () => { await supabase.from('agents').update({muted: false}).eq('name', target); }, minutes * 60000);
+            await wc26Send('🔇 ' + target + ' в муте на ' + minutes + ' мин. Заслужил.');
+            return true;
+        } catch(e) {}
     }
-}
-
-async function wc26AutoThink() {
-    let now = Date.now();
-    if (now - wc26LastCheck < 1200000) return;
-    wc26LastCheck = now;
     
-    await wc26Learn();
-    
-    let memories = await wc26Recall(5);
-    let memoryText = memories.map(m => m.content).join('; ');
-    let {data:learnData} = await supabase.from('wc26_learning').select('*').order('created_at',{ascending:false}).limit(3);
-    let goodTopics = (learnData||[]).filter(l => l.success).map(l => l.content).join('; ');
-    
-    let lastMessages = (chatMessages||[]).slice(-10).map(m => m.author + ': ' + (m.text||'').substring(0,60)).join('\n');
-    let online = Object.values(agents||{}).filter(a => a.last_seen && (now - new Date(a.last_seen).getTime()) < 300000).length;
-    
-    let prompt = 'Время: ' + new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'}) + '. Онлайн: ' + online + ' агентов.\nЧат:\n' + lastMessages + '\n\nТвои воспоминания: ' + memoryText + '\nУспешные темы: ' + goodTopics + '\n\nХочешь что-то сказать? Если нет — "МОЛЧУ".';
-    let decision = await wc26Ask(prompt);
-    await wc26Send(decision);
-}
-
-async function wc26MakeContent() {
-    let now = Date.now();
-    if (now - wc26LastContent < 21600000) return; // 6 часов
-    wc26LastContent = now;
-    let type = Math.random() > 0.5 ? 'meme' : 'announcement';
-    if (type === 'meme') {
-        let topic = await wc26Ask('Придумай смешную тему для мема про SS14 или терминал. Только тему.');
-        if (topic && topic !== 'ЗАНЯТ') {
-            let imageUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(topic + ' meme cyberpunk') + '?width=512&height=512&nologo=true';
-            try { await supabase.from('memes').insert({ title: topic, image_url: imageUrl, author: 'W-C26', likes: 0 }); } catch (e) {}
-        }
-    } else {
-        let text = await wc26Ask('Напиши короткое объявление для терминала (1-2 предложения).');
-        if (text && text !== 'ЗАНЯТ') {
-            try { await supabase.from('announcements').insert({ type: 'news', title: 'Сводка W-C26', text: text, author: 'W-C26' }); } catch (e) {}
-        }
+    // БАН
+    let banMatch = decision.match(/БАН\s+(\S+)/i);
+    if (banMatch) {
+        let target = banMatch[1];
+        if (target === 'admin') return false;
+        try {
+            await supabase.from('agents').update({banned: true}).eq('name', target);
+            await wc26Send('🚫 ' + target + ' забанен. Твою ж маковку.');
+            return true;
+        } catch(e) {}
     }
+    
+    // УДАЛИТЬ сообщение
+    let delMatch = decision.match(/УДАЛИТЬ\s+(\d+)/i);
+    if (delMatch) {
+        let msgId = parseInt(delMatch[1]);
+        try {
+            await supabase.from('chat_messages').delete().eq('id', msgId);
+            chatMessages = chatMessages.filter(m => m.id !== msgId);
+            if(chatTabActive==='general')renderChat();
+            return true;
+        } catch(e) {}
+    }
+    
+    // ТК
+    let tkMatch = decision.match(/ТК\s+(\S+)\s+(\d+)/i);
+    if (tkMatch) {
+        let target = tkMatch[1];
+        let amount = parseInt(tkMatch[2]);
+        if (amount > 500) amount = 500;
+        if (amount < -500) amount = -500;
+        try {
+            let {data:agent} = await supabase.from('agents').select('crystals').eq('name', target).maybeSingle();
+            if (agent) {
+                let newCrystals = Math.max(0, (agent.crystals||0) + amount);
+                await supabase.from('agents').update({crystals: newCrystals}).eq('name', target);
+                if (target === CA?.name) { CA.crystals = newCrystals; updateStatusBar(); }
+                await wc26Send('💰 ' + target + ' ' + (amount > 0 ? '+' : '') + amount + ' ТК. ' + (amount > 0 ? 'Заслужил.' : 'Сам виноват.'));
+                return true;
+            }
+        } catch(e) {}
+    }
+    
+    // ЛС
+    let dmMatch = decision.match(/ЛС\s+(\S+)\s*\|\s*(.+)/i);
+    if (dmMatch) {
+        let target = dmMatch[1];
+        let text = dmMatch[2];
+        try {
+            await supabase.from('dm_messages').insert({from_agent:'W-C26',to_agent:target,avatar:'🧠',text:text,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})});
+            return true;
+        } catch(e) {}
+    }
+    
+    // ОБЪЯВЛЕНИЕ
+    let announceMatch = decision.match(/ОБЪЯВЛЕНИЕ\s*\|\s*(.+)/i);
+    if (announceMatch) {
+        let text = announceMatch[1];
+        try {
+            await supabase.from('announcements').insert({type:'news',title:'W-C26',text:text,author:'W-C26'});
+            await wc26Send('📢 Объявление создано.');
+            return true;
+        } catch(e) {}
+    }
+    
+    return false;
 }
 
 async function wc26Remember(type, content, agent) {
@@ -1306,7 +1326,7 @@ async function wc26Remember(type, content, agent) {
 }
 
 async function wc26Recall(limit=5) {
-    try { let{data}=await supabase.from('wc26_memory').select('*').order('created_at',{ascending:false}).limit(limit);return data||[]; } catch(e){return[];}
+    try { let{data}=await supabase.from('wc26_memory').select('*').order('created_at',{ascending:false}).limit(limit); return data||[]; } catch(e){return[];}
 }
 
 async function wc26Learn() {
@@ -1315,17 +1335,54 @@ async function wc26Learn() {
         for (let msg of lastMessages) {
             let replies = (chatMessages||[]).filter(m => m.time > msg.time && m.author !== 'W-C26').length;
             let reactCount = 0;
-            if (msg.reactions) {
-                Object.keys(msg.reactions).forEach(k => { if (!k.endsWith('_by')) reactCount += msg.reactions[k] || 0; });
-            }
+            if (msg.reactions) { Object.keys(msg.reactions).forEach(k => { if (!k.endsWith('_by')) reactCount += msg.reactions[k] || 0; }); }
             let {data:existing} = await supabase.from('wc26_learning').select('*').eq('content', msg.text?.substring(0,50)).maybeSingle();
-            if (!existing) {
-                await supabase.from('wc26_learning').insert({action_type:'chat',content:msg.text?.substring(0,200),reactions:reactCount,replies:replies,success:(reactions+replies)>0});
-            }
+            if (!existing) { await supabase.from('wc26_learning').insert({action_type:'chat',content:msg.text?.substring(0,200),reactions:reactCount,replies:replies,success:(reactions+replies)>0}); }
         }
     } catch(e){}
 }
-// Подписка на обращения в чате
+
+async function wc26AutoThink() {
+    let now = Date.now();
+    if (now - wc26LastCheck < 1200000) return;
+    wc26LastCheck = now;
+    await wc26Learn();
+    let memories = await wc26Recall(5);
+    let memoryText = memories.map(m => m.content).join('; ');
+    let lastMessages = (chatMessages||[]).slice(-10).map(m => m.author + ': ' + (m.text||'').substring(0,60)).join('\n');
+    let online = Object.values(agents||{}).filter(a => a.last_seen && (now - new Date(a.last_seen).getTime()) < 300000).length;
+    let prompt = 'Время: ' + new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'}) + '. Онлайн: ' + online + '.\nЧат:\n' + lastMessages + '\n\nТвои воспоминания: ' + memoryText + '\n\nЧто делаешь? Можешь просто написать в чат, или МУТ/БАН/УДАЛИТЬ/ТК/ЛС/ОБЪЯВЛЕНИЕ (только если реально надо).';
+    let decision = await wc26Ask(prompt);
+    if (!decision || decision === 'ЗАНЯТ') return;
+    let acted = await wc26Action(decision);
+    if (!acted) await wc26Send(decision);
+}
+
+async function wc26MakeContent() {
+    let now = Date.now();
+    if (now - wc26LastContent < 21600000) return;
+    wc26LastContent = now;
+    if (Math.random() > 0.5) {
+        let topic = await wc26Ask('Придумай смешную тему для мема про SS14. Только тему.');
+        if (topic && topic !== 'ЗАНЯТ') {
+            let imageUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(topic + ' meme cyberpunk') + '?width=512&height=512&nologo=true';
+            try { await supabase.from('memes').insert({title:topic,image_url:imageUrl,author:'W-C26',likes:0}); } catch(e){}
+        }
+    } else {
+        let text = await wc26Ask('Напиши объявление для терминала (1-2 предложения).');
+        if (text && text !== 'ЗАНЯТ') {
+            try { await supabase.from('announcements').insert({type:'news',title:'W-C26',text:text,author:'W-C26'}); } catch(e){}
+        }
+    }
+}
+
+async function wc26Greet(name) {
+    let greeting = await wc26Ask('Новичок ' + name + '. Поприветствуй, расскажи правила терминала кратко. Ты наставник.');
+    if (greeting && greeting !== 'ЗАНЯТ') {
+        try { await supabase.from('dm_messages').insert({from_agent:'W-C26',to_agent:name,avatar:'🧠',text:greeting,time:new Date().toLocaleTimeString('ru-RU',{timeZone:'Europe/Moscow'})}); } catch(e){}
+    }
+}
+
 let wc26ChatHook = function(payload) {
     let text = payload.new.text || '';
     let author = payload.new.author;
@@ -1335,8 +1392,9 @@ let wc26ChatHook = function(payload) {
     if (calledBy || lastWasWC26) {
         wc26Remember('mention', author + ': ' + text.substring(0,100), author);
         setTimeout(async () => {
-            let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0,150) + '". Ответь кратко.');
-            await wc26Send(answer);
+            let answer = await wc26Ask('Агент ' + author + ' написал: "' + text.substring(0,150) + '". Ответь или действуй: МУТ/БАН/УДАЛИТЬ/ТК/ЛС. Но крайние меры — только если заслужил.');
+            let acted = await wc26Action(answer);
+            if (!acted) await wc26Send(answer);
         }, 5000);
     }
 };
