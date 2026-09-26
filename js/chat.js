@@ -236,12 +236,16 @@ export async function sendMessage() {
         md.reply_text = replyTo.text;
     }
 
-    try { await supabase.from('chat_messages').insert(md); } catch (e) {}
+    // ✅ Сначала очищаем поле — сразу, синхронно
+    inp.value = '';
+    resetTextareaHeight(inp);
+
+    // Отправляем без await — не блокирует UI
+    supabase.from('chat_messages').insert(md).then(() => {}).catch(() => {});
 
     playSound('send');
     CA.chatCount = (CA.chatCount || 0) + 1;
     CA.crystals = (CA.crystals || 0) + applyBooster(15, 'tk');
-    resetTextareaHeight(inp);
     replyTo = null;
     cancelReply();
     saveAgent();
@@ -608,12 +612,13 @@ export async function sendClanMessage() {
         md.reply_text = replyTo.text;
     }
 
-    try { await supabase.from('clan_messages').insert(md); } catch (e) {}
+    inp.value = '';
+    resetTextareaHeight(inp);
+    supabase.from('clan_messages').insert(md).then(() => {}).catch(() => {});
 
     playSound('send');
     CA.chatCount = (CA.chatCount || 0) + 1;
     CA.crystals = (CA.crystals || 0) + applyBooster(15, 'tk');
-    resetTextareaHeight(inp);
     replyTo = null;
     cancelReply();
     saveAgent();
