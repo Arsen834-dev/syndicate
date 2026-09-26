@@ -788,10 +788,6 @@ export function renderInventory() {
             }
 
             let giftBtn = '';
-            if (!active && !ba && item.id !== 'c_red' && item.id !== 'f_default' && item.id !== 'b_none' && item.id !== 'fnt_default') {
-                giftBtn = '<button class="btn secondary full" data-gift-item="' + item.id + '" data-gift-cat="' + item.category + '" data-gift-name="' + item.name + '" style="padding:6px;font-size:0.7rem;margin-top:4px;">🎁 Подарить</button>';
-            }
-
             return '<div class="card" style="border-color:' + (active || ba ? 'var(--success)' : 'var(--border-2)') + ';padding:14px;text-align:center;overflow:visible;">' +
                 '<div style="min-height:70px;display:flex;align-items:center;justify-content:center;overflow:visible;" data-preview-cat="' + item.category + '" data-preview-id="' + item.id + '">' + prev + '</div>' +
                 '<div style="font-weight:600;margin:6px 0;font-size:0.8rem;">' + item.name + '</div>' +

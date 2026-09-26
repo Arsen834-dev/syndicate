@@ -52,14 +52,13 @@ export const RP_RACES = [
     { id: 'skrell', name: 'Скрелл', icon: '🐸' },
     { id: 'ipc', name: 'Киборг', icon: '🤖' },
     { id: 'arcana', name: 'Аркан', icon: '🔮' },
-    // НОВЫЕ
     { id: 'novakid', name: 'Новакид', icon: '🌟' },
     { id: 'nian', name: 'Ниан', icon: '🐈' },
     { id: 'dusk', name: 'Сумеречник', icon: '🌑' },
     { id: 'rezomi', name: 'Резоми', icon: '🧬' },
-    { id: 'felenid', name: 'Феленид', icon: '🐆' }
+    { id: 'felenid', name: 'Феленид', icon: '🐆' },
+    { id: 'arachnid', name: 'Арахнид', icon: '🕷️' }   // ← НОВАЯ
 ];
-
 // Тикер
 export const TICKER_TEXTS = [
     "Слухи: найдена карта старой канализации в квадрате 105 планеты 436",
